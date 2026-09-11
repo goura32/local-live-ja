@@ -1,4 +1,4 @@
-from local_live.audio import AudioNode, _parse_nodes, _prefer_usb
+from local_live.audio import AudioNode, _parse_nodes, _parse_pactl_nodes, _prefer_usb
 from local_live.doctor import _github_auth_is_valid
 
 
@@ -30,3 +30,18 @@ def test_explicit_usb_audio_is_preferred_over_other_usb_capture_devices():
         AudioNode(71, "USB Audio アナログステレオ", "source"),
     ]
     assert _prefer_usb(nodes).node_id == 71
+
+
+def test_pactl_parser_keeps_stable_target_and_skips_monitor():
+    output = """
+Source #131
+    Name: alsa_output.usb-Generic_USB_Audio-00.analog-stereo.monitor
+    Description: Monitor of USB Audio アナログステレオ
+Source #132
+    Name: alsa_input.usb-Generic_USB_Audio-00.analog-stereo
+    Description: USB Audio アナログステレオ
+"""
+    nodes = _parse_pactl_nodes(output, "source")
+    assert len(nodes) == 1
+    assert nodes[0].node_id == 132
+    assert nodes[0].target == "alsa_input.usb-Generic_USB_Audio-00.analog-stereo"

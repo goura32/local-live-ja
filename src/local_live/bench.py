@@ -888,7 +888,7 @@ def run_aec_bench(config: dict[str, Any], *, force_audio: bool = False) -> dict[
     asr: WhisperASR | None = None
     try:
         raw_path = artifact_dir(config) / f"{run_id}_raw.wav"
-        raw = play_and_record(reference, raw_path, playback_target=speaker.node_id, capture_target=mic.node_id)
+        raw = play_and_record(reference, raw_path, playback_target=speaker.target or speaker.node_id, capture_target=mic.target or mic.node_id)
         raw_stats = raw.get("recording_stats") or audio_file_stats(raw_path)
         raw["recording_stats"] = raw_stats
         data["raw_capture"] = raw
@@ -914,7 +914,7 @@ def run_aec_bench(config: dict[str, Any], *, force_audio: bool = False) -> dict[
             data["reason"] = "USB targets disappeared before AEC-off run"
             return write_benchmark(config, "aec", data, started_at=started)
         off_path = artifact_dir(config) / f"{run_id}_off.wav"
-        data["off"] = play_and_record(reference, off_path, playback_target=off_speaker.node_id, capture_target=off_mic.node_id)
+        data["off"] = play_and_record(reference, off_path, playback_target=off_speaker.target or off_speaker.node_id, capture_target=off_mic.target or off_mic.node_id)
         off_stats = data["off"].get("recording_stats") or audio_file_stats(off_path)
         data["off"]["recording_stats"] = off_stats
         if off_stats["rms"] <= signal_floor or off_stats["peak"] <= signal_floor:
@@ -935,8 +935,8 @@ def run_aec_bench(config: dict[str, Any], *, force_audio: bool = False) -> dict[
             capture_name=nested(config, "pipewire", "echo_cancel_capture", default="Local Live Echo Cancellation Capture"),
             playback_name=nested(config, "pipewire", "echo_cancel_playback", default="Local Live Echo Cancellation Playback"),
             latency=nested(config, "pipewire", "node_latency", default="1024/48000"),
-            sink_master=aec_speaker.node_id,
-            source_master=aec_mic.node_id,
+            sink_master=aec_speaker.target or aec_speaker.node_id,
+            source_master=aec_mic.target or aec_mic.node_id,
         )
         module_info = session.load()
         data["aec_attempted"] = True
@@ -961,8 +961,8 @@ def run_aec_bench(config: dict[str, Any], *, force_audio: bool = False) -> dict[
             data["on"] = play_and_record(
                 reference,
                 on_path,
-                playback_target=session.sink_node_id,
-                capture_target=session.source_node_id,
+                playback_target=session.sink_target or session.sink_node_id,
+                capture_target=session.source_target or session.source_node_id,
             )
         finally:
             session.unload()

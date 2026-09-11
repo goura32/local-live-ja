@@ -12,7 +12,7 @@ The first PoC deliberately closes an utterance after VAD rather than implementin
 
 ## Audio and AEC
 
-PipeWire's installed `libpipewire-module-echo-cancel` is loaded temporarily through the host's Pulse-compatible `module-echo-cancel` API with `aec_method=webrtc`. The session targets the detected USB sink/source as `sink_master`/`source_master` and uses the generated Echo-Cancel Sink/Source nodes for playback/capture. AEC-off and AEC-on use the same generated reference WAV and physical USB targets. AEC metrics include aligned reference/recording correlation and RMS residual attenuation; silent or invalid captures are blocked rather than reported as zero performance.
+PipeWire's installed `libpipewire-module-echo-cancel` is loaded temporarily through the host's Pulse-compatible `module-echo-cancel` API with `aec_method=webrtc`. The session resolves the physical USB sink/source to stable PipeWire/Pulse `node.name` targets (rather than transient numeric IDs), uses those as `sink_master`/`source_master`, and uses the generated Echo-Cancel Sink/Source names for playback/capture. AEC-off and AEC-on use the same generated reference WAV and physical USB targets. AEC metrics include aligned reference/recording correlation and RMS residual attenuation; silent or invalid captures are blocked rather than reported as zero performance.
 
 ## Measurement
 

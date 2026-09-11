@@ -101,14 +101,14 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
             if not args.no_aec:
                 aec_session = _make_aec_session(
                     config,
-                    sink_master=speaker.node_id if speaker else None,
-                    source_master=mic.node_id if mic else None,
+                    sink_master=(speaker.target or speaker.node_id) if speaker else None,
+                    source_master=(mic.target or mic.node_id) if mic else None,
                 )
                 aec_session.load()
                 after = PipeWireInventory.discover()
                 mic = next((node for node in after.sources if node.node_id == aec_session.source_node_id), mic)
                 speaker = next((node for node in after.sinks if node.node_id == aec_session.sink_node_id), speaker)
-            record_target = mic.node_id if mic else None
+            record_target = (mic.target or mic.node_id) if mic else None
             log.mark("vad_start")
             record_path = artifact / "live_input.wav"
             record_fixed(record_path, target=record_target, duration_s=args.duration, sample_rate=16000, channels=1)
@@ -151,7 +151,7 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
             device="auto",
             max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
         )
-        playback_target = speaker.node_id if speaker else None
+        playback_target = (speaker.target or speaker.node_id) if speaker else None
         pipeline = LivePipeline(
             llm=provider,
             tts=tts,

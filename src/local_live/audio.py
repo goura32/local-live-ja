@@ -18,6 +18,7 @@ class AudioNode:
     node_id: int
     name: str
     kind: str
+    target: str | None = None
 
 
 @dataclass
@@ -30,8 +31,12 @@ class PipeWireInventory:
     @classmethod
     def discover(cls) -> "PipeWireInventory":
         status = _run(["wpctl", "status"])[1]
-        sinks = _parse_nodes(status, "Sinks:")
-        sources = _parse_nodes(status, "Sources:")
+        wpctl_sinks = _parse_nodes(status, "Sinks:")
+        wpctl_sources = _parse_nodes(status, "Sources:")
+        pactl_sinks = _parse_pactl_nodes(_run(["pactl", "list", "sinks"])[1], "sink")
+        pactl_sources = _parse_pactl_nodes(_run(["pactl", "list", "sources"])[1], "source")
+        sinks = pactl_sinks or wpctl_sinks
+        sources = pactl_sources or wpctl_sources
         devices = []
         for line in status.splitlines():
             if "Devices:" in line:
@@ -68,7 +73,11 @@ class PipeWireInventory:
 def _prefer_usb(nodes: list[AudioNode]) -> AudioNode | None:
     if not nodes:
         return None
-    explicit_usb = [node for node in nodes if "usb" in node.name.casefold()]
+    explicit_usb = [
+        node for node in nodes
+        if "usb" in f"{node.name} {node.target or ''}".casefold()
+        and "gostream" not in f"{node.name} {node.target or ''}".casefold()
+    ]
     if explicit_usb:
         return explicit_usb[0]
     gostream = [node for node in nodes if "gostream" in node.name.casefold()]
@@ -92,6 +101,38 @@ def _parse_nodes(status: str, section_name: str) -> list[AudioNode]:
         name = re.sub(r"\s+\[vol:.*?\]\s*$", "", match.group(2)).strip()
         if name:
             result.append(AudioNode(int(match.group(1)), name, section_name[:-1].lower().rstrip("s")))
+    return result
+
+
+def _parse_pactl_nodes(output: str, kind: str) -> list[AudioNode]:
+    """Parse pactl objects and retain stable PipeWire/Pulse node names as targets."""
+    header = "Sink" if kind == "sink" else "Source"
+    result: list[AudioNode] = []
+    current_id: int | None = None
+    current_target: str | None = None
+    current_description: str | None = None
+
+    def flush() -> None:
+        nonlocal current_id, current_target, current_description
+        if current_id is not None and current_target and current_description:
+            if kind != "source" or not current_target.endswith(".monitor"):
+                result.append(AudioNode(current_id, current_description, kind, current_target))
+        current_id = None
+        current_target = None
+        current_description = None
+
+    for line in output.splitlines():
+        m = re.match(rf"^{header} #(\d+)$", line.strip())
+        if m:
+            flush()
+            current_id = int(m.group(1))
+            continue
+        stripped = line.strip()
+        if stripped.startswith("Name:"):
+            current_target = stripped.split(":", 1)[1].strip()
+        elif stripped.startswith("Description:"):
+            current_description = stripped.split(":", 1)[1].strip()
+    flush()
     return result
 
 
@@ -161,6 +202,8 @@ class EchoCancelSession:
         self.module_id: str | None = None
         self.sink_node_id: int | None = None
         self.source_node_id: int | None = None
+        self.sink_target: str | None = None
+        self.source_target: str | None = None
 
     def load(self) -> dict[str, Any]:
         args = build_pulse_echo_cancel_args(
@@ -194,6 +237,8 @@ class EchoCancelSession:
             raise RuntimeError("echo-cancel module loaded but new source/sink did not appear")
         self.sink_node_id = sink.node_id
         self.source_node_id = source.node_id
+        self.sink_target = sink.target or str(sink.node_id)
+        self.source_target = source.target or str(source.node_id)
         return {
             "module_id": self.module_id,
             "module_loader": "pactl module-echo-cancel",
@@ -209,6 +254,8 @@ class EchoCancelSession:
             self.module_id = None
         self.sink_node_id = None
         self.source_node_id = None
+        self.sink_target = None
+        self.source_target = None
 
     def __enter__(self) -> "EchoCancelSession":
         self.load()
@@ -291,7 +338,7 @@ def record_fixed(
         except subprocess.TimeoutExpired:
             process.kill()
             stdout, stderr = process.communicate()
-    if process.returncode not in (0, -15, -signal_number("SIGTERM")) and not output.exists():
+    if process.returncode not in (0, -15, -_signal_number("SIGTERM")) and not output.exists():
         raise RuntimeError(f"pw-record failed: {stderr.strip() or 'unknown error'}")
     if not output.exists() or output.stat().st_size <= 44:
         raise RuntimeError(

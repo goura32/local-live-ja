@@ -12,10 +12,10 @@
 | OpenRouter LLM | measured with variability | requested `openrouter/free`、actual modelはrequestごとに変動 |
 | tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
 | E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
-| AEC | blocked | raw USB captureがRMS=0、peak=0のためAECを実行していない |
-| test reproducibility | pass | 単一process・直列pytest、exit code 0、32 tests pass |
+| AEC | measured | stable `node.name` targetへ修正後、物理USB speaker→room→microphoneでOFF/ONを測定。効果は弱い |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、33 tests pass |
 
-総合判定は`measured_with_blockers`。ソフトウェア縦切りとlocal Live候補は成立したが、実音響AECと物理playback roundtripは未測定である。Live用途の根拠は、GPU TTS warmの短文median 1.9032秒と、local GPU E2E Aのmedian 6.2533秒である。真のonline Qwen3-TTS streamingは前提にしていない。
+総合判定は`measured`。ソフトウェア縦切りに加え、物理USB speaker→room→microphoneのAEC OFF/ON経路まで実測できた。ただしAEC抑圧効果は今回の単一runでは弱く、Live用途の主要制約はGPU TTS warm短文median 1.9032秒とlocal GPU E2E A median 6.2533秒である。真のonline Qwen3-TTS streamingは前提にしていない。
 
 ## 実行環境
 
@@ -126,20 +126,20 @@ assistant CERは全runで、実際のTTS rowの`text`を`spoken_text`として�
 
 ## AEC
 
-最新run IDは`aec_20260911T200521Z_222082807004148`。raw captureを最初に1回だけ実行し、物理信号を確認できなかったためAEC moduleをloadしていない。
+最新run IDは`aec_20260911T232048Z_233809883876679`。従来の`wpctl` runtime node ID指定ではraw captureが無音になるrunがあったため、`pactl`から得た安定した`node.name`をtargetとして保持するよう修正した。
 
-- playback target: runtime解決したnode.name=`USB Audio アナログステレオ`、node_id=69（sink）
-- capture target: runtime解決したnode.name=`USB Audio アナログステレオ`、node_id=71（source）
-- raw recording duration: 7.016875秒
-- raw RMS: 0.0
-- raw peak: 0.0
-- signal floor RMS: 0.000001
-- `aec_attempted`: false
-- AEC OFF/ON: null / null
-- correlation、cross-correlation lag、residual echo attenuation、Whisper self-rerecognition: null/blocked
-- result status: `blocked`
+- playback target: `alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo`
+- capture target: `alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo`
+- raw capture: duration 7.3582秒、RMS 0.02321、peak 0.7110 → `pass`
+- AEC OFF: RMS 0.03353、peak 0.28247、reference correlation 0.5935
+- AEC ON: RMS 0.02770、peak 0.23416、reference correlation 0.3122
+- residual echo attenuation: 1.659 dB
+- Whisper自己再認識 CER: OFF 0.2353、ON 0.2941
+- result status: `measured`
 
-node IDは設定ファイルへ永続化していない。各runでPipeWire inventoryを再取得し、node.name/propertyから現在のnodeを解決して、録音時だけruntime IDを渡す。旧AEC試行の不確定値と固定filename時代の結果は`results/history/bench_aec_baseline_869809d.json`とGit履歴に残した。raw captureが閾値を超えるまではOFF/ON比較を実行しない。
+AEC経路とWebRTC echo-cancel moduleの動作は確認できた。一方、今回の単一物理runではRMS減衰は約1.66 dBに留まり、自己音声のASR認識もOFF/ONとも残ったため、「十分なecho suppression」とは判定しない。机上配置、speaker音量、microphone方向、AEC sample-rate/latency等の調整は次段階の課題とする。
+
+今回の診断ではUSB microphone自体は有効信号を取得でき、無音の主因は一時的な数値node IDを`pw-record`/`pw-play` targetとして使用していた点だった。物理nodeは`pactl`のstable nameで指定し、数値IDは診断情報としてのみ記録する。旧blocked結果はGit履歴と`results/history/bench_aec_baseline_869809d.json`に残している。
 
 ## テストと成果物
 
@@ -147,17 +147,17 @@ node IDは設定ファイルへ永続化していない。各runでPipeWire inve
 - working tree: `/home/ws1/projects/local-live-ja`
 - execution: single process, serial
 - exit code: 0
-- passed: 32（基準の28 tests + 測定回帰4 tests）
+- passed: 33（基準の28 tests + 測定回帰5 tests）
 - 過去のSIGTERM/SIGKILL実行はpassに算入していない。
 - `uv build`: baseline commitで成功済み。今回のsource変更後も下記最終検証で再実行する。
 - JSON: `results/doctor.json`, `bench_asr.json`, `bench_tts.json`, `bench_llm.json`, `bench_e2e.json`, `bench_aec.json`, `run_latest.json`, `summary.json`
 - 履歴: `results/history/`。current E2E/AEC/LLM baselineとfree-router retry attemptを保存している。
 - schema: current benchmark JSONはv2、summaryはv2。
 
-## 残ったblocker
+## 残った制約
 
-1. USB microphone raw captureが無音。speaker再生中でもRMS/peak=0のため、AEC性能値を出せない。実入力経路を直すまでAECはblocked。
-2. E2Eの物理playback/roundtripは未測定。論理WAV-readyとassistant-ASRは測ったが、物理音響性能はAECのraw-first gateにより分離している。
+1. AECは物理経路まで測定できたが、今回の単一runの残留echo減衰は約1.66 dBで、Whisper自己再認識も残った。AEC品質改善は次段階。
+2. E2E A/B/C/Dは論理WAV-readyまでの比較であり、全会話ターンをspeaker→room→microphoneへ戻す物理roundtrip latencyは別測定として残る。
 3. OpenRouter free routerはactual model、visible text、reasoning、出力長、TTFTがrequestごとに変動する。local PoCの失敗とは混同しない。C/D failed attemptsとD長文outlierは保存済み。
 4. GPU warm shortの初動は約1.9秒であり、sub-second live responseではない。sentence chunkingで初動を確保するが、Qwen3-TTS公式Python API自体のtrue online streamingは未提供。
 5. flash-attnとSoX executableは未導入。manual TTS経路は完走しているため、現測定のblocking issueではない。
@@ -168,7 +168,7 @@ node IDは設定ファイルへ永続化していない。各runでPipeWire inve
 2. `large-v3-turbo`、`language=ja`、GPU `int8_float16`、CPU fallback `int8`。
 3. local Ollama `qwen3.5:9b-q4_K_M`を通常経路。OpenRouterは交換可能な比較経路としてactual modelを記録する。
 4. Qwen3-TTS CustomVoice `Ono_Anna`、Japanese、GPU。LLM streamを最大48文字/0.8秒でsentence chunkする。
-5. AECはraw captureが成立したrunだけOFF/ONを実行し、無音から数値を推測しない。
+5. AECはstable `node.name`で物理USB source/sinkを指定し、raw capture成立後だけOFF/ONを実行する。現在の測定では動作するが抑圧効果は弱い。
 6. tool callingはcalculator/fixed dataのdeterministic mockだけを使う。providerが失敗した場合はunsupported/failedとして保存する。
 
 ## 再現コマンド

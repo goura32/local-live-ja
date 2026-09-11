@@ -1,10 +1,10 @@
 {
   "schema": "local-live-ja/bench-aec/v2",
   "benchmark": "aec",
-  "started_at": "2026-09-11T20:05:05Z",
-  "finished_at": "2026-09-11T20:05:28Z",
+  "started_at": "2026-09-11T23:20:48Z",
+  "finished_at": "2026-09-11T23:21:14Z",
   "environment": {
-    "captured_at": "2026-09-11T20:05:28.959136+00:00",
+    "captured_at": "2026-09-11T23:21:14.912081+00:00",
     "hostname": "ws1",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
@@ -35,43 +35,13 @@
     }
   },
   "data": {
-    "status": "blocked",
-    "run_id": "aec_20260911T200521Z_222082807004148",
+    "status": "measured",
+    "run_id": "aec_20260911T232048Z_233809883876679",
     "reference_audio": "results/artifacts/aec_reference.wav",
     "reference_generation": {
-      "source": "qwen3_tts",
+      "source": "reused_existing_generated_audio",
       "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
-      "tts": {
-        "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
-        "path": "results/artifacts/aec_reference.wav",
-        "sample_rate": 24000,
-        "audio_seconds": 6.16,
-        "elapsed_seconds": 14.331020559,
-        "model_load_seconds": 9.796122201,
-        "inference_elapsed_seconds": 4.525287198,
-        "first_audio_equivalent_seconds": 14.321411408,
-        "warm_first_audio_equivalent_seconds": 4.525287198,
-        "audio_complete_seconds": 14.330810447,
-        "playback_possible_seconds": 14.330810637,
-        "timing_ns": {
-          "request_start": 222068343721187,
-          "model_load_start": 222068343721393,
-          "model_loaded": 222078139843594,
-          "inference_start": 222078139845397,
-          "generation_complete": 222082665132595,
-          "audio_complete": 222082674531634,
-          "playback_possible": 222082674531824,
-          "tts_end": 222082674741746
-        },
-        "rtf": 0.7346245451298701,
-        "device": "cuda:0",
-        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
-        "speaker": "Ono_Anna",
-        "streaming_supported": false,
-        "gpu_memory_peak_mib": 9157,
-        "gpu_memory_delta_peak_mib": 2502,
-        "cpu_load_percent": 3.9333333333333336
-      }
+      "duration_s": 6.16
     },
     "physical_path": "TTS -> Echo Cancellation Sink -> USB speaker -> room -> USB microphone -> Echo Cancellation Source",
     "inventory_before": {
@@ -79,34 +49,40 @@
         {
           "node_id": 54,
           "name": "GoStream アナログステレオ",
-          "kind": "sink"
+          "kind": "sink",
+          "target": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
         },
         {
-          "node_id": 62,
+          "node_id": 120,
           "name": "Built-in Audio デジタルステレオ (IEC958)",
-          "kind": "sink"
+          "kind": "sink",
+          "target": "alsa_output.pci-0000_00_1f.3.iec958-stereo"
         },
         {
-          "node_id": 69,
+          "node_id": 131,
           "name": "USB Audio アナログステレオ",
-          "kind": "sink"
+          "kind": "sink",
+          "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
         }
       ],
       "sources": [
         {
           "node_id": 55,
           "name": "GoStream アナログステレオ",
-          "kind": "source"
+          "kind": "source",
+          "target": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
         },
         {
-          "node_id": 61,
+          "node_id": 121,
           "name": "Built-in Audio アナログステレオ",
-          "kind": "source"
+          "kind": "source",
+          "target": "alsa_input.pci-0000_00_1f.3.analog-stereo.9"
         },
         {
-          "node_id": 71,
+          "node_id": 132,
           "name": "USB Audio アナログステレオ",
-          "kind": "source"
+          "kind": "source",
+          "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
         }
       ],
       "devices": [
@@ -114,18 +90,20 @@
         "GoStream",
         "HDA NVidia",
         "USB Audio",
-        "カード 1: GoStream [GoStream], デバイス 0: USB Audio [USB Audio]",
-        "カード 3: Audio [USB Audio], デバイス 0: USB Audio [USB Audio]"
+        "card 1: GoStream [GoStream], device 0: USB Audio [USB Audio]",
+        "card 3: Audio [USB Audio], device 0: USB Audio [USB Audio]"
       ],
       "usb_microphone": {
-        "node_id": 71,
+        "node_id": 132,
         "name": "USB Audio アナログステレオ",
-        "kind": "source"
+        "kind": "source",
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
       },
       "usb_speaker": {
-        "node_id": 69,
+        "node_id": 131,
         "name": "USB Audio アナログステレオ",
-        "kind": "sink"
+        "kind": "sink",
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
       }
     },
     "aec_library": "aec/libspa-aec-webrtc",
@@ -133,48 +111,284 @@
     "recording_files_are_unique_per_run": true,
     "node_ids_are_runtime_only": true,
     "raw_capture": {
-      "path": "results/artifacts/aec_20260911T200521Z_222082807004148_raw.wav",
+      "path": "results/artifacts/aec_20260911T232048Z_233809883876679_raw.wav",
       "reference": "results/artifacts/aec_reference.wav",
       "duration_s": 7.0600000000000005,
-      "playback_target": 69,
-      "capture_target": 71,
+      "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+      "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
       "record_returncode": 1,
       "record_stdout": "",
       "record_stderr": "",
       "recording_stats": {
-        "path": "results/artifacts/aec_20260911T200521Z_222082807004148_raw.wav",
+        "path": "results/artifacts/aec_20260911T232048Z_233809883876679_raw.wav",
         "sample_rate": 16000,
-        "frames": 112270,
-        "duration_s": 7.016875,
-        "rms": 0.0,
-        "peak": 0.0
+        "frames": 117731,
+        "duration_s": 7.3581875,
+        "rms": 0.023211849853396416,
+        "peak": 0.71099853515625
       }
     },
     "raw_capture_validation": {
-      "status": "blocked",
-      "duration_s": 7.016875,
-      "rms": 0.0,
-      "peak": 0.0,
+      "status": "pass",
+      "duration_s": 7.3581875,
+      "rms": 0.023211849853396416,
+      "peak": 0.71099853515625,
       "signal_floor_rms": 1e-06,
       "playback_target": {
-        "node_id": 69,
+        "node_id": 131,
         "name": "USB Audio アナログステレオ",
-        "kind": "sink"
+        "kind": "sink",
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
       },
       "capture_target": {
-        "node_id": 71,
+        "node_id": 132,
         "name": "USB Audio アナログステレオ",
-        "kind": "source"
+        "kind": "source",
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
       }
     },
-    "off": null,
-    "on": null,
-    "comparison": null,
-    "aec_attempted": false,
-    "asr_self_rerecognition": {
-      "status": "blocked",
-      "reason": "raw capture did not contain a measurable signal"
+    "off": {
+      "path": "results/artifacts/aec_20260911T232048Z_233809883876679_off.wav",
+      "reference": "results/artifacts/aec_reference.wav",
+      "duration_s": 7.0600000000000005,
+      "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+      "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+      "record_returncode": 1,
+      "record_stdout": "",
+      "record_stderr": "",
+      "recording_stats": {
+        "path": "results/artifacts/aec_20260911T232048Z_233809883876679_off.wav",
+        "sample_rate": 16000,
+        "frames": 112270,
+        "duration_s": 7.016875,
+        "rms": 0.033533524721860886,
+        "peak": 0.282470703125
+      }
     },
-    "reason": "raw USB capture is silent or below signal floor; AEC was not attempted"
+    "on": {
+      "path": "results/artifacts/aec_20260911T232048Z_233809883876679_on.wav",
+      "reference": "results/artifacts/aec_reference.wav",
+      "duration_s": 7.0600000000000005,
+      "playback_target": "Local_Live_Echo_Cancellation_Sink",
+      "capture_target": "Local_Live_Echo_Cancellation_Source",
+      "record_returncode": 1,
+      "record_stdout": "",
+      "record_stderr": "",
+      "recording_stats": {
+        "path": "results/artifacts/aec_20260911T232048Z_233809883876679_on.wav",
+        "sample_rate": 16000,
+        "frames": 112611,
+        "duration_s": 7.0381875,
+        "rms": 0.027702713385224342,
+        "peak": 0.234161376953125
+      }
+    },
+    "comparison": {
+      "reference_recording_correlation_off": {
+        "correlation": 0.5935211181640625,
+        "lag_samples": -13812,
+        "lag_seconds": -0.5755
+      },
+      "reference_recording_correlation_on": {
+        "correlation": 0.3122035264968872,
+        "lag_samples": -13092,
+        "lag_seconds": -0.5455
+      },
+      "residual_echo_attenuation_db": 1.6591379179219612,
+      "recording_rms": {
+        "off": 0.033533524721860886,
+        "on": 0.027702713385224342
+      },
+      "measurement_valid": true,
+      "recording_sample_rates": {
+        "reference": 24000,
+        "off": 16000,
+        "on": 16000
+      }
+    },
+    "aec_attempted": true,
+    "asr_self_rerecognition": {
+      "off": {
+        "transcript": "こんにちは。ライブ温泉の超速度を測定しています。短い日本語で返します。",
+        "cer_vs_spoken_reference_text": 0.23529411764705882,
+        "recognition_score_1_minus_cer_clamped": 0.7647058823529411,
+        "asr": {
+          "text": "こんにちは。ライブ温泉の超速度を測定しています。短い日本語で返します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 7.016875,
+          "elapsed_seconds": 2.474333116,
+          "rtf": 0.3526260787031264,
+          "gpu_memory_peak_mib": 1345,
+          "gpu_memory_delta_peak_mib": 1327,
+          "cpu_load_percent": 11.719047619047618,
+          "segments": [
+            {
+              "start": 0.78,
+              "end": 4.52,
+              "text": "こんにちは。ライブ温泉の超速度を測定しています。"
+            },
+            {
+              "start": 4.94,
+              "end": 6.4,
+              "text": "短い日本語で返します。"
+            }
+          ]
+        }
+      },
+      "on": {
+        "transcript": "こんにちは。ライブ音声の音速度を特典しています。次回、日本語で返します。",
+        "cer_vs_spoken_reference_text": 0.29411764705882354,
+        "recognition_score_1_minus_cer_clamped": 0.7058823529411764,
+        "asr": {
+          "text": "こんにちは。ライブ音声の音速度を特典しています。次回、日本語で返します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 7.0381875,
+          "elapsed_seconds": 0.185955055,
+          "rtf": 0.026420872561295078,
+          "gpu_memory_peak_mib": 1345,
+          "gpu_memory_delta_peak_mib": 32,
+          "cpu_load_percent": 37.400000000000006,
+          "segments": [
+            {
+              "start": 0.98,
+              "end": 4.5,
+              "text": "こんにちは。ライブ音声の音速度を特典しています。"
+            },
+            {
+              "start": 4.94,
+              "end": 6.38,
+              "text": "次回、日本語で返します。"
+            }
+          ]
+        }
+      }
+    },
+    "aec_module": {
+      "module_id": "536870913",
+      "module_loader": "pactl module-echo-cancel",
+      "inventory": {
+        "sinks": [
+          {
+            "node_id": 54,
+            "name": "GoStream アナログステレオ",
+            "kind": "sink",
+            "target": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+          },
+          {
+            "node_id": 120,
+            "name": "Built-in Audio デジタルステレオ (IEC958)",
+            "kind": "sink",
+            "target": "alsa_output.pci-0000_00_1f.3.iec958-stereo"
+          },
+          {
+            "node_id": 131,
+            "name": "USB Audio アナログステレオ",
+            "kind": "sink",
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "node_id": 840,
+            "name": "Echo-Cancel Sink",
+            "kind": "sink",
+            "target": "Local_Live_Echo_Cancellation_Sink"
+          }
+        ],
+        "sources": [
+          {
+            "node_id": 55,
+            "name": "GoStream アナログステレオ",
+            "kind": "source",
+            "target": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+          },
+          {
+            "node_id": 121,
+            "name": "Built-in Audio アナログステレオ",
+            "kind": "source",
+            "target": "alsa_input.pci-0000_00_1f.3.analog-stereo.9"
+          },
+          {
+            "node_id": 132,
+            "name": "USB Audio アナログステレオ",
+            "kind": "source",
+            "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "node_id": 839,
+            "name": "Echo-Cancel Source",
+            "kind": "source",
+            "target": "Local_Live_Echo_Cancellation_Source"
+          }
+        ],
+        "devices": [
+          "Built-in Audio",
+          "GoStream",
+          "HDA NVidia",
+          "USB Audio",
+          "card 1: GoStream [GoStream], device 0: USB Audio [USB Audio]",
+          "card 3: Audio [USB Audio], device 0: USB Audio [USB Audio]"
+        ],
+        "usb_microphone": {
+          "node_id": 132,
+          "name": "USB Audio アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        },
+        "usb_speaker": {
+          "node_id": 131,
+          "name": "USB Audio アナログステレオ",
+          "kind": "sink",
+          "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        }
+      },
+      "args": "source_name=Local_Live_Echo_Cancellation_Source sink_name=Local_Live_Echo_Cancellation_Sink source_master=alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo sink_master=alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo aec_method=webrtc rate=16000 channels=1",
+      "sink": {
+        "node_id": 840,
+        "name": "Echo-Cancel Sink",
+        "kind": "sink",
+        "target": "Local_Live_Echo_Cancellation_Sink"
+      },
+      "source": {
+        "node_id": 839,
+        "name": "Echo-Cancel Source",
+        "kind": "source",
+        "target": "Local_Live_Echo_Cancellation_Source"
+      },
+      "named_sink": {
+        "node_id": 840,
+        "name": "Echo-Cancel Sink",
+        "kind": "sink",
+        "target": "Local_Live_Echo_Cancellation_Sink"
+      },
+      "named_source": {
+        "node_id": 839,
+        "name": "Echo-Cancel Source",
+        "kind": "source",
+        "target": "Local_Live_Echo_Cancellation_Source"
+      },
+      "runtime_master_resolution": {
+        "speaker": {
+          "node_id": 131,
+          "name": "USB Audio アナログステレオ",
+          "kind": "sink",
+          "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        },
+        "microphone": {
+          "node_id": 132,
+          "name": "USB Audio アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        }
+      }
+    }
   }
 }
