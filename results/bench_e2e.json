@@ -1,0 +1,1590 @@
+{
+  "schema": "local-live-ja/bench-e2e/v1",
+  "benchmark": "e2e",
+  "started_at": "2026-09-11T18:03:27Z",
+  "finished_at": "2026-09-11T18:08:20Z",
+  "environment": {
+    "captured_at": "2026-09-11T18:08:20.960208+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "status": "measured",
+    "synthetic_user_audio": {
+      "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+      "path": "results/artifacts/synthetic_asr_regression.wav",
+      "source": "reused_existing_generated_audio",
+      "sample_rate": 24000,
+      "duration_s": 28.8
+    },
+    "configurations": {
+      "A_gpu_asr_local_gpu_tts": {
+        "status": "measured",
+        "provider": "local",
+        "requested_model": "qwen3.5:9b-q4_K_M",
+        "actual_model": "qwen3.5:9b-q4_K_M",
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.740041666666666,
+          "elapsed_seconds": 1.98175231,
+          "rtf": 0.07144013458283077,
+          "gpu_memory_peak_mib": 8975,
+          "gpu_memory_delta_peak_mib": 2320,
+          "cpu_load_percent": 9.73125,
+          "segments": [
+            {
+              "start": 0.0,
+              "end": 4.48,
+              "text": "こんにちは。今日は通常会話の温等認識を確認します。"
+            },
+            {
+              "start": 4.98,
+              "end": 8.76,
+              "text": "数字は1、2、3と、まあ、U2345です。"
+            },
+            {
+              "start": 9.6,
+              "end": 15.44,
+              "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 15.88,
+              "end": 21.22,
+              "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.9,
+              "end": 27.76,
+              "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text": "こんにちは。理解しました。テスト準備ありがとうございます。",
+          "events": [
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "completion"
+          ],
+          "tool_calls": [],
+          "completion": {
+            "reason": "stop",
+            "requested_model": "qwen3.5:9b-q4_K_M",
+            "actual_model": "qwen3.5:9b-q4_K_M",
+            "usage": {
+              "total_duration": 183206680,
+              "load_duration": 10617078,
+              "prompt_eval_count": 131,
+              "prompt_eval_duration": 25006000,
+              "eval_count": 10,
+              "eval_duration": 81300000
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 0.176758855,
+          "elapsed_s": 0.257780087,
+          "timing_ns": {
+            "llm_start": 214999576693612,
+            "llm_first_token": 214999753452467,
+            "llm_end": 214999834473699
+          }
+        },
+        "tts": [
+          {
+            "text": "こんにちは。",
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 2.8,
+            "elapsed_seconds": 11.200568095,
+            "model_load_seconds": 8.582685749,
+            "inference_elapsed_seconds": 2.617881869,
+            "first_audio_equivalent_seconds": 11.196524389,
+            "warm_first_audio_equivalent_seconds": 2.613836928,
+            "rtf": 0.934957810357143,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11233,
+            "gpu_memory_delta_peak_mib": 2258,
+            "cpu_load_percent": 4.1617977528089884
+          },
+          {
+            "text": "理解しました。",
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_1.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 2.16,
+            "elapsed_seconds": 1.427675681,
+            "model_load_seconds": 0.0,
+            "inference_elapsed_seconds": 1.413270674,
+            "first_audio_equivalent_seconds": 1.415389113,
+            "warm_first_audio_equivalent_seconds": 1.400981995,
+            "rtf": 0.6542919787037037,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11235,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 4.661538461538462
+          },
+          {
+            "text": "テスト準備ありがとうございます。",
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_2.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 3.28,
+            "elapsed_seconds": 2.142288979,
+            "model_load_seconds": 0.0,
+            "inference_elapsed_seconds": 2.123748532,
+            "first_audio_equivalent_seconds": 2.129998431,
+            "warm_first_audio_equivalent_seconds": 2.11145649,
+            "rtf": 0.6474843085365855,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11267,
+            "gpu_memory_delta_peak_mib": 32,
+            "cpu_load_percent": 4.626315789473685
+          }
+        ],
+        "assistant_asr": [
+          {
+            "text": "こんにちは。",
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 2.8,
+            "elapsed_seconds": 0.217565467,
+            "rtf": 0.0777019525,
+            "gpu_memory_peak_mib": 11267,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 2.5,
+            "segments": [
+              {
+                "start": 0.75,
+                "end": 2.75,
+                "text": "こんにちは。"
+              }
+            ]
+          },
+          {
+            "text": "理解しました。",
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 2.16,
+            "elapsed_seconds": 0.20612935,
+            "rtf": 0.09543025462962962,
+            "gpu_memory_peak_mib": 11267,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 43.6,
+            "segments": [
+              {
+                "start": 0.24,
+                "end": 1.5,
+                "text": "理解しました。"
+              }
+            ]
+          },
+          {
+            "text": "テスト準備ありがとうございます。",
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 3.28,
+            "elapsed_seconds": 0.237358056,
+            "rtf": 0.07236526097560976,
+            "gpu_memory_peak_mib": 11267,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 54.2,
+            "segments": [
+              {
+                "start": 0.4,
+                "end": 2.1,
+                "text": "テスト準備ありがとうございます。"
+              }
+            ]
+          }
+        ],
+        "assistant_cer": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "e2e_latency_s": 245.119461912,
+        "events": [
+          {
+            "event": "vad_start",
+            "monotonic_ns": 214770151708489
+          },
+          {
+            "event": "vad_end",
+            "monotonic_ns": 214997592841792,
+            "intervals": [
+              [
+                0.58,
+                1.26
+              ],
+              [
+                1.74,
+                5.0
+              ],
+              [
+                5.62,
+                6.1
+              ],
+              [
+                6.22,
+                6.56
+              ],
+              [
+                6.78,
+                7.02
+              ],
+              [
+                7.22,
+                7.7
+              ],
+              [
+                7.9,
+                9.22
+              ],
+              [
+                10.22,
+                11.06
+              ],
+              [
+                11.42,
+                12.2
+              ],
+              [
+                12.84,
+                13.0
+              ],
+              [
+                13.36,
+                13.76
+              ],
+              [
+                14.02,
+                15.58
+              ],
+              [
+                15.76,
+                15.94
+              ],
+              [
+                16.46,
+                18.52
+              ],
+              [
+                19.1,
+                19.92
+              ],
+              [
+                20.08,
+                20.72
+              ],
+              [
+                20.84,
+                21.7
+              ],
+              [
+                22.5,
+                23.62
+              ],
+              [
+                23.76,
+                24.4
+              ],
+              [
+                24.84,
+                28.32
+              ]
+            ]
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 214997594891987,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 214999576658516,
+            "text_chars": 144,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 214999576691277
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 214999834479077,
+            "ttft_s": 0.176758855
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 214999834479978
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 214999834496917,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 214999835311504,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215008418005916
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215011035885000,
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215011035942301,
+            "text_chars": 7
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215011036503340,
+            "text_chars": 7,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215011050912366
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215012464187676,
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_1.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215012464247419,
+            "text_chars": 16
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215012464771503,
+            "text_chars": 16,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215012483316875
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215014607066644,
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_2.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215014608035229,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215014825606258,
+            "text_chars": 6,
+            "detected_language": "ja"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215014826644710,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215015032778280,
+            "text_chars": 7,
+            "detected_language": "ja"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215015033768215,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215015271134986,
+            "text_chars": 16,
+            "detected_language": "ja"
+          },
+          {
+            "event": "playback_start",
+            "monotonic_ns": 215015271166918,
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_0.wav"
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 215015271167727,
+            "path": "results/artifacts/A_gpu_asr_local_gpu_tts_assistant_2.wav"
+          }
+        ]
+      },
+      "B_cpu_asr_local_gpu_tts": {
+        "status": "measured",
+        "provider": "local",
+        "requested_model": "qwen3.5:9b-q4_K_M",
+        "actual_model": "qwen3.5:9b-q4_K_M",
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の音頭認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cpu",
+          "compute_type": "int8",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.740041666666666,
+          "elapsed_seconds": 5.65388024,
+          "rtf": 0.20381657345503867,
+          "gpu_memory_peak_mib": 11267,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 17.314893617021276,
+          "segments": [
+            {
+              "start": 0.0,
+              "end": 4.48,
+              "text": "こんにちは。今日は通常会話の音頭認識を確認します。"
+            },
+            {
+              "start": 4.98,
+              "end": 8.76,
+              "text": "数字は1、2、3と、まあ、U2345です。"
+            },
+            {
+              "start": 9.6,
+              "end": 15.44,
+              "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 15.88,
+              "end": 21.22,
+              "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.9,
+              "end": 27.78,
+              "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text": "こんにちは。認識できましたので、テスト開始の準備は整っていますか。",
+          "events": [
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "completion"
+          ],
+          "tool_calls": [],
+          "completion": {
+            "reason": "stop",
+            "requested_model": "qwen3.5:9b-q4_K_M",
+            "actual_model": "qwen3.5:9b-q4_K_M",
+            "usage": {
+              "total_duration": 233131034,
+              "load_duration": 6750350,
+              "prompt_eval_count": 131,
+              "prompt_eval_duration": 26010000,
+              "eval_count": 16,
+              "eval_duration": 133963000
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 0.137162377,
+          "elapsed_s": 0.271140134,
+          "timing_ns": {
+            "llm_start": 215020939415349,
+            "llm_first_token": 215021076577726,
+            "llm_end": 215021210555483
+          }
+        },
+        "tts": [
+          {
+            "text": "こんにちは。",
+            "path": "results/artifacts/B_cpu_asr_local_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 2.24,
+            "elapsed_seconds": 1.489525505,
+            "model_load_seconds": 0.0,
+            "inference_elapsed_seconds": 1.47451158,
+            "first_audio_equivalent_seconds": 1.485350775,
+            "warm_first_audio_equivalent_seconds": 1.470335577,
+            "rtf": 0.6582640982142857,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11267,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 4.4
+          },
+          {
+            "text": "認識できましたので、テスト開始の準備は整っていますか。",
+            "path": "results/artifacts/B_cpu_asr_local_gpu_tts_assistant_1.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 5.2,
+            "elapsed_seconds": 3.360326926,
+            "model_load_seconds": 0.0,
+            "inference_elapsed_seconds": 3.34505089,
+            "first_audio_equivalent_seconds": 3.355759527,
+            "warm_first_audio_equivalent_seconds": 3.340482297,
+            "rtf": 0.6432790173076923,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11275,
+            "gpu_memory_delta_peak_mib": 8,
+            "cpu_load_percent": 4.651724137931034
+          }
+        ],
+        "assistant_asr": [
+          {
+            "text": "こんにちは",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 2.24,
+            "elapsed_seconds": 3.092661962,
+            "rtf": 1.3806526616071428,
+            "gpu_memory_peak_mib": 11321,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 18.638461538461538,
+            "segments": [
+              {
+                "start": 0.3,
+                "end": 2.3,
+                "text": "こんにちは"
+              }
+            ]
+          },
+          {
+            "text": "認識できましたので、テスト開始の準備は整っていますか?",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 5.2,
+            "elapsed_seconds": 3.213786701,
+            "rtf": 0.6180359040384615,
+            "gpu_memory_peak_mib": 11321,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 19.134615384615383,
+            "segments": [
+              {
+                "start": 0.05,
+                "end": 4.71,
+                "text": "認識できましたので、テスト開始の準備は整っていますか?"
+              }
+            ]
+          }
+        ],
+        "assistant_cer": [
+          0.0,
+          0.0
+        ],
+        "e2e_latency_s": 17.098104256,
+        "events": [
+          {
+            "event": "vad_start",
+            "monotonic_ns": 215015272504426
+          },
+          {
+            "event": "vad_end",
+            "monotonic_ns": 215015284927003,
+            "intervals": [
+              [
+                0.58,
+                1.26
+              ],
+              [
+                1.74,
+                5.0
+              ],
+              [
+                5.62,
+                6.1
+              ],
+              [
+                6.22,
+                6.56
+              ],
+              [
+                6.78,
+                7.02
+              ],
+              [
+                7.22,
+                7.7
+              ],
+              [
+                7.9,
+                9.22
+              ],
+              [
+                10.22,
+                11.06
+              ],
+              [
+                11.42,
+                12.2
+              ],
+              [
+                12.84,
+                13.0
+              ],
+              [
+                13.36,
+                13.76
+              ],
+              [
+                14.02,
+                15.58
+              ],
+              [
+                15.76,
+                15.94
+              ],
+              [
+                16.46,
+                18.52
+              ],
+              [
+                19.1,
+                19.92
+              ],
+              [
+                20.08,
+                20.72
+              ],
+              [
+                20.84,
+                21.7
+              ],
+              [
+                22.5,
+                23.62
+              ],
+              [
+                23.76,
+                24.4
+              ],
+              [
+                24.84,
+                28.32
+              ]
+            ]
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215015285488126,
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215020939376246,
+            "text_chars": 144,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 215020939412104
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 215021210563529,
+            "ttft_s": 0.137162377
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 215021210564785
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215021210584257,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215021211560353,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215021226577047
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215022701091647,
+            "path": "results/artifacts/B_cpu_asr_local_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215022701118134,
+            "text_chars": 27
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215022701562384,
+            "text_chars": 27,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215022716840845
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215026061894288,
+            "path": "results/artifacts/B_cpu_asr_local_gpu_tts_assistant_1.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215026062696371,
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215029155367643,
+            "text_chars": 5,
+            "detected_language": "ja"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215029156764093,
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215032370562949,
+            "text_chars": 27,
+            "detected_language": "ja"
+          },
+          {
+            "event": "playback_start",
+            "monotonic_ns": 215032370606000,
+            "path": "results/artifacts/B_cpu_asr_local_gpu_tts_assistant_0.wav"
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 215032370606963,
+            "path": "results/artifacts/B_cpu_asr_local_gpu_tts_assistant_1.wav"
+          }
+        ]
+      },
+      "C_gpu_asr_openrouter_gpu_tts": {
+        "status": "measured",
+        "provider": "openrouter",
+        "requested_model": "openrouter/free",
+        "actual_model": "google/gemma-4-31b-it:free",
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.740041666666666,
+          "elapsed_seconds": 0.403323643,
+          "rtf": 0.014539402926876163,
+          "gpu_memory_peak_mib": 11321,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 32.86666666666667,
+          "segments": [
+            {
+              "start": 0.0,
+              "end": 4.48,
+              "text": "こんにちは。今日は通常会話の温等認識を確認します。"
+            },
+            {
+              "start": 4.98,
+              "end": 8.76,
+              "text": "数字は1、2、3と、まあ、U2345です。"
+            },
+            {
+              "start": 9.6,
+              "end": 15.44,
+              "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 15.88,
+              "end": 21.22,
+              "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.9,
+              "end": 27.76,
+              "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text": "承知いたしました。設定内容を確認し、テストの準備を整えます。",
+          "events": [
+            "text_delta",
+            "text_delta",
+            "completion",
+            "completion"
+          ],
+          "tool_calls": [],
+          "completion": {
+            "reason": "stop",
+            "requested_model": "openrouter/free",
+            "actual_model": "google/gemma-4-31b-it:free",
+            "usage": {
+              "prompt_tokens": 118,
+              "completion_tokens": 16,
+              "total_tokens": 134,
+              "cost": 0,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0,
+                "upstream_inference_prompt_cost": 0,
+                "upstream_inference_completions_cost": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 1.576311142,
+          "elapsed_s": 1.731795934,
+          "timing_ns": {
+            "llm_start": 215032788712520,
+            "llm_first_token": 215034365023662,
+            "llm_end": 215034520508454
+          }
+        },
+        "tts": [
+          {
+            "text": "承知いたしました。",
+            "path": "results/artifacts/C_gpu_asr_openrouter_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 4.4,
+            "elapsed_seconds": 2.865289342,
+            "model_load_seconds": 0.0,
+            "inference_elapsed_seconds": 2.841770966,
+            "first_audio_equivalent_seconds": 2.861517472,
+            "warm_first_audio_equivalent_seconds": 2.837997563,
+            "rtf": 0.6458570377272727,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11321,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 6.492000000000001
+          },
+          {
+            "text": "設定内容を確認し、テストの準備を整えます。",
+            "path": "results/artifacts/C_gpu_asr_openrouter_gpu_tts_assistant_1.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 4.8,
+            "elapsed_seconds": 3.109737164,
+            "model_load_seconds": 0.0,
+            "inference_elapsed_seconds": 3.092273596,
+            "first_audio_equivalent_seconds": 3.10504264,
+            "warm_first_audio_equivalent_seconds": 3.08757801,
+            "rtf": 0.6442236658333333,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11321,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 4.677777777777778
+          }
+        ],
+        "assistant_asr": [
+          {
+            "text": "承知いたしました",
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 4.4,
+            "elapsed_seconds": 0.221524074,
+            "rtf": 0.050346380454545446,
+            "gpu_memory_peak_mib": 11321,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 26.75,
+            "segments": [
+              {
+                "start": 2.06,
+                "end": 3.56,
+                "text": "承知いたしました"
+              }
+            ]
+          },
+          {
+            "text": "設定内容を確認しテストの準備を整えます",
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 4.8,
+            "elapsed_seconds": 0.23786568,
+            "rtf": 0.04955535,
+            "gpu_memory_peak_mib": 11321,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 70.2,
+            "segments": [
+              {
+                "start": 0.18,
+                "end": 4.48,
+                "text": "設定内容を確認しテストの準備を整えます"
+              }
+            ]
+          }
+        ],
+        "assistant_cer": [
+          0.0,
+          0.0
+        ],
+        "e2e_latency_s": 8.588263087,
+        "events": [
+          {
+            "event": "vad_start",
+            "monotonic_ns": 215032370853269
+          },
+          {
+            "event": "vad_end",
+            "monotonic_ns": 215032384548629,
+            "intervals": [
+              [
+                0.58,
+                1.26
+              ],
+              [
+                1.74,
+                5.0
+              ],
+              [
+                5.62,
+                6.1
+              ],
+              [
+                6.22,
+                6.56
+              ],
+              [
+                6.78,
+                7.02
+              ],
+              [
+                7.22,
+                7.7
+              ],
+              [
+                7.9,
+                9.22
+              ],
+              [
+                10.22,
+                11.06
+              ],
+              [
+                11.42,
+                12.2
+              ],
+              [
+                12.84,
+                13.0
+              ],
+              [
+                13.36,
+                13.76
+              ],
+              [
+                14.02,
+                15.58
+              ],
+              [
+                15.76,
+                15.94
+              ],
+              [
+                16.46,
+                18.52
+              ],
+              [
+                19.1,
+                19.92
+              ],
+              [
+                20.08,
+                20.72
+              ],
+              [
+                20.84,
+                21.7
+              ],
+              [
+                22.5,
+                23.62
+              ],
+              [
+                23.76,
+                24.4
+              ],
+              [
+                24.84,
+                28.32
+              ]
+            ]
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215032385356669,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215032788686255,
+            "text_chars": 144,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 215032788709920
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 215034520525157,
+            "ttft_s": 1.576311142
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 215034520528134
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215034520573974,
+            "text_chars": 9
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215034522214642,
+            "text_chars": 9,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215034545741208
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215037387513316,
+            "path": "results/artifacts/C_gpu_asr_openrouter_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215037387541320,
+            "text_chars": 21
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215037387986891,
+            "text_chars": 21,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215037405453439
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215040497727739,
+            "path": "results/artifacts/C_gpu_asr_openrouter_gpu_tts_assistant_1.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215040498628468,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215040720158915,
+            "text_chars": 8,
+            "detected_language": "ja"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215040721211946,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215040959086437,
+            "text_chars": 19,
+            "detected_language": "ja"
+          },
+          {
+            "event": "playback_start",
+            "monotonic_ns": 215040959114350,
+            "path": "results/artifacts/C_gpu_asr_openrouter_gpu_tts_assistant_0.wav"
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 215040959115002,
+            "path": "results/artifacts/C_gpu_asr_openrouter_gpu_tts_assistant_1.wav"
+          }
+        ]
+      },
+      "D_cpu_asr_openrouter_gpu_tts": {
+        "status": "measured",
+        "provider": "openrouter",
+        "requested_model": "openrouter/free",
+        "actual_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の音頭認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cpu",
+          "compute_type": "int8",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.740041666666666,
+          "elapsed_seconds": 4.146274336,
+          "rtf": 0.14946892963691175,
+          "gpu_memory_peak_mib": 11321,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 20.108823529411765,
+          "segments": [
+            {
+              "start": 0.0,
+              "end": 4.48,
+              "text": "こんにちは。今日は通常会話の音頭認識を確認します。"
+            },
+            {
+              "start": 4.98,
+              "end": 8.76,
+              "text": "数字は1、2、3と、まあ、U2345です。"
+            },
+            {
+              "start": 9.6,
+              "end": 15.44,
+              "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 15.88,
+              "end": 21.22,
+              "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.9,
+              "end": 27.78,
+              "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text": "了解です、テスト開始します。",
+          "events": [
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "completion",
+            "completion"
+          ],
+          "tool_calls": [],
+          "completion": {
+            "reason": "stop",
+            "requested_model": "openrouter/free",
+            "actual_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+            "usage": {
+              "prompt_tokens": 150,
+              "completion_tokens": 140,
+              "total_tokens": 290,
+              "cost": 0,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0,
+                "upstream_inference_prompt_cost": 0,
+                "upstream_inference_completions_cost": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 107,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 3.106475196,
+          "elapsed_s": 3.241303927,
+          "timing_ns": {
+            "llm_start": 215045118968160,
+            "llm_first_token": 215048225443356,
+            "llm_end": 215048360272087
+          }
+        },
+        "tts": [
+          {
+            "text": "了解です、テスト開始します。",
+            "path": "results/artifacts/D_cpu_asr_openrouter_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 14.88,
+            "elapsed_seconds": 9.551344093,
+            "model_load_seconds": 0.0,
+            "inference_elapsed_seconds": 9.526596025,
+            "first_audio_equivalent_seconds": 9.544764228,
+            "warm_first_audio_equivalent_seconds": 9.520014797,
+            "rtf": 0.640228227486559,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 11831,
+            "gpu_memory_delta_peak_mib": 510,
+            "cpu_load_percent": 4.65
+          }
+        ],
+        "assistant_asr": [
+          {
+            "text": "え、で、そういうやに、えのでもさめたた。コフェ中寝かずにしたなた、ジョーですな。あともらち入れしないとじゅななたはあってすすな。でーす、テスト開始します。",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 14.88,
+            "elapsed_seconds": 3.686813347,
+            "rtf": 0.24776971418010751,
+            "gpu_memory_peak_mib": 11831,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 18.703333333333333,
+            "segments": [
+              {
+                "start": 0.82,
+                "end": 3.82,
+                "text": "え、で、そういうやに、えのでもさめたた。"
+              },
+              {
+                "start": 3.82,
+                "end": 6.82,
+                "text": "コフェ中寝かずにしたなた、ジョーですな。"
+              },
+              {
+                "start": 6.82,
+                "end": 10.82,
+                "text": "あともらち入れしないとじゅななたはあってすすな。"
+              },
+              {
+                "start": 10.82,
+                "end": 14.82,
+                "text": "でーす、テスト開始します。"
+              }
+            ]
+          }
+        ],
+        "assistant_cer": [
+          4.833333333333333
+        ],
+        "e2e_latency_s": 20.641498444,
+        "events": [
+          {
+            "event": "vad_start",
+            "monotonic_ns": 215040959311443
+          },
+          {
+            "event": "vad_end",
+            "monotonic_ns": 215040971870762,
+            "intervals": [
+              [
+                0.58,
+                1.26
+              ],
+              [
+                1.74,
+                5.0
+              ],
+              [
+                5.62,
+                6.1
+              ],
+              [
+                6.22,
+                6.56
+              ],
+              [
+                6.78,
+                7.02
+              ],
+              [
+                7.22,
+                7.7
+              ],
+              [
+                7.9,
+                9.22
+              ],
+              [
+                10.22,
+                11.06
+              ],
+              [
+                11.42,
+                12.2
+              ],
+              [
+                12.84,
+                13.0
+              ],
+              [
+                13.36,
+                13.76
+              ],
+              [
+                14.02,
+                15.58
+              ],
+              [
+                15.76,
+                15.94
+              ],
+              [
+                16.46,
+                18.52
+              ],
+              [
+                19.1,
+                19.92
+              ],
+              [
+                20.08,
+                20.72
+              ],
+              [
+                20.84,
+                21.7
+              ],
+              [
+                22.5,
+                23.62
+              ],
+              [
+                23.76,
+                24.4
+              ],
+              [
+                24.84,
+                28.32
+              ]
+            ]
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215040972652525,
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215045118934411,
+            "text_chars": 144,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 215045118966045
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 215048360291764,
+            "ttft_s": 3.106475196
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 215048360294803
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215048360337454,
+            "text_chars": 14
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 215048361877669,
+            "text_chars": 14,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_start_output",
+            "monotonic_ns": 215048386632873
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 215057913230728,
+            "path": "results/artifacts/D_cpu_asr_openrouter_gpu_tts_assistant_0.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 215057913954595,
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 215061600776099,
+            "text_chars": 77,
+            "detected_language": "ja"
+          },
+          {
+            "event": "playback_start",
+            "monotonic_ns": 215061600808570,
+            "path": "results/artifacts/D_cpu_asr_openrouter_gpu_tts_assistant_0.wav"
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 215061600809172,
+            "path": "results/artifacts/D_cpu_asr_openrouter_gpu_tts_assistant_0.wav"
+          }
+        ]
+      }
+    }
+  }
+}

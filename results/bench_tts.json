@@ -1,0 +1,87 @@
+{
+  "schema": "local-live-ja/bench-tts/v1",
+  "benchmark": "tts",
+  "started_at": "2026-09-11T18:00:30Z",
+  "finished_at": "2026-09-11T18:01:10Z",
+  "environment": {
+    "captured_at": "2026-09-11T18:01:10.128533+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
+    "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+    "speaker": "Ono_Anna",
+    "language": "Japanese",
+    "streaming_supported_by_official_python_api": false,
+    "first_audio_metric_definition": "request start to complete waveform returned; this is first-audio-equivalent, not online packet streaming",
+    "runs": {
+      "gpu": {
+        "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
+        "path": "results/artifacts/tts_bench_gpu.wav",
+        "sample_rate": 24000,
+        "audio_seconds": 7.76,
+        "elapsed_seconds": 5.527356951,
+        "model_load_seconds": 0.0,
+        "inference_elapsed_seconds": 5.511974935,
+        "first_audio_equivalent_seconds": 5.52212981,
+        "warm_first_audio_equivalent_seconds": 5.506746436,
+        "rtf": 0.7103060483247422,
+        "device": "cuda:0",
+        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+        "speaker": "Ono_Anna",
+        "streaming_supported": false,
+        "gpu_memory_peak_mib": 9163,
+        "gpu_memory_delta_peak_mib": 50,
+        "cpu_load_percent": 4.570833333333334,
+        "preload_seconds": 8.252748553
+      },
+      "cpu_reference": {
+        "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
+        "path": "results/artifacts/tts_bench_cpu.wav",
+        "sample_rate": 24000,
+        "audio_seconds": 7.84,
+        "elapsed_seconds": 20.15542383,
+        "model_load_seconds": 0.0,
+        "inference_elapsed_seconds": 20.139645754,
+        "first_audio_equivalent_seconds": 20.150918308,
+        "warm_first_audio_equivalent_seconds": 20.135137834,
+        "rtf": 2.5688323665816326,
+        "device": "cpu",
+        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+        "speaker": "Ono_Anna",
+        "streaming_supported": false,
+        "gpu_memory_peak_mib": 7275,
+        "gpu_memory_delta_peak_mib": 0,
+        "cpu_load_percent": 66.05000000000001,
+        "preload_seconds": 4.089837509
+      }
+    }
+  }
+}

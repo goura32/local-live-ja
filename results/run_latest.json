@@ -1,0 +1,336 @@
+{
+  "status": "completed",
+  "input": "results/artifacts/synthetic_asr_regression.wav",
+  "user_asr": {
+    "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2、3、4、5です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+    "model": "large-v3-turbo",
+    "device": "cuda",
+    "compute_type": "int8_float16",
+    "language_requested": "ja",
+    "detected_language": "ja",
+    "language_probability": 1.0,
+    "audio_seconds": 28.8,
+    "elapsed_seconds": 2.520476367,
+    "rtf": 0.08751654052083334,
+    "gpu_memory_peak_mib": 7983,
+    "gpu_memory_delta_peak_mib": 1328,
+    "cpu_load_percent": 11.447619047619048,
+    "segments": [
+      {
+        "start": 0.52,
+        "end": 5.06,
+        "text": "こんにちは。今日は通常会話の温等認識を確認します。"
+      },
+      {
+        "start": 5.56,
+        "end": 9.34,
+        "text": "数字は1、2、3と、まあ、U2、3、4、5です。"
+      },
+      {
+        "start": 10.18,
+        "end": 16.02,
+        "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+      },
+      {
+        "start": 16.46,
+        "end": 21.8,
+        "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+      },
+      {
+        "start": 22.5,
+        "end": 28.38,
+        "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+      }
+    ]
+  },
+  "assistant_text": "こんにちは。今日は温等認識の確認です。数字は 1、2、3、4、5 です。GPU、QE、Docker、Orama、Python3.12 を使用し、2026 年 9 月 12 日午後 3 時 30 分にテストします。HardTX5 室 70 の Ti と USB マイクも確認します。",
+  "audio_paths": [
+    "results/artifacts/assistant_215439032395754_0.wav",
+    "results/artifacts/assistant_215453709599660_1.wav",
+    "results/artifacts/assistant_215458006527929_2.wav",
+    "results/artifacts/assistant_215466201376845_3.wav",
+    "results/artifacts/assistant_215487586834684_4.wav"
+  ],
+  "error": null,
+  "events": [
+    {
+      "event": "vad_start",
+      "monotonic_ns": 215434471248952
+    },
+    {
+      "event": "vad_end",
+      "monotonic_ns": 215434474704972,
+      "intervals": [
+        [
+          0.58,
+          1.26
+        ],
+        [
+          1.74,
+          5.0
+        ],
+        [
+          5.62,
+          6.1
+        ],
+        [
+          6.22,
+          6.56
+        ],
+        [
+          6.78,
+          7.02
+        ],
+        [
+          7.22,
+          7.7
+        ],
+        [
+          7.9,
+          9.22
+        ],
+        [
+          10.22,
+          11.06
+        ],
+        [
+          11.42,
+          12.2
+        ],
+        [
+          12.84,
+          13.0
+        ],
+        [
+          13.36,
+          13.76
+        ],
+        [
+          14.02,
+          15.58
+        ],
+        [
+          15.76,
+          15.94
+        ],
+        [
+          16.46,
+          18.52
+        ],
+        [
+          19.1,
+          19.92
+        ],
+        [
+          20.08,
+          20.72
+        ],
+        [
+          20.84,
+          21.7
+        ],
+        [
+          22.5,
+          23.62
+        ],
+        [
+          23.76,
+          24.4
+        ],
+        [
+          24.84,
+          28.32
+        ]
+      ]
+    },
+    {
+      "event": "asr_start",
+      "monotonic_ns": 215435553414654,
+      "model": "large-v3-turbo",
+      "device": "cuda",
+      "compute_type": "int8_float16"
+    },
+    {
+      "event": "asr_final",
+      "monotonic_ns": 215438073902248,
+      "text_chars": 147,
+      "detected_language": "ja"
+    },
+    {
+      "kind": "llm_start",
+      "monotonic_ns": 215438073987856,
+      "payload": {
+        "round": 0
+      }
+    },
+    {
+      "kind": "llm_first_token",
+      "monotonic_ns": 215438267660833,
+      "payload": {
+        "round": 0
+      }
+    },
+    {
+      "kind": "llm_end",
+      "monotonic_ns": 215439032229230,
+      "payload": {
+        "reason": "stop",
+        "actual_model": "qwen3.5:9b-q4_K_M"
+      }
+    },
+    {
+      "kind": "tts_request",
+      "monotonic_ns": 215439032408709,
+      "payload": {
+        "text_chars": 6
+      }
+    },
+    {
+      "kind": "tts_end",
+      "monotonic_ns": 215450236838513,
+      "payload": {
+        "path": "results/artifacts/assistant_215439032395754_0.wav"
+      }
+    },
+    {
+      "kind": "playback_start",
+      "monotonic_ns": 215450236842418,
+      "payload": {
+        "path": "results/artifacts/assistant_215439032395754_0.wav"
+      }
+    },
+    {
+      "kind": "playback_end",
+      "monotonic_ns": 215453709588969,
+      "payload": {
+        "path": "results/artifacts/assistant_215439032395754_0.wav",
+        "cancelled": false
+      }
+    },
+    {
+      "kind": "tts_request",
+      "monotonic_ns": 215453709637466,
+      "payload": {
+        "text_chars": 13
+      }
+    },
+    {
+      "kind": "tts_end",
+      "monotonic_ns": 215455322284201,
+      "payload": {
+        "path": "results/artifacts/assistant_215453709599660_1.wav"
+      }
+    },
+    {
+      "kind": "playback_start",
+      "monotonic_ns": 215455322288047,
+      "payload": {
+        "path": "results/artifacts/assistant_215453709599660_1.wav"
+      }
+    },
+    {
+      "kind": "playback_end",
+      "monotonic_ns": 215458006519761,
+      "payload": {
+        "path": "results/artifacts/assistant_215453709599660_1.wav",
+        "cancelled": false
+      }
+    },
+    {
+      "kind": "tts_request",
+      "monotonic_ns": 215458006565491,
+      "payload": {
+        "text_chars": 17
+      }
+    },
+    {
+      "kind": "tts_end",
+      "monotonic_ns": 215461069934659,
+      "payload": {
+        "path": "results/artifacts/assistant_215458006527929_2.wav"
+      }
+    },
+    {
+      "kind": "playback_start",
+      "monotonic_ns": 215461069936182,
+      "payload": {
+        "path": "results/artifacts/assistant_215458006527929_2.wav"
+      }
+    },
+    {
+      "kind": "playback_end",
+      "monotonic_ns": 215466201368733,
+      "payload": {
+        "path": "results/artifacts/assistant_215458006527929_2.wav",
+        "cancelled": false
+      }
+    },
+    {
+      "kind": "tts_request",
+      "monotonic_ns": 215466201413936,
+      "payload": {
+        "text_chars": 70
+      }
+    },
+    {
+      "kind": "tts_end",
+      "monotonic_ns": 215474272678998,
+      "payload": {
+        "path": "results/artifacts/assistant_215466201376845_3.wav"
+      }
+    },
+    {
+      "kind": "playback_start",
+      "monotonic_ns": 215474272681349,
+      "payload": {
+        "path": "results/artifacts/assistant_215466201376845_3.wav"
+      }
+    },
+    {
+      "kind": "playback_end",
+      "monotonic_ns": 215487586826350,
+      "payload": {
+        "path": "results/artifacts/assistant_215466201376845_3.wav",
+        "cancelled": false
+      }
+    },
+    {
+      "kind": "tts_request",
+      "monotonic_ns": 215487586873408,
+      "payload": {
+        "text_chars": 34
+      }
+    },
+    {
+      "kind": "tts_end",
+      "monotonic_ns": 215491616941029,
+      "payload": {
+        "path": "results/artifacts/assistant_215487586834684_4.wav"
+      }
+    },
+    {
+      "kind": "playback_start",
+      "monotonic_ns": 215491616943009,
+      "payload": {
+        "path": "results/artifacts/assistant_215487586834684_4.wav"
+      }
+    },
+    {
+      "kind": "playback_end",
+      "monotonic_ns": 215498304904337,
+      "payload": {
+        "path": "results/artifacts/assistant_215487586834684_4.wav",
+        "cancelled": false
+      }
+    }
+  ],
+  "timing": {
+    "llm_start": 215438073987856,
+    "llm_first_token": 215438267660833,
+    "llm_end": 215439032229230,
+    "tts_request": 215487586873408,
+    "tts_end": 215491616941029,
+    "playback_start": 215491616943009,
+    "playback_end": 215498304904337
+  }
+}

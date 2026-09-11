@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "local-live-ja"
+version = "0.1.0"
+description = "Japanese low-latency live voice PoC"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "Apache-2.0"}
+authors = [{name = "goura32"}]
+dependencies = [
+  "httpx>=0.27",
+  "numpy>=2.0",
+  "psutil>=5.9",
+  "PyYAML>=6.0",
+  "soundfile>=0.12",
+]
+
+[project.optional-dependencies]
+voice = [
+  "faster-whisper>=1.1",
+  "qwen-tts>=0.0.1",
+  "torch>=2.7",
+  "nvidia-cublas-cu12>=12.0",
+  "nvidia-cudnn-cu12>=9.0,<10",
+  "sounddevice>=0.5",
+  "webrtcvad-wheels>=2.0.14",
+]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+local-live = "local_live.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/local_live"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+  "integration: requires local models or services",
+  "hardware: requires live audio hardware",
+]

@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""Build a compact, machine-readable summary from local-live benchmark JSON."""
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[1]
+RESULTS = ROOT / "results"
+
+
+def load(name: str) -> dict[str, Any]:
+    path = RESULTS / name
+    if not path.exists():
+        return {"status": "missing", "path": str(path.relative_to(ROOT))}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def pick(row: dict[str, Any], *keys: str) -> dict[str, Any]:
+    return {key: row.get(key) for key in keys}
+
+
+def build_summary() -> dict[str, Any]:
+    doctor = load("doctor.json")
+    asr = load("bench_asr.json")
+    tts = load("bench_tts.json")
+    llm = load("bench_llm.json")
+    e2e = load("bench_e2e.json")
+    aec = load("bench_aec.json")
+    run = load("run_latest.json")
+
+    asr_data = asr.get("data", {})
+    tts_data = tts.get("data", {})
+    llm_data = llm.get("data", {})
+    e2e_data = e2e.get("data", {})
+    aec_data = aec.get("data", {})
+
+    return {
+        "schema": "local-live-ja/summary/v1",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "environment": doctor.get("environment") or asr.get("environment") or None,
+        "benchmark_paths": {
+            "doctor": "results/doctor.json",
+            "asr": "results/bench_asr.json",
+            "tts": "results/bench_tts.json",
+            "llm": "results/bench_llm.json",
+            "e2e": "results/bench_e2e.json",
+            "aec": "results/bench_aec.json",
+            "run": "results/run_latest.json",
+        },
+        "doctor": {
+            "status": doctor.get("status"),
+            "warnings": doctor.get("warnings", []),
+            "failures": doctor.get("failures", []),
+            "checks": doctor.get("checks", {}),
+        },
+        "asr": {
+            "metric_name": asr_data.get("metric_name"),
+            "same_wav_for_all_modes": asr_data.get("same_wav_for_all_modes"),
+            "reference_text": asr_data.get("reference_text"),
+            "modes": {name: pick(row, "status", "device", "compute_type", "text", "cer", "rtf", "elapsed_seconds", "gpu_memory_peak_mib", "gpu_memory_delta_peak_mib", "cpu_load_percent", "error_type", "error") for name, row in asr_data.get("modes", {}).items()},
+        },
+        "tts": {
+            "model": tts_data.get("model"),
+            "speaker": tts_data.get("speaker"),
+            "language": tts_data.get("language"),
+            "streaming_supported_by_official_python_api": tts_data.get("streaming_supported_by_official_python_api"),
+            "runs": {name: pick(row, "status", "device", "audio_seconds", "elapsed_seconds", "model_load_seconds", "inference_elapsed_seconds", "first_audio_equivalent_seconds", "warm_first_audio_equivalent_seconds", "rtf", "gpu_memory_peak_mib", "gpu_memory_delta_peak_mib", "cpu_load_percent", "preload_seconds", "error_type", "error") for name, row in tts_data.get("runs", {}).items()},
+        },
+        "llm": {
+            "requested_openrouter_model": llm_data.get("requested_openrouter_model"),
+            "context_target": llm_data.get("context_target"),
+            "providers": {
+                name: {
+                    "requested_model": row.get("requested_model"),
+                    "actual_model": row.get("actual_model"),
+                    "normal_stream": pick(row.get("normal_stream", {}), "text", "events", "completion", "error", "cancelled", "ttft_s", "elapsed_s"),
+                    "tool_calling": pick(row.get("tool_calling", {}), "status", "tool_call_count", "tool_round_count", "final_text", "error_type", "error"),
+                    "cancel": pick(row.get("cancel", {}), "pre_cancel", "midstream_cancel_observed", "turn"),
+                }
+                for name, row in llm_data.get("providers", {}).items()
+            },
+        },
+        "e2e": {
+            "status": e2e_data.get("status"),
+            "configurations": {
+                name: {
+                    "status": row.get("status"),
+                    "provider": row.get("provider"),
+                    "requested_model": row.get("requested_model"),
+                    "actual_model": row.get("actual_model"),
+                    "e2e_latency_s": row.get("e2e_latency_s"),
+                    "user_asr": pick(row.get("user_asr", {}), "device", "compute_type", "rtf", "elapsed_seconds", "gpu_memory_peak_mib", "cpu_load_percent"),
+                    "llm": pick(row.get("llm", {}), "text", "ttft_s", "elapsed_s", "completion", "error", "cancelled"),
+                    "tts": [pick(item, "device", "audio_seconds", "elapsed_seconds", "rtf", "first_audio_equivalent_seconds", "gpu_memory_peak_mib", "cpu_load_percent") for item in row.get("tts", [])],
+                    "assistant_cer": row.get("assistant_cer"),
+                    "error_type": row.get("error_type"),
+                    "error": row.get("error"),
+                }
+                for name, row in e2e_data.get("configurations", {}).items()
+            },
+        },
+        "aec": aec_data,
+        "run": {
+            "status": run.get("status"),
+            "assistant_text": run.get("assistant_text"),
+            "audio_paths_count": len(run.get("audio_paths", [])),
+            "error": run.get("error"),
+            "timing": run.get("timing"),
+        },
+    }
+
+
+def main() -> None:
+    output = RESULTS / "summary.json"
+    output.write_text(json.dumps(build_summary(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(output.relative_to(ROOT))
+
+
+if __name__ == "__main__":
+    main()

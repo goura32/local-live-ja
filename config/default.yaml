@@ -1,0 +1,50 @@
+app:
+  artifact_dir: results/artifacts
+  result_dir: results
+  language: Japanese
+  sample_rate: 16000
+  channels: 1
+
+asr:
+  model: large-v3-turbo
+  language: ja
+  gpu_compute_candidates: [float16, int8_float16]
+  gpu_default_compute_type: int8_float16
+  cpu_compute_type: int8
+  beam_size: 5
+
+llm:
+  local_base_url: http://127.0.0.1:11434
+  local_model: auto
+  openrouter_base_url: https://openrouter.ai/api/v1
+  openrouter_model: openrouter/free
+  num_ctx: 8192
+  max_tokens: 96
+  # Free-router models may spend the small budget on reasoning before text.
+  # Keep local responses short, but allow the remote PoC enough headroom.
+  openrouter_max_tokens: 256
+  temperature: 0.2
+
+# Official Qwen3-TTS Python API is used per sentence chunk; no custom streaming engine.
+tts:
+  model: Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice
+  speaker: Ono_Anna
+  language: Japanese
+  device: auto
+  cpu_reference: true
+  max_new_tokens: 2048
+  sentence_max_chars: 48
+  sentence_timeout_s: 0.8
+
+pipewire:
+  microphone: auto
+  speaker: auto
+  echo_cancel_sink: Local Live Echo Cancellation Sink
+  echo_cancel_source: Local Live Echo Cancellation Source
+  echo_cancel_capture: Local Live Echo Cancellation Capture
+  echo_cancel_playback: Local Live Echo Cancellation Playback
+  aec_library: aec/libspa-aec-webrtc
+  node_latency: 1024/48000
+
+credentials:
+  openrouter_file: ~/.config/credstore/openrouter.key

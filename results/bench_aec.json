@@ -1,0 +1,165 @@
+{
+  "schema": "local-live-ja/bench-aec/v1",
+  "benchmark": "aec",
+  "started_at": "2026-09-11T18:09:29Z",
+  "finished_at": "2026-09-11T18:09:44Z",
+  "environment": {
+    "captured_at": "2026-09-11T18:09:45.110380+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "status": "blocked",
+    "reference_audio": "results/artifacts/aec_reference.wav",
+    "reference_generation": {
+      "source": "reused_existing_generated_audio",
+      "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
+      "duration_s": 6.48
+    },
+    "physical_path": "TTS -> Echo Cancellation Sink -> USB speaker -> room -> USB microphone -> Echo Cancellation Source",
+    "inventory_before": {
+      "sinks": [
+        {
+          "node_id": 54,
+          "name": "GoStream アナログステレオ",
+          "kind": "sink"
+        },
+        {
+          "node_id": 62,
+          "name": "Built-in Audio デジタルステレオ (IEC958)",
+          "kind": "sink"
+        },
+        {
+          "node_id": 69,
+          "name": "USB Audio アナログステレオ",
+          "kind": "sink"
+        }
+      ],
+      "sources": [
+        {
+          "node_id": 55,
+          "name": "GoStream アナログステレオ",
+          "kind": "source"
+        },
+        {
+          "node_id": 61,
+          "name": "Built-in Audio アナログステレオ",
+          "kind": "source"
+        },
+        {
+          "node_id": 71,
+          "name": "USB Audio アナログステレオ",
+          "kind": "source"
+        }
+      ],
+      "devices": [
+        "Built-in Audio",
+        "GoStream",
+        "HDA NVidia",
+        "USB Audio",
+        "カード 1: GoStream [GoStream], デバイス 0: USB Audio [USB Audio]",
+        "カード 3: Audio [USB Audio], デバイス 0: USB Audio [USB Audio]"
+      ],
+      "usb_microphone": {
+        "node_id": 71,
+        "name": "USB Audio アナログステレオ",
+        "kind": "source"
+      },
+      "usb_speaker": {
+        "node_id": 69,
+        "name": "USB Audio アナログステレオ",
+        "kind": "sink"
+      }
+    },
+    "aec_library": "aec/libspa-aec-webrtc",
+    "off": {
+      "path": "results/artifacts/aec_off.wav",
+      "reference": "results/artifacts/aec_reference.wav",
+      "duration_s": 7.380000000000001,
+      "playback_target": 69,
+      "capture_target": 71,
+      "record_returncode": 1,
+      "record_stdout": "",
+      "record_stderr": ""
+    },
+    "on": {
+      "path": "results/artifacts/aec_on.wav",
+      "reference": "results/artifacts/aec_reference.wav",
+      "duration_s": 7.380000000000001,
+      "playback_target": 89,
+      "capture_target": 80,
+      "record_returncode": 1,
+      "record_stdout": "",
+      "record_stderr": ""
+    },
+    "comparison": {
+      "reference_recording_correlation_off": {
+        "correlation": null,
+        "lag_samples": null,
+        "lag_seconds": null
+      },
+      "reference_recording_correlation_on": {
+        "correlation": null,
+        "lag_samples": null,
+        "lag_seconds": null
+      },
+      "residual_echo_attenuation_db": null,
+      "recording_rms": {
+        "off": 0.0,
+        "on": 0.0
+      },
+      "measurement_valid": false,
+      "recording_sample_rates": {
+        "reference": 24000,
+        "off": 16000,
+        "on": 16000
+      }
+    },
+    "aec_module": {
+      "module_id": "536870913",
+      "named_sink": {
+        "node_id": 89,
+        "name": "Echo-Cancel Sink",
+        "kind": "sink"
+      },
+      "named_source": {
+        "node_id": 80,
+        "name": "Echo-Cancel Source",
+        "kind": "source"
+      },
+      "sink_master": 69,
+      "source_master": 71
+    },
+    "reason": "physical capture was silent; AEC attenuation and ASR rerecognition are unmeasured",
+    "asr_self_rerecognition": {
+      "status": "unavailable",
+      "reason": "off/on recording RMS was at or below the signal floor"
+    }
+  }
+}

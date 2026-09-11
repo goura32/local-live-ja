@@ -1,0 +1,184 @@
+{
+  "schema": "local-live-ja/doctor/v1",
+  "environment": {
+    "captured_at": "2026-09-11T18:10:00.047593+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "checks": {
+    "gpu_cuda": {
+      "status": "pass",
+      "nvidia_smi": [
+        {
+          "name": "NVIDIA GeForce RTX 5070 Ti",
+          "driver_version": "595.84",
+          "memory.total": "16303",
+          "compute_cap": "12.0"
+        }
+      ],
+      "torch": {
+        "installed": true,
+        "cuda_available": true,
+        "torch_cuda": "13.0",
+        "device_count": 1,
+        "device_names": [
+          "NVIDIA GeForce RTX 5070 Ti"
+        ]
+      },
+      "nvcc": null
+    },
+    "python_dependencies": {
+      "status": "pass",
+      "found": {
+        "numpy": true,
+        "soundfile": true,
+        "httpx": true,
+        "faster-whisper": true,
+        "qwen-tts": true,
+        "torch": true,
+        "sounddevice": true,
+        "webrtcvad": true
+      },
+      "required_for_doctor": {
+        "numpy": true,
+        "soundfile": true,
+        "httpx": true
+      }
+    },
+    "ollama": {
+      "reachable": true,
+      "model_count": 18,
+      "selected_qwen35_9b": "qwen3.5:9b-q4_K_M",
+      "status": "pass",
+      "binary": null
+    },
+    "pipewire_usb_audio": {
+      "status": "pass",
+      "commands": {
+        "pw-cli": "/usr/bin/pw-cli",
+        "pw-dump": "/usr/bin/pw-dump",
+        "wpctl": "/usr/bin/wpctl",
+        "pw-record": "/usr/bin/pw-record",
+        "pw-play": "/usr/bin/pw-play",
+        "arecord": "/usr/bin/arecord",
+        "aplay": "/usr/bin/aplay"
+      },
+      "inventory": {
+        "sinks": [
+          {
+            "node_id": 54,
+            "name": "GoStream アナログステレオ",
+            "kind": "sink"
+          },
+          {
+            "node_id": 62,
+            "name": "Built-in Audio デジタルステレオ (IEC958)",
+            "kind": "sink"
+          },
+          {
+            "node_id": 69,
+            "name": "USB Audio アナログステレオ",
+            "kind": "sink"
+          }
+        ],
+        "sources": [
+          {
+            "node_id": 55,
+            "name": "GoStream アナログステレオ",
+            "kind": "source"
+          },
+          {
+            "node_id": 61,
+            "name": "Built-in Audio アナログステレオ",
+            "kind": "source"
+          },
+          {
+            "node_id": 71,
+            "name": "USB Audio アナログステレオ",
+            "kind": "source"
+          }
+        ],
+        "devices": [
+          "Built-in Audio",
+          "GoStream",
+          "HDA NVidia",
+          "USB Audio",
+          "カード 1: GoStream [GoStream], デバイス 0: USB Audio [USB Audio]",
+          "カード 3: Audio [USB Audio], デバイス 0: USB Audio [USB Audio]"
+        ],
+        "usb_microphone": {
+          "node_id": 71,
+          "name": "USB Audio アナログステレオ",
+          "kind": "source"
+        },
+        "usb_speaker": {
+          "node_id": 69,
+          "name": "USB Audio アナログステレオ",
+          "kind": "sink"
+        }
+      }
+    },
+    "aec_module": {
+      "status": "pass",
+      "module_paths": [
+        "/usr/lib/x86_64-linux-gnu/pipewire-0.3/libpipewire-module-echo-cancel.so"
+      ],
+      "loaded_in_current_server": false,
+      "pipewire_module_name": "libpipewire-module-echo-cancel",
+      "aec_library": "aec/libspa-aec-webrtc",
+      "pactl_probe_returncode": 0
+    },
+    "openrouter_credential": {
+      "status": "pass",
+      "credential_present": true,
+      "credential_source": "ok",
+      "file_exists": true,
+      "permission_ok": true,
+      "reason": "ok",
+      "authentication": {
+        "authenticated": true,
+        "status_code": 200,
+        "error_type": null
+      }
+    },
+    "git_github": {
+      "status": "warn",
+      "git_version": "git version 2.43.0",
+      "git_repo_root": "/mnt/hdd/hermes/projects/local-live-ja",
+      "gh_installed": true,
+      "gh_auth_exit_code": 0,
+      "github_authentication": false
+    }
+  },
+  "warnings": [
+    "git_github"
+  ],
+  "failures": [],
+  "status": "warn"
+}

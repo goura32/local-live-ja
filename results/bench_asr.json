@@ -1,0 +1,194 @@
+{
+  "schema": "local-live-ja/bench-asr/v1",
+  "benchmark": "asr",
+  "started_at": "2026-09-11T18:00:04Z",
+  "finished_at": "2026-09-11T18:00:14Z",
+  "environment": {
+    "captured_at": "2026-09-11T18:00:14.995943+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "metric_name": "synthetic ASR regression",
+    "input_audio": "results/artifacts/synthetic_asr_regression.wav",
+    "same_wav_for_all_modes": true,
+    "reference_text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+    "synthetic_generation": {
+      "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+      "path": "results/artifacts/synthetic_asr_regression.wav",
+      "source": "reused_existing_generated_audio",
+      "sample_rate": 24000,
+      "duration_s": 28.8
+    },
+    "modes": {
+      "gpu_float16": {
+        "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+        "model": "large-v3-turbo",
+        "device": "cuda",
+        "compute_type": "float16",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 28.8,
+        "elapsed_seconds": 1.947819786,
+        "rtf": 0.06763263145833333,
+        "gpu_memory_peak_mib": 8975,
+        "gpu_memory_delta_peak_mib": 2320,
+        "cpu_load_percent": 9.5875,
+        "segments": [
+          {
+            "start": 0.52,
+            "end": 5.06,
+            "text": "こんにちは。今日は通常会話の温等認識を確認します。"
+          },
+          {
+            "start": 5.56,
+            "end": 9.34,
+            "text": "数字は1、2、3と、まあ、U2345です。"
+          },
+          {
+            "start": 10.18,
+            "end": 16.02,
+            "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+          },
+          {
+            "start": 16.46,
+            "end": 21.8,
+            "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+          },
+          {
+            "start": 22.48,
+            "end": 28.38,
+            "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+          }
+        ],
+        "status": "measured",
+        "cer": 0.21875
+      },
+      "gpu_int8_float16": {
+        "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2、3、4、5です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+        "model": "large-v3-turbo",
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 28.8,
+        "elapsed_seconds": 1.938604696,
+        "rtf": 0.06731266305555555,
+        "gpu_memory_peak_mib": 7983,
+        "gpu_memory_delta_peak_mib": 1098,
+        "cpu_load_percent": 12.61875,
+        "segments": [
+          {
+            "start": 0.52,
+            "end": 5.06,
+            "text": "こんにちは。今日は通常会話の温等認識を確認します。"
+          },
+          {
+            "start": 5.56,
+            "end": 9.34,
+            "text": "数字は1、2、3と、まあ、U2、3、4、5です。"
+          },
+          {
+            "start": 10.18,
+            "end": 16.02,
+            "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+          },
+          {
+            "start": 16.46,
+            "end": 21.8,
+            "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+          },
+          {
+            "start": 22.5,
+            "end": 28.38,
+            "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+          }
+        ],
+        "status": "measured",
+        "cer": 0.21875
+      },
+      "cpu_int8": {
+        "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+        "model": "large-v3-turbo",
+        "device": "cpu",
+        "compute_type": "int8",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 28.8,
+        "elapsed_seconds": 5.475168757,
+        "rtf": 0.1901100262847222,
+        "gpu_memory_peak_mib": 6885,
+        "gpu_memory_delta_peak_mib": 0,
+        "cpu_load_percent": 16.59565217391304,
+        "segments": [
+          {
+            "start": 0.52,
+            "end": 5.06,
+            "text": "こんにちは。今日は通常会話の温等認識を確認します。"
+          },
+          {
+            "start": 5.56,
+            "end": 9.34,
+            "text": "数字は1、2、3と、まあ、U2345です。"
+          },
+          {
+            "start": 10.18,
+            "end": 16.02,
+            "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+          },
+          {
+            "start": 16.46,
+            "end": 21.8,
+            "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+          },
+          {
+            "start": 22.5,
+            "end": 28.38,
+            "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+          }
+        ],
+        "status": "measured",
+        "cer": 0.21875
+      }
+    },
+    "comparison": {
+      "gpu_compute_types": [
+        "float16",
+        "int8_float16"
+      ],
+      "cpu_compute_type": "int8"
+    },
+    "limitations": [
+      "This is TTS-generated audio, not a human-speech accuracy evaluation."
+    ]
+  }
+}

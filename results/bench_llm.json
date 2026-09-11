@@ -1,0 +1,440 @@
+{
+  "schema": "local-live-ja/bench-llm/v1",
+  "benchmark": "llm",
+  "started_at": "2026-09-11T18:01:26Z",
+  "finished_at": "2026-09-11T18:01:40Z",
+  "environment": {
+    "captured_at": "2026-09-11T18:01:41.488172+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "requested_openrouter_model": "openrouter/free",
+    "context_target": 8192,
+    "providers": {
+      "local": {
+        "requested_model": "qwen3.5:9b-q4_K_M",
+        "normal_stream": {
+          "text": "はい、今日も元気に過ごしています。",
+          "events": [
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "completion"
+          ],
+          "tool_calls": [],
+          "completion": {
+            "reason": "stop",
+            "requested_model": "qwen3.5:9b-q4_K_M",
+            "actual_model": "qwen3.5:9b-q4_K_M",
+            "usage": {
+              "total_duration": 172260987,
+              "load_duration": 4728559,
+              "prompt_eval_count": 47,
+              "prompt_eval_duration": 31467000,
+              "eval_count": 10,
+              "eval_duration": 80729000
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 0.147260435,
+          "elapsed_s": 0.227828949,
+          "timing_ns": {
+            "llm_start": 214647646084593,
+            "llm_first_token": 214647793345028,
+            "llm_end": 214647873913542
+          }
+        },
+        "actual_model": "qwen3.5:9b-q4_K_M",
+        "tool_calling": {
+          "status": "failed",
+          "tool_call_count": 2,
+          "tool_round_count": 2,
+          "tool_results": [
+            {
+              "call_id": "call_bqylmo6m",
+              "name": "calculator",
+              "content": "391"
+            },
+            {
+              "call_id": "call_l5sr0ld1",
+              "name": "fixed_test_data",
+              "content": "PoC固定データ: ready"
+            }
+          ],
+          "rounds": [
+            {
+              "text": "",
+              "events": [
+                "tool_call",
+                "tool_call",
+                "completion"
+              ],
+              "tool_calls": [
+                {
+                  "call_id": "call_bqylmo6m",
+                  "name": "calculator",
+                  "arguments": {
+                    "expression": "17*23"
+                  }
+                },
+                {
+                  "call_id": "call_l5sr0ld1",
+                  "name": "fixed_test_data",
+                  "arguments": {
+                    "key": "status"
+                  }
+                }
+              ],
+              "completion": {
+                "reason": "stop",
+                "requested_model": "qwen3.5:9b-q4_K_M",
+                "actual_model": "qwen3.5:9b-q4_K_M",
+                "usage": {
+                  "total_duration": 550946378,
+                  "load_duration": 6706211,
+                  "prompt_eval_count": 421,
+                  "prompt_eval_duration": 24869000,
+                  "eval_count": 57,
+                  "eval_duration": 476321000
+                }
+              },
+              "error": null,
+              "cancelled": false,
+              "ttft_s": null,
+              "elapsed_s": 0.59075903,
+              "timing_ns": {
+                "llm_start": 214647873956376,
+                "llm_first_token": null,
+                "llm_end": 214648464715406
+              },
+              "round": 1
+            },
+            {
+              "text": "",
+              "events": [
+                "error"
+              ],
+              "tool_calls": [],
+              "completion": null,
+              "error": {
+                "message": "Ollama HTTP 400",
+                "status_code": 400,
+                "retryable": false
+              },
+              "cancelled": false,
+              "ttft_s": null,
+              "elapsed_s": 0.026302828,
+              "timing_ns": {
+                "llm_start": 214648464796999,
+                "llm_first_token": null,
+                "llm_end": 214648491099827
+              },
+              "round": 2
+            }
+          ],
+          "final_text": ""
+        },
+        "cancel": {
+          "pre_cancel": false,
+          "midstream_cancel_observed": true,
+          "turn": {
+            "text": "承",
+            "events": [
+              "text_delta",
+              "cancelled"
+            ],
+            "tool_calls": [],
+            "completion": null,
+            "error": null,
+            "cancelled": true,
+            "ttft_s": 0.118351281,
+            "elapsed_s": 0.127284924,
+            "timing_ns": {
+              "llm_start": 214648491113170,
+              "llm_first_token": 214648609464451,
+              "llm_end": 214648618398094
+            }
+          }
+        }
+      },
+      "openrouter": {
+        "requested_model": "openrouter/free",
+        "normal_stream": {
+          "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - User says: \"今日は元気ですか。\" (Kyou wa genki desu ka?)\n   - Translation: \"Are you energetic/well today?\"\n   - Language: Japanese\n   - Constraint: \"日本語で一文だけ、40文字以内の自然な返答をしてください。\" (Reply in Japanese, only one sentence, within 40 characters naturally.)\n   - Additional instruction: \"考え中の説明は出さないでください。\" (Don't output explanations of thinking.)\n\n2.  **Identify Requirements:**\n   - Language: Japanese\n   - Format: One sentence\n   - Length: Under 40 characters\n   - Content: Natural response to \"Are you well today?\"\n   - No thinking/explanation text\n\n3.  **Formulate Response:**\n   - Standard polite response: \"はい、元気です！\" (Yes, I'm energetic!)\n   - Or: \"ありがとうございます、元気です。\" (Thank you, I'm energetic.)\n   - Count characters: \n     - \"はい、元気です！\" -> 7 characters (including comma/space? Actually Japanese characters count",
+          "events": [
+            "text_delta",
+            "completion",
+            "completion"
+          ],
+          "tool_calls": [],
+          "completion": {
+            "reason": "length",
+            "requested_model": "openrouter/free",
+            "actual_model": "nvidia/nemotron-3.5-lightning:free",
+            "usage": {
+              "prompt_tokens": 53,
+              "completion_tokens": 256,
+              "total_tokens": 309,
+              "cost": 0,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0,
+                "upstream_inference_prompt_cost": 0,
+                "upstream_inference_completions_cost": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 285,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 4.572552052,
+          "elapsed_s": 4.597375862,
+          "timing_ns": {
+            "llm_start": 214648618409694,
+            "llm_first_token": 214653190961746,
+            "llm_end": 214653215785556
+          }
+        },
+        "actual_model": "nvidia/nemotron-3.5-lightning:free",
+        "tool_calling": {
+          "status": "success",
+          "tool_call_count": 2,
+          "tool_round_count": 2,
+          "tool_results": [
+            {
+              "call_id": "chatcmpl-tool-c9652129ea824bc4a98a53737b43ea9c",
+              "name": "calculator",
+              "content": "391"
+            },
+            {
+              "call_id": "chatcmpl-tool-9f9f02a8e38f4667bef891ec7ccef3c0",
+              "name": "fixed_test_data",
+              "content": "PoC固定データ: ready"
+            }
+          ],
+          "rounds": [
+            {
+              "text": "I'll use the calculator to compute 17*23 and then retrieve the status from fixed_test_data.",
+              "events": [
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "completion",
+                "tool_call",
+                "tool_call",
+                "completion"
+              ],
+              "tool_calls": [
+                {
+                  "call_id": "chatcmpl-tool-c9652129ea824bc4a98a53737b43ea9c",
+                  "name": "calculator",
+                  "arguments": {
+                    "expression": "17*23"
+                  }
+                },
+                {
+                  "call_id": "chatcmpl-tool-9f9f02a8e38f4667bef891ec7ccef3c0",
+                  "name": "fixed_test_data",
+                  "arguments": {
+                    "key": "status"
+                  }
+                }
+              ],
+              "completion": {
+                "reason": "tool_calls",
+                "requested_model": "openrouter/free",
+                "actual_model": "poolside/laguna-s-2.1:free",
+                "usage": {
+                  "prompt_tokens": 283,
+                  "completion_tokens": 70,
+                  "total_tokens": 353,
+                  "cost": 0,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0,
+                    "upstream_inference_prompt_cost": 0,
+                    "upstream_inference_completions_cost": 0
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                }
+              },
+              "error": null,
+              "cancelled": false,
+              "ttft_s": 2.746126989,
+              "elapsed_s": 5.346928394,
+              "timing_ns": {
+                "llm_start": 214653215885019,
+                "llm_first_token": 214655962012008,
+                "llm_end": 214658562813413
+              },
+              "round": 1
+            },
+            {
+              "text": "17 × 23 の計算結果は 391 で、fixed_test_data の status は「PoC固定データ: ready」です。",
+              "events": [
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "text_delta",
+                "completion",
+                "completion"
+              ],
+              "tool_calls": [],
+              "completion": {
+                "reason": "stop",
+                "requested_model": "openrouter/free",
+                "actual_model": "liquid/lfm-2.5-2.6b:free",
+                "usage": {
+                  "prompt_tokens": 280,
+                  "completion_tokens": 147,
+                  "total_tokens": 427,
+                  "cost": 0,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0,
+                    "upstream_inference_prompt_cost": 0,
+                    "upstream_inference_completions_cost": 0
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 118,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                }
+              },
+              "error": null,
+              "cancelled": false,
+              "ttft_s": 1.561872143,
+              "elapsed_s": 1.716773773,
+              "timing_ns": {
+                "llm_start": 214658563079507,
+                "llm_first_token": 214660124951650,
+                "llm_end": 214660279853280
+              },
+              "round": 2
+            }
+          ],
+          "final_text": "17 × 23 の計算結果は 391 で、fixed_test_data の status は「PoC固定データ: ready」です。"
+        },
+        "cancel": {
+          "pre_cancel": false,
+          "midstream_cancel_observed": true,
+          "turn": {
+            "text": "長",
+            "events": [
+              "text_delta",
+              "cancelled"
+            ],
+            "tool_calls": [],
+            "completion": null,
+            "error": null,
+            "cancelled": true,
+            "ttft_s": 0.889566762,
+            "elapsed_s": 0.889933023,
+            "timing_ns": {
+              "llm_start": 214660279966252,
+              "llm_first_token": 214661169533014,
+              "llm_end": 214661169899275
+            }
+          }
+        }
+      }
+    },
+    "tool_scope": "PoC-only calculator, fixed_test_data, deterministic_time; no destructive service calls."
+  }
+}

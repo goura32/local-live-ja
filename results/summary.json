@@ -1,0 +1,855 @@
+{
+  "schema": "local-live-ja/summary/v1",
+  "generated_at": "2026-09-11T18:16:11.154946+00:00",
+  "environment": {
+    "captured_at": "2026-09-11T18:10:00.047593+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "benchmark_paths": {
+    "doctor": "results/doctor.json",
+    "asr": "results/bench_asr.json",
+    "tts": "results/bench_tts.json",
+    "llm": "results/bench_llm.json",
+    "e2e": "results/bench_e2e.json",
+    "aec": "results/bench_aec.json",
+    "run": "results/run_latest.json"
+  },
+  "doctor": {
+    "status": "warn",
+    "warnings": [
+      "git_github"
+    ],
+    "failures": [],
+    "checks": {
+      "gpu_cuda": {
+        "status": "pass",
+        "nvidia_smi": [
+          {
+            "name": "NVIDIA GeForce RTX 5070 Ti",
+            "driver_version": "595.84",
+            "memory.total": "16303",
+            "compute_cap": "12.0"
+          }
+        ],
+        "torch": {
+          "installed": true,
+          "cuda_available": true,
+          "torch_cuda": "13.0",
+          "device_count": 1,
+          "device_names": [
+            "NVIDIA GeForce RTX 5070 Ti"
+          ]
+        },
+        "nvcc": null
+      },
+      "python_dependencies": {
+        "status": "pass",
+        "found": {
+          "numpy": true,
+          "soundfile": true,
+          "httpx": true,
+          "faster-whisper": true,
+          "qwen-tts": true,
+          "torch": true,
+          "sounddevice": true,
+          "webrtcvad": true
+        },
+        "required_for_doctor": {
+          "numpy": true,
+          "soundfile": true,
+          "httpx": true
+        }
+      },
+      "ollama": {
+        "reachable": true,
+        "model_count": 18,
+        "selected_qwen35_9b": "qwen3.5:9b-q4_K_M",
+        "status": "pass",
+        "binary": null
+      },
+      "pipewire_usb_audio": {
+        "status": "pass",
+        "commands": {
+          "pw-cli": "/usr/bin/pw-cli",
+          "pw-dump": "/usr/bin/pw-dump",
+          "wpctl": "/usr/bin/wpctl",
+          "pw-record": "/usr/bin/pw-record",
+          "pw-play": "/usr/bin/pw-play",
+          "arecord": "/usr/bin/arecord",
+          "aplay": "/usr/bin/aplay"
+        },
+        "inventory": {
+          "sinks": [
+            {
+              "node_id": 54,
+              "name": "GoStream アナログステレオ",
+              "kind": "sink"
+            },
+            {
+              "node_id": 62,
+              "name": "Built-in Audio デジタルステレオ (IEC958)",
+              "kind": "sink"
+            },
+            {
+              "node_id": 69,
+              "name": "USB Audio アナログステレオ",
+              "kind": "sink"
+            }
+          ],
+          "sources": [
+            {
+              "node_id": 55,
+              "name": "GoStream アナログステレオ",
+              "kind": "source"
+            },
+            {
+              "node_id": 61,
+              "name": "Built-in Audio アナログステレオ",
+              "kind": "source"
+            },
+            {
+              "node_id": 71,
+              "name": "USB Audio アナログステレオ",
+              "kind": "source"
+            }
+          ],
+          "devices": [
+            "Built-in Audio",
+            "GoStream",
+            "HDA NVidia",
+            "USB Audio",
+            "カード 1: GoStream [GoStream], デバイス 0: USB Audio [USB Audio]",
+            "カード 3: Audio [USB Audio], デバイス 0: USB Audio [USB Audio]"
+          ],
+          "usb_microphone": {
+            "node_id": 71,
+            "name": "USB Audio アナログステレオ",
+            "kind": "source"
+          },
+          "usb_speaker": {
+            "node_id": 69,
+            "name": "USB Audio アナログステレオ",
+            "kind": "sink"
+          }
+        }
+      },
+      "aec_module": {
+        "status": "pass",
+        "module_paths": [
+          "/usr/lib/x86_64-linux-gnu/pipewire-0.3/libpipewire-module-echo-cancel.so"
+        ],
+        "loaded_in_current_server": false,
+        "pipewire_module_name": "libpipewire-module-echo-cancel",
+        "aec_library": "aec/libspa-aec-webrtc",
+        "pactl_probe_returncode": 0
+      },
+      "openrouter_credential": {
+        "status": "pass",
+        "credential_present": true,
+        "credential_source": "ok",
+        "file_exists": true,
+        "permission_ok": true,
+        "reason": "ok",
+        "authentication": {
+          "authenticated": true,
+          "status_code": 200,
+          "error_type": null
+        }
+      },
+      "git_github": {
+        "status": "warn",
+        "git_version": "git version 2.43.0",
+        "git_repo_root": "/mnt/hdd/hermes/projects/local-live-ja",
+        "gh_installed": true,
+        "gh_auth_exit_code": 0,
+        "github_authentication": false
+      }
+    }
+  },
+  "asr": {
+    "metric_name": "synthetic ASR regression",
+    "same_wav_for_all_modes": true,
+    "reference_text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+    "modes": {
+      "gpu_float16": {
+        "status": "measured",
+        "device": "cuda",
+        "compute_type": "float16",
+        "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+        "cer": 0.21875,
+        "rtf": 0.06763263145833333,
+        "elapsed_seconds": 1.947819786,
+        "gpu_memory_peak_mib": 8975,
+        "gpu_memory_delta_peak_mib": 2320,
+        "cpu_load_percent": 9.5875,
+        "error_type": null,
+        "error": null
+      },
+      "gpu_int8_float16": {
+        "status": "measured",
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2、3、4、5です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+        "cer": 0.21875,
+        "rtf": 0.06731266305555555,
+        "elapsed_seconds": 1.938604696,
+        "gpu_memory_peak_mib": 7983,
+        "gpu_memory_delta_peak_mib": 1098,
+        "cpu_load_percent": 12.61875,
+        "error_type": null,
+        "error": null
+      },
+      "cpu_int8": {
+        "status": "measured",
+        "device": "cpu",
+        "compute_type": "int8",
+        "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2345です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+        "cer": 0.21875,
+        "rtf": 0.1901100262847222,
+        "elapsed_seconds": 5.475168757,
+        "gpu_memory_peak_mib": 6885,
+        "gpu_memory_delta_peak_mib": 0,
+        "cpu_load_percent": 16.59565217391304,
+        "error_type": null,
+        "error": null
+      }
+    }
+  },
+  "tts": {
+    "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+    "speaker": "Ono_Anna",
+    "language": "Japanese",
+    "streaming_supported_by_official_python_api": false,
+    "runs": {
+      "gpu": {
+        "status": null,
+        "device": "cuda:0",
+        "audio_seconds": 7.76,
+        "elapsed_seconds": 5.527356951,
+        "model_load_seconds": 0.0,
+        "inference_elapsed_seconds": 5.511974935,
+        "first_audio_equivalent_seconds": 5.52212981,
+        "warm_first_audio_equivalent_seconds": 5.506746436,
+        "rtf": 0.7103060483247422,
+        "gpu_memory_peak_mib": 9163,
+        "gpu_memory_delta_peak_mib": 50,
+        "cpu_load_percent": 4.570833333333334,
+        "preload_seconds": 8.252748553,
+        "error_type": null,
+        "error": null
+      },
+      "cpu_reference": {
+        "status": null,
+        "device": "cpu",
+        "audio_seconds": 7.84,
+        "elapsed_seconds": 20.15542383,
+        "model_load_seconds": 0.0,
+        "inference_elapsed_seconds": 20.139645754,
+        "first_audio_equivalent_seconds": 20.150918308,
+        "warm_first_audio_equivalent_seconds": 20.135137834,
+        "rtf": 2.5688323665816326,
+        "gpu_memory_peak_mib": 7275,
+        "gpu_memory_delta_peak_mib": 0,
+        "cpu_load_percent": 66.05000000000001,
+        "preload_seconds": 4.089837509,
+        "error_type": null,
+        "error": null
+      }
+    }
+  },
+  "llm": {
+    "requested_openrouter_model": "openrouter/free",
+    "context_target": 8192,
+    "providers": {
+      "local": {
+        "requested_model": "qwen3.5:9b-q4_K_M",
+        "actual_model": "qwen3.5:9b-q4_K_M",
+        "normal_stream": {
+          "text": "はい、今日も元気に過ごしています。",
+          "events": [
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "completion"
+          ],
+          "completion": {
+            "reason": "stop",
+            "requested_model": "qwen3.5:9b-q4_K_M",
+            "actual_model": "qwen3.5:9b-q4_K_M",
+            "usage": {
+              "total_duration": 172260987,
+              "load_duration": 4728559,
+              "prompt_eval_count": 47,
+              "prompt_eval_duration": 31467000,
+              "eval_count": 10,
+              "eval_duration": 80729000
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 0.147260435,
+          "elapsed_s": 0.227828949
+        },
+        "tool_calling": {
+          "status": "failed",
+          "tool_call_count": 2,
+          "tool_round_count": 2,
+          "final_text": "",
+          "error_type": null,
+          "error": null
+        },
+        "cancel": {
+          "pre_cancel": false,
+          "midstream_cancel_observed": true,
+          "turn": {
+            "text": "承",
+            "events": [
+              "text_delta",
+              "cancelled"
+            ],
+            "tool_calls": [],
+            "completion": null,
+            "error": null,
+            "cancelled": true,
+            "ttft_s": 0.118351281,
+            "elapsed_s": 0.127284924,
+            "timing_ns": {
+              "llm_start": 214648491113170,
+              "llm_first_token": 214648609464451,
+              "llm_end": 214648618398094
+            }
+          }
+        }
+      },
+      "openrouter": {
+        "requested_model": "openrouter/free",
+        "actual_model": "nvidia/nemotron-3.5-lightning:free",
+        "normal_stream": {
+          "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - User says: \"今日は元気ですか。\" (Kyou wa genki desu ka?)\n   - Translation: \"Are you energetic/well today?\"\n   - Language: Japanese\n   - Constraint: \"日本語で一文だけ、40文字以内の自然な返答をしてください。\" (Reply in Japanese, only one sentence, within 40 characters naturally.)\n   - Additional instruction: \"考え中の説明は出さないでください。\" (Don't output explanations of thinking.)\n\n2.  **Identify Requirements:**\n   - Language: Japanese\n   - Format: One sentence\n   - Length: Under 40 characters\n   - Content: Natural response to \"Are you well today?\"\n   - No thinking/explanation text\n\n3.  **Formulate Response:**\n   - Standard polite response: \"はい、元気です！\" (Yes, I'm energetic!)\n   - Or: \"ありがとうございます、元気です。\" (Thank you, I'm energetic.)\n   - Count characters: \n     - \"はい、元気です！\" -> 7 characters (including comma/space? Actually Japanese characters count",
+          "events": [
+            "text_delta",
+            "completion",
+            "completion"
+          ],
+          "completion": {
+            "reason": "length",
+            "requested_model": "openrouter/free",
+            "actual_model": "nvidia/nemotron-3.5-lightning:free",
+            "usage": {
+              "prompt_tokens": 53,
+              "completion_tokens": 256,
+              "total_tokens": 309,
+              "cost": 0,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0,
+                "upstream_inference_prompt_cost": 0,
+                "upstream_inference_completions_cost": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 285,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "error": null,
+          "cancelled": false,
+          "ttft_s": 4.572552052,
+          "elapsed_s": 4.597375862
+        },
+        "tool_calling": {
+          "status": "success",
+          "tool_call_count": 2,
+          "tool_round_count": 2,
+          "final_text": "17 × 23 の計算結果は 391 で、fixed_test_data の status は「PoC固定データ: ready」です。",
+          "error_type": null,
+          "error": null
+        },
+        "cancel": {
+          "pre_cancel": false,
+          "midstream_cancel_observed": true,
+          "turn": {
+            "text": "長",
+            "events": [
+              "text_delta",
+              "cancelled"
+            ],
+            "tool_calls": [],
+            "completion": null,
+            "error": null,
+            "cancelled": true,
+            "ttft_s": 0.889566762,
+            "elapsed_s": 0.889933023,
+            "timing_ns": {
+              "llm_start": 214660279966252,
+              "llm_first_token": 214661169533014,
+              "llm_end": 214661169899275
+            }
+          }
+        }
+      }
+    }
+  },
+  "e2e": {
+    "status": "measured",
+    "configurations": {
+      "A_gpu_asr_local_gpu_tts": {
+        "status": "measured",
+        "provider": "local",
+        "requested_model": "qwen3.5:9b-q4_K_M",
+        "actual_model": "qwen3.5:9b-q4_K_M",
+        "e2e_latency_s": 245.119461912,
+        "user_asr": {
+          "device": "cuda",
+          "compute_type": "float16",
+          "rtf": 0.07144013458283077,
+          "elapsed_seconds": 1.98175231,
+          "gpu_memory_peak_mib": 8975,
+          "cpu_load_percent": 9.73125
+        },
+        "llm": {
+          "text": "こんにちは。理解しました。テスト準備ありがとうございます。",
+          "ttft_s": 0.176758855,
+          "elapsed_s": 0.257780087,
+          "completion": {
+            "reason": "stop",
+            "requested_model": "qwen3.5:9b-q4_K_M",
+            "actual_model": "qwen3.5:9b-q4_K_M",
+            "usage": {
+              "total_duration": 183206680,
+              "load_duration": 10617078,
+              "prompt_eval_count": 131,
+              "prompt_eval_duration": 25006000,
+              "eval_count": 10,
+              "eval_duration": 81300000
+            }
+          },
+          "error": null,
+          "cancelled": false
+        },
+        "tts": [
+          {
+            "device": "cuda:0",
+            "audio_seconds": 2.8,
+            "elapsed_seconds": 11.200568095,
+            "rtf": 0.934957810357143,
+            "first_audio_equivalent_seconds": 11.196524389,
+            "gpu_memory_peak_mib": 11233,
+            "cpu_load_percent": 4.1617977528089884
+          },
+          {
+            "device": "cuda:0",
+            "audio_seconds": 2.16,
+            "elapsed_seconds": 1.427675681,
+            "rtf": 0.6542919787037037,
+            "first_audio_equivalent_seconds": 1.415389113,
+            "gpu_memory_peak_mib": 11235,
+            "cpu_load_percent": 4.661538461538462
+          },
+          {
+            "device": "cuda:0",
+            "audio_seconds": 3.28,
+            "elapsed_seconds": 2.142288979,
+            "rtf": 0.6474843085365855,
+            "first_audio_equivalent_seconds": 2.129998431,
+            "gpu_memory_peak_mib": 11267,
+            "cpu_load_percent": 4.626315789473685
+          }
+        ],
+        "assistant_cer": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error_type": null,
+        "error": null
+      },
+      "B_cpu_asr_local_gpu_tts": {
+        "status": "measured",
+        "provider": "local",
+        "requested_model": "qwen3.5:9b-q4_K_M",
+        "actual_model": "qwen3.5:9b-q4_K_M",
+        "e2e_latency_s": 17.098104256,
+        "user_asr": {
+          "device": "cpu",
+          "compute_type": "int8",
+          "rtf": 0.20381657345503867,
+          "elapsed_seconds": 5.65388024,
+          "gpu_memory_peak_mib": 11267,
+          "cpu_load_percent": 17.314893617021276
+        },
+        "llm": {
+          "text": "こんにちは。認識できましたので、テスト開始の準備は整っていますか。",
+          "ttft_s": 0.137162377,
+          "elapsed_s": 0.271140134,
+          "completion": {
+            "reason": "stop",
+            "requested_model": "qwen3.5:9b-q4_K_M",
+            "actual_model": "qwen3.5:9b-q4_K_M",
+            "usage": {
+              "total_duration": 233131034,
+              "load_duration": 6750350,
+              "prompt_eval_count": 131,
+              "prompt_eval_duration": 26010000,
+              "eval_count": 16,
+              "eval_duration": 133963000
+            }
+          },
+          "error": null,
+          "cancelled": false
+        },
+        "tts": [
+          {
+            "device": "cuda:0",
+            "audio_seconds": 2.24,
+            "elapsed_seconds": 1.489525505,
+            "rtf": 0.6582640982142857,
+            "first_audio_equivalent_seconds": 1.485350775,
+            "gpu_memory_peak_mib": 11267,
+            "cpu_load_percent": 4.4
+          },
+          {
+            "device": "cuda:0",
+            "audio_seconds": 5.2,
+            "elapsed_seconds": 3.360326926,
+            "rtf": 0.6432790173076923,
+            "first_audio_equivalent_seconds": 3.355759527,
+            "gpu_memory_peak_mib": 11275,
+            "cpu_load_percent": 4.651724137931034
+          }
+        ],
+        "assistant_cer": [
+          0.0,
+          0.0
+        ],
+        "error_type": null,
+        "error": null
+      },
+      "C_gpu_asr_openrouter_gpu_tts": {
+        "status": "measured",
+        "provider": "openrouter",
+        "requested_model": "openrouter/free",
+        "actual_model": "google/gemma-4-31b-it:free",
+        "e2e_latency_s": 8.588263087,
+        "user_asr": {
+          "device": "cuda",
+          "compute_type": "float16",
+          "rtf": 0.014539402926876163,
+          "elapsed_seconds": 0.403323643,
+          "gpu_memory_peak_mib": 11321,
+          "cpu_load_percent": 32.86666666666667
+        },
+        "llm": {
+          "text": "承知いたしました。設定内容を確認し、テストの準備を整えます。",
+          "ttft_s": 1.576311142,
+          "elapsed_s": 1.731795934,
+          "completion": {
+            "reason": "stop",
+            "requested_model": "openrouter/free",
+            "actual_model": "google/gemma-4-31b-it:free",
+            "usage": {
+              "prompt_tokens": 118,
+              "completion_tokens": 16,
+              "total_tokens": 134,
+              "cost": 0,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0,
+                "upstream_inference_prompt_cost": 0,
+                "upstream_inference_completions_cost": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "error": null,
+          "cancelled": false
+        },
+        "tts": [
+          {
+            "device": "cuda:0",
+            "audio_seconds": 4.4,
+            "elapsed_seconds": 2.865289342,
+            "rtf": 0.6458570377272727,
+            "first_audio_equivalent_seconds": 2.861517472,
+            "gpu_memory_peak_mib": 11321,
+            "cpu_load_percent": 6.492000000000001
+          },
+          {
+            "device": "cuda:0",
+            "audio_seconds": 4.8,
+            "elapsed_seconds": 3.109737164,
+            "rtf": 0.6442236658333333,
+            "first_audio_equivalent_seconds": 3.10504264,
+            "gpu_memory_peak_mib": 11321,
+            "cpu_load_percent": 4.677777777777778
+          }
+        ],
+        "assistant_cer": [
+          0.0,
+          0.0
+        ],
+        "error_type": null,
+        "error": null
+      },
+      "D_cpu_asr_openrouter_gpu_tts": {
+        "status": "measured",
+        "provider": "openrouter",
+        "requested_model": "openrouter/free",
+        "actual_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "e2e_latency_s": 20.641498444,
+        "user_asr": {
+          "device": "cpu",
+          "compute_type": "int8",
+          "rtf": 0.14946892963691175,
+          "elapsed_seconds": 4.146274336,
+          "gpu_memory_peak_mib": 11321,
+          "cpu_load_percent": 20.108823529411765
+        },
+        "llm": {
+          "text": "了解です、テスト開始します。",
+          "ttft_s": 3.106475196,
+          "elapsed_s": 3.241303927,
+          "completion": {
+            "reason": "stop",
+            "requested_model": "openrouter/free",
+            "actual_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+            "usage": {
+              "prompt_tokens": 150,
+              "completion_tokens": 140,
+              "total_tokens": 290,
+              "cost": 0,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0,
+                "upstream_inference_prompt_cost": 0,
+                "upstream_inference_completions_cost": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 107,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "error": null,
+          "cancelled": false
+        },
+        "tts": [
+          {
+            "device": "cuda:0",
+            "audio_seconds": 14.88,
+            "elapsed_seconds": 9.551344093,
+            "rtf": 0.640228227486559,
+            "first_audio_equivalent_seconds": 9.544764228,
+            "gpu_memory_peak_mib": 11831,
+            "cpu_load_percent": 4.65
+          }
+        ],
+        "assistant_cer": [
+          4.833333333333333
+        ],
+        "error_type": null,
+        "error": null
+      }
+    }
+  },
+  "aec": {
+    "status": "blocked",
+    "reference_audio": "results/artifacts/aec_reference.wav",
+    "reference_generation": {
+      "source": "reused_existing_generated_audio",
+      "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
+      "duration_s": 6.48
+    },
+    "physical_path": "TTS -> Echo Cancellation Sink -> USB speaker -> room -> USB microphone -> Echo Cancellation Source",
+    "inventory_before": {
+      "sinks": [
+        {
+          "node_id": 54,
+          "name": "GoStream アナログステレオ",
+          "kind": "sink"
+        },
+        {
+          "node_id": 62,
+          "name": "Built-in Audio デジタルステレオ (IEC958)",
+          "kind": "sink"
+        },
+        {
+          "node_id": 69,
+          "name": "USB Audio アナログステレオ",
+          "kind": "sink"
+        }
+      ],
+      "sources": [
+        {
+          "node_id": 55,
+          "name": "GoStream アナログステレオ",
+          "kind": "source"
+        },
+        {
+          "node_id": 61,
+          "name": "Built-in Audio アナログステレオ",
+          "kind": "source"
+        },
+        {
+          "node_id": 71,
+          "name": "USB Audio アナログステレオ",
+          "kind": "source"
+        }
+      ],
+      "devices": [
+        "Built-in Audio",
+        "GoStream",
+        "HDA NVidia",
+        "USB Audio",
+        "カード 1: GoStream [GoStream], デバイス 0: USB Audio [USB Audio]",
+        "カード 3: Audio [USB Audio], デバイス 0: USB Audio [USB Audio]"
+      ],
+      "usb_microphone": {
+        "node_id": 71,
+        "name": "USB Audio アナログステレオ",
+        "kind": "source"
+      },
+      "usb_speaker": {
+        "node_id": 69,
+        "name": "USB Audio アナログステレオ",
+        "kind": "sink"
+      }
+    },
+    "aec_library": "aec/libspa-aec-webrtc",
+    "off": {
+      "path": "results/artifacts/aec_off.wav",
+      "reference": "results/artifacts/aec_reference.wav",
+      "duration_s": 7.380000000000001,
+      "playback_target": 69,
+      "capture_target": 71,
+      "record_returncode": 1,
+      "record_stdout": "",
+      "record_stderr": ""
+    },
+    "on": {
+      "path": "results/artifacts/aec_on.wav",
+      "reference": "results/artifacts/aec_reference.wav",
+      "duration_s": 7.380000000000001,
+      "playback_target": 89,
+      "capture_target": 80,
+      "record_returncode": 1,
+      "record_stdout": "",
+      "record_stderr": ""
+    },
+    "comparison": {
+      "reference_recording_correlation_off": {
+        "correlation": null,
+        "lag_samples": null,
+        "lag_seconds": null
+      },
+      "reference_recording_correlation_on": {
+        "correlation": null,
+        "lag_samples": null,
+        "lag_seconds": null
+      },
+      "residual_echo_attenuation_db": null,
+      "recording_rms": {
+        "off": 0.0,
+        "on": 0.0
+      },
+      "measurement_valid": false,
+      "recording_sample_rates": {
+        "reference": 24000,
+        "off": 16000,
+        "on": 16000
+      }
+    },
+    "aec_module": {
+      "module_id": "536870913",
+      "named_sink": {
+        "node_id": 89,
+        "name": "Echo-Cancel Sink",
+        "kind": "sink"
+      },
+      "named_source": {
+        "node_id": 80,
+        "name": "Echo-Cancel Source",
+        "kind": "source"
+      },
+      "sink_master": 69,
+      "source_master": 71
+    },
+    "reason": "physical capture was silent; AEC attenuation and ASR rerecognition are unmeasured",
+    "asr_self_rerecognition": {
+      "status": "unavailable",
+      "reason": "off/on recording RMS was at or below the signal floor"
+    }
+  },
+  "run": {
+    "status": "completed",
+    "assistant_text": "こんにちは。今日は温等認識の確認です。数字は 1、2、3、4、5 です。GPU、QE、Docker、Orama、Python3.12 を使用し、2026 年 9 月 12 日午後 3 時 30 分にテストします。HardTX5 室 70 の Ti と USB マイクも確認します。",
+    "audio_paths_count": 5,
+    "error": null,
+    "timing": {
+      "llm_start": 215438073987856,
+      "llm_first_token": 215438267660833,
+      "llm_end": 215439032229230,
+      "tts_request": 215487586873408,
+      "tts_end": 215491616941029,
+      "playback_start": 215491616943009,
+      "playback_end": 215498304904337
+    }
+  }
+}

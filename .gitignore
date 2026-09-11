@@ -1,0 +1,43 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Local credentials and configuration
+.env
+.env.*
+*.key
+*.pem
+config/local*.yaml
+
+# Model/cache directories
+.cache/
+cache/
+models/
+weights/
+.huggingface/
+
+# Generated audio and raw logs
+*.wav
+*.flac
+*.mp3
+*.ogg
+*.npy
+*.npz
+results/artifacts/
+results/raw/
+results/*.log
+logs/
+
+# Local runtime state
+.run/
+*.pid
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store

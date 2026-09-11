@@ -1,0 +1,9 @@
+corpus_name: synthetic_asr_regression
+language: Japanese
+texts:
+  - id: core_live_ja_01
+    text: "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。"
+    tags: [conversation, japanese_numbers, alphanumeric, technical_terms, date_time]
+notes:
+  - "This corpus is synthesized by Qwen3-TTS and is not human-speech accuracy data."
+  - "The same generated WAV is used for GPU and CPU Whisper comparisons."
