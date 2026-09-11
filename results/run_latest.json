@@ -2,335 +2,339 @@
   "status": "completed",
   "input": "results/artifacts/synthetic_asr_regression.wav",
   "user_asr": {
-    "text": "こんにちは。今日は通常会話の温等認識を確認します。数字は1、2、3と、まあ、U2、3、4、5です。GPU、QE、Docker、Orama、Python3.12を使い、2026年9月12日、土曜日の午後3時30分にテストします。HardTX5室70、TiとUSBマイクロフォンの状態も確認します。",
+    "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
     "model": "large-v3-turbo",
     "device": "cuda",
     "compute_type": "int8_float16",
     "language_requested": "ja",
     "detected_language": "ja",
     "language_probability": 1.0,
-    "audio_seconds": 28.8,
-    "elapsed_seconds": 2.520476367,
-    "rtf": 0.08751654052083334,
+    "audio_seconds": 27.84,
+    "elapsed_seconds": 2.911657118,
+    "rtf": 0.10458538498563218,
     "gpu_memory_peak_mib": 7983,
     "gpu_memory_delta_peak_mib": 1328,
-    "cpu_load_percent": 11.447619047619048,
+    "cpu_load_percent": 4.141666666666667,
     "segments": [
       {
-        "start": 0.52,
-        "end": 5.06,
-        "text": "こんにちは。今日は通常会話の温等認識を確認します。"
+        "start": 0.88,
+        "end": 5.16,
+        "text": "こんにちは。今日は通常会話の音声認識を確認します。"
       },
       {
-        "start": 5.56,
-        "end": 9.34,
-        "text": "数字は1、2、3と、まあ、U2、3、4、5です。"
+        "start": 5.66,
+        "end": 8.8,
+        "text": "数字は1、2、3と134像5です。"
       },
       {
-        "start": 10.18,
-        "end": 16.02,
-        "text": "GPU、QE、Docker、Orama、Python3.12を使い、"
+        "start": 9.34,
+        "end": 14.6,
+        "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
       },
       {
-        "start": 16.46,
-        "end": 21.8,
-        "text": "2026年9月12日、土曜日の午後3時30分にテストします。"
+        "start": 14.92,
+        "end": 20.46,
+        "text": "2026年9月12日土曜日の午後3時30分にテストします。"
       },
       {
-        "start": 22.5,
-        "end": 28.38,
-        "text": "HardTX5室70、TiとUSBマイクロフォンの状態も確認します。"
+        "start": 21.34,
+        "end": 26.94,
+        "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
       }
     ]
   },
-  "assistant_text": "こんにちは。今日は温等認識の確認です。数字は 1、2、3、4、5 です。GPU、QE、Docker、Orama、Python3.12 を使用し、2026 年 9 月 12 日午後 3 時 30 分にテストします。HardTX5 室 70 の Ti と USB マイクも確認します。",
+  "assistant_text": "こんにちは。今日は通常会話の音声認識を確認します。数字は 1、2、3 と 134、5 です。GPU、Quita、Doka、Orama、Python3.12 を使い、2026 年 9 月 12 日土曜日の午後 3 時 30 分にテストします。RTX ゴジタ 70Ti と USB マイクロフォンの状態も",
   "audio_paths": [
-    "results/artifacts/assistant_215439032395754_0.wav",
-    "results/artifacts/assistant_215453709599660_1.wav",
-    "results/artifacts/assistant_215458006527929_2.wav",
-    "results/artifacts/assistant_215466201376845_3.wav",
-    "results/artifacts/assistant_215487586834684_4.wav"
+    "results/artifacts/assistant_223500176005528_0.wav",
+    "results/artifacts/assistant_223515802555646_1.wav",
+    "results/artifacts/assistant_223522994895669_2.wav",
+    "results/artifacts/assistant_223532947620002_3.wav",
+    "results/artifacts/assistant_223554680904586_4.wav"
   ],
   "error": null,
   "events": [
     {
       "event": "vad_start",
-      "monotonic_ns": 215434471248952
+      "monotonic_ns": 223494861099517
     },
     {
       "event": "vad_end",
-      "monotonic_ns": 215434474704972,
+      "monotonic_ns": 223494862945267,
       "intervals": [
         [
-          0.58,
-          1.26
+          0.94,
+          1.52
         ],
         [
-          1.74,
-          5.0
+          2.06,
+          2.36
         ],
         [
-          5.62,
-          6.1
+          2.52,
+          5.08
         ],
         [
-          6.22,
-          6.56
+          5.7,
+          6.44
         ],
         [
-          6.78,
-          7.02
+          6.7,
+          6.92
         ],
         [
-          7.22,
-          7.7
+          7.2,
+          8.84
         ],
         [
-          7.9,
-          9.22
+          9.36,
+          9.98
         ],
         [
-          10.22,
-          11.06
+          10.28,
+          10.94
         ],
         [
-          11.42,
-          12.2
+          11.06,
+          11.36
         ],
         [
-          12.84,
-          13.0
+          11.74,
+          12.24
         ],
         [
-          13.36,
-          13.76
+          12.58,
+          14.14
         ],
         [
-          14.02,
-          15.58
+          14.34,
+          14.5
         ],
         [
-          15.76,
-          15.94
+          14.9,
+          17.12
         ],
         [
-          16.46,
-          18.52
+          17.4,
+          18.22
         ],
         [
-          19.1,
+          18.48,
+          19.18
+        ],
+        [
+          19.32,
+          19.64
+        ],
+        [
+          19.8,
           19.92
         ],
         [
-          20.08,
-          20.72
+          20.04,
+          20.34
         ],
         [
-          20.84,
-          21.7
+          21.34,
+          22.0
         ],
         [
-          22.5,
-          23.62
+          22.12,
+          23.98
         ],
         [
-          23.76,
-          24.4
-        ],
-        [
-          24.84,
-          28.32
+          24.18,
+          26.88
         ]
       ]
     },
     {
       "event": "asr_start",
-      "monotonic_ns": 215435553414654,
+      "monotonic_ns": 223496285384237,
       "model": "large-v3-turbo",
       "device": "cuda",
       "compute_type": "int8_float16"
     },
     {
       "event": "asr_final",
-      "monotonic_ns": 215438073902248,
-      "text_chars": 147,
+      "monotonic_ns": 223499197053241,
+      "text_chars": 137,
       "detected_language": "ja"
     },
     {
       "kind": "llm_start",
-      "monotonic_ns": 215438073987856,
+      "monotonic_ns": 223499197156476,
       "payload": {
         "round": 0
       }
     },
     {
       "kind": "llm_first_token",
-      "monotonic_ns": 215438267660833,
+      "monotonic_ns": 223499347936798,
       "payload": {
         "round": 0
       }
     },
     {
       "kind": "llm_end",
-      "monotonic_ns": 215439032229230,
+      "monotonic_ns": 223500175762249,
       "payload": {
-        "reason": "stop",
+        "reason": "length",
         "actual_model": "qwen3.5:9b-q4_K_M"
       }
     },
     {
       "kind": "tts_request",
-      "monotonic_ns": 215439032408709,
+      "monotonic_ns": 223500176022888,
       "payload": {
         "text_chars": 6
       }
     },
     {
       "kind": "tts_end",
-      "monotonic_ns": 215450236838513,
+      "monotonic_ns": 223512326934461,
       "payload": {
-        "path": "results/artifacts/assistant_215439032395754_0.wav"
+        "path": "results/artifacts/assistant_223500176005528_0.wav"
       }
     },
     {
       "kind": "playback_start",
-      "monotonic_ns": 215450236842418,
+      "monotonic_ns": 223512326938560,
       "payload": {
-        "path": "results/artifacts/assistant_215439032395754_0.wav"
+        "path": "results/artifacts/assistant_223500176005528_0.wav"
       }
     },
     {
       "kind": "playback_end",
-      "monotonic_ns": 215453709588969,
+      "monotonic_ns": 223515802542800,
       "payload": {
-        "path": "results/artifacts/assistant_215439032395754_0.wav",
+        "path": "results/artifacts/assistant_223500176005528_0.wav",
         "cancelled": false
       }
     },
     {
       "kind": "tts_request",
-      "monotonic_ns": 215453709637466,
+      "monotonic_ns": 223515802595221,
       "payload": {
-        "text_chars": 13
+        "text_chars": 19
       }
     },
     {
       "kind": "tts_end",
-      "monotonic_ns": 215455322284201,
+      "monotonic_ns": 223518591880180,
       "payload": {
-        "path": "results/artifacts/assistant_215453709599660_1.wav"
+        "path": "results/artifacts/assistant_223515802555646_1.wav"
       }
     },
     {
       "kind": "playback_start",
-      "monotonic_ns": 215455322288047,
+      "monotonic_ns": 223518591883314,
       "payload": {
-        "path": "results/artifacts/assistant_215453709599660_1.wav"
+        "path": "results/artifacts/assistant_223515802555646_1.wav"
       }
     },
     {
       "kind": "playback_end",
-      "monotonic_ns": 215458006519761,
+      "monotonic_ns": 223522994884882,
       "payload": {
-        "path": "results/artifacts/assistant_215453709599660_1.wav",
+        "path": "results/artifacts/assistant_223515802555646_1.wav",
         "cancelled": false
       }
     },
     {
       "kind": "tts_request",
-      "monotonic_ns": 215458006565491,
+      "monotonic_ns": 223522994933978,
       "payload": {
-        "text_chars": 17
+        "text_chars": 21
       }
     },
     {
       "kind": "tts_end",
-      "monotonic_ns": 215461069934659,
+      "monotonic_ns": 223526866537149,
       "payload": {
-        "path": "results/artifacts/assistant_215458006527929_2.wav"
+        "path": "results/artifacts/assistant_223522994895669_2.wav"
       }
     },
     {
       "kind": "playback_start",
-      "monotonic_ns": 215461069936182,
+      "monotonic_ns": 223526866539236,
       "payload": {
-        "path": "results/artifacts/assistant_215458006527929_2.wav"
+        "path": "results/artifacts/assistant_223522994895669_2.wav"
       }
     },
     {
       "kind": "playback_end",
-      "monotonic_ns": 215466201368733,
+      "monotonic_ns": 223532947608799,
       "payload": {
-        "path": "results/artifacts/assistant_215458006527929_2.wav",
+        "path": "results/artifacts/assistant_223522994895669_2.wav",
         "cancelled": false
       }
     },
     {
       "kind": "tts_request",
-      "monotonic_ns": 215466201413936,
+      "monotonic_ns": 223532947673148,
       "payload": {
-        "text_chars": 70
+        "text_chars": 74
       }
     },
     {
       "kind": "tts_end",
-      "monotonic_ns": 215474272678998,
+      "monotonic_ns": 223541446436139,
       "payload": {
-        "path": "results/artifacts/assistant_215466201376845_3.wav"
+        "path": "results/artifacts/assistant_223532947620002_3.wav"
       }
     },
     {
       "kind": "playback_start",
-      "monotonic_ns": 215474272681349,
+      "monotonic_ns": 223541446438939,
       "payload": {
-        "path": "results/artifacts/assistant_215466201376845_3.wav"
+        "path": "results/artifacts/assistant_223532947620002_3.wav"
       }
     },
     {
       "kind": "playback_end",
-      "monotonic_ns": 215487586826350,
+      "monotonic_ns": 223554680895693,
       "payload": {
-        "path": "results/artifacts/assistant_215466201376845_3.wav",
+        "path": "results/artifacts/assistant_223532947620002_3.wav",
         "cancelled": false
       }
     },
     {
       "kind": "tts_request",
-      "monotonic_ns": 215487586873408,
+      "monotonic_ns": 223554680944068,
       "payload": {
-        "text_chars": 34
+        "text_chars": 30
       }
     },
     {
       "kind": "tts_end",
-      "monotonic_ns": 215491616941029,
+      "monotonic_ns": 223559332042916,
       "payload": {
-        "path": "results/artifacts/assistant_215487586834684_4.wav"
+        "path": "results/artifacts/assistant_223554680904586_4.wav"
       }
     },
     {
       "kind": "playback_start",
-      "monotonic_ns": 215491616943009,
+      "monotonic_ns": 223559332044963,
       "payload": {
-        "path": "results/artifacts/assistant_215487586834684_4.wav"
+        "path": "results/artifacts/assistant_223554680904586_4.wav"
       }
     },
     {
       "kind": "playback_end",
-      "monotonic_ns": 215498304904337,
+      "monotonic_ns": 223566580180445,
       "payload": {
-        "path": "results/artifacts/assistant_215487586834684_4.wav",
+        "path": "results/artifacts/assistant_223554680904586_4.wav",
         "cancelled": false
       }
     }
   ],
   "timing": {
-    "llm_start": 215438073987856,
-    "llm_first_token": 215438267660833,
-    "llm_end": 215439032229230,
-    "tts_request": 215487586873408,
-    "tts_end": 215491616941029,
-    "playback_start": 215491616943009,
-    "playback_end": 215498304904337
+    "llm_start": 223499197156476,
+    "llm_first_token": 223499347936798,
+    "llm_end": 223500175762249,
+    "tts_request": 223554680944068,
+    "tts_end": 223559332042916,
+    "playback_start": 223559332044963,
+    "playback_end": 223566580180445
   }
 }

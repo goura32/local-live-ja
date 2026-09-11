@@ -300,6 +300,23 @@ def record_fixed(
     return {"path": str(output), "duration_s": duration_s, "started_ns": started, "stdout": stdout.strip()}
 
 
+def audio_file_stats(audio_path: str | Path) -> dict[str, Any]:
+    """Return measured WAV duration and signal levels for capture validation."""
+    path = Path(audio_path)
+    info = sf.info(str(path))
+    samples, sample_rate = sf.read(str(path), always_2d=False)
+    array = np.asarray(samples, dtype=np.float32)
+    peak = float(np.max(np.abs(array))) if array.size else 0.0
+    return {
+        "path": str(path),
+        "sample_rate": int(sample_rate),
+        "frames": int(info.frames),
+        "duration_s": float(info.duration),
+        "rms": signal_rms(array),
+        "peak": peak,
+    }
+
+
 def play_and_record(
     audio_path: str | Path,
     recording_path: str | Path,
@@ -350,6 +367,7 @@ def play_and_record(
         "record_returncode": recorder.returncode,
         "record_stdout": rec_stdout.strip(),
         "record_stderr": rec_stderr.strip(),
+        "recording_stats": audio_file_stats(output),
     }
 
 

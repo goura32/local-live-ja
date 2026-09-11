@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 
-from .events import Completion, LLMError, TextDelta, ToolCall, LLMEvent, Cancelled
+from .events import Completion, LLMError, TextDelta, ToolCall, LLMEvent, Cancelled, safe_error_details
 
 
 def choose_qwen35_9b_model(tags: list[Mapping[str, Any]]) -> str | None:
@@ -79,6 +79,7 @@ def parse_ollama_line(line: str, requested_model: str) -> LLMEvent | None:
 
 class OllamaLLM:
     name = "ollama"
+    tool_call_format = "ollama"
 
     def __init__(
         self,
@@ -155,10 +156,15 @@ class OllamaLLM:
         try:
             with httpx.stream("POST", f"{self.base_url}/api/chat", json=body, timeout=self.timeout_s) as response:
                 if response.status_code >= 400:
+                    try:
+                        error_payload: Any = response.json()
+                    except (ValueError, json.JSONDecodeError):
+                        error_payload = None
                     yield LLMError(
                         f"Ollama HTTP {response.status_code}",
                         retryable=response.status_code >= 500 or response.status_code == 429,
                         status_code=response.status_code,
+                        details=safe_error_details(response.status_code, error_payload),
                     )
                     return
                 for line in response.iter_lines():

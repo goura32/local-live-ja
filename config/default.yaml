@@ -22,7 +22,7 @@ llm:
   max_tokens: 96
   # Free-router models may spend the small budget on reasoning before text.
   # Keep local responses short, but allow the remote PoC enough headroom.
-  openrouter_max_tokens: 256
+  openrouter_max_tokens: 384
   temperature: 0.2
 
 # Official Qwen3-TTS Python API is used per sentence chunk; no custom streaming engine.
@@ -35,6 +35,12 @@ tts:
   max_new_tokens: 2048
   sentence_max_chars: 48
   sentence_timeout_s: 0.8
+
+bench:
+  e2e_repeats: 3
+  e2e_max_attempts: 9
+  tts_warm_repeats: 3
+  audio_signal_floor_rms: 0.000001
 
 pipewire:
   microphone: auto

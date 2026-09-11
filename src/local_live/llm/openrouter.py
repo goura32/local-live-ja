@@ -7,7 +7,7 @@ from typing import Any
 import httpx
 
 from ..config import load_openrouter_key
-from .events import Cancelled, Completion, LLMError, TextDelta, ToolCall, LLMEvent
+from .events import Cancelled, Completion, LLMError, TextDelta, ToolCall, LLMEvent, safe_error_details
 
 
 def parse_sse_payload(payload: dict[str, Any], requested_model: str) -> LLMEvent | None:
@@ -33,6 +33,7 @@ def parse_sse_payload(payload: dict[str, Any], requested_model: str) -> LLMEvent
 
 class OpenRouterLLM:
     name = "openrouter"
+    tool_call_format = "openai"
 
     def __init__(
         self,
@@ -120,10 +121,15 @@ class OpenRouterLLM:
                 timeout=self.timeout_s,
             ) as response:
                 if response.status_code >= 400:
+                    try:
+                        error_payload: Any = response.json()
+                    except (ValueError, json.JSONDecodeError):
+                        error_payload = None
                     yield LLMError(
                         f"OpenRouter HTTP {response.status_code}",
                         retryable=response.status_code >= 500 or response.status_code == 429,
                         status_code=response.status_code,
+                        details=safe_error_details(response.status_code, error_payload),
                     )
                     return
                 for line in response.iter_lines():

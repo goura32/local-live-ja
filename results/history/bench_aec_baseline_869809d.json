@@ -1,10 +1,10 @@
 {
-  "schema": "local-live-ja/bench-aec/v2",
+  "schema": "local-live-ja/bench-aec/v1",
   "benchmark": "aec",
-  "started_at": "2026-09-11T20:05:05Z",
-  "finished_at": "2026-09-11T20:05:28Z",
+  "started_at": "2026-09-11T18:09:29Z",
+  "finished_at": "2026-09-11T18:09:44Z",
   "environment": {
-    "captured_at": "2026-09-11T20:05:28.959136+00:00",
+    "captured_at": "2026-09-11T18:09:45.110380+00:00",
     "hostname": "ws1",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
@@ -36,42 +36,11 @@
   },
   "data": {
     "status": "blocked",
-    "run_id": "aec_20260911T200521Z_222082807004148",
     "reference_audio": "results/artifacts/aec_reference.wav",
     "reference_generation": {
-      "source": "qwen3_tts",
+      "source": "reused_existing_generated_audio",
       "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
-      "tts": {
-        "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
-        "path": "results/artifacts/aec_reference.wav",
-        "sample_rate": 24000,
-        "audio_seconds": 6.16,
-        "elapsed_seconds": 14.331020559,
-        "model_load_seconds": 9.796122201,
-        "inference_elapsed_seconds": 4.525287198,
-        "first_audio_equivalent_seconds": 14.321411408,
-        "warm_first_audio_equivalent_seconds": 4.525287198,
-        "audio_complete_seconds": 14.330810447,
-        "playback_possible_seconds": 14.330810637,
-        "timing_ns": {
-          "request_start": 222068343721187,
-          "model_load_start": 222068343721393,
-          "model_loaded": 222078139843594,
-          "inference_start": 222078139845397,
-          "generation_complete": 222082665132595,
-          "audio_complete": 222082674531634,
-          "playback_possible": 222082674531824,
-          "tts_end": 222082674741746
-        },
-        "rtf": 0.7346245451298701,
-        "device": "cuda:0",
-        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
-        "speaker": "Ono_Anna",
-        "streaming_supported": false,
-        "gpu_memory_peak_mib": 9157,
-        "gpu_memory_delta_peak_mib": 2502,
-        "cpu_load_percent": 3.9333333333333336
-      }
+      "duration_s": 6.48
     },
     "physical_path": "TTS -> Echo Cancellation Sink -> USB speaker -> room -> USB microphone -> Echo Cancellation Source",
     "inventory_before": {
@@ -129,52 +98,68 @@
       }
     },
     "aec_library": "aec/libspa-aec-webrtc",
-    "signal_floor_rms": 1e-06,
-    "recording_files_are_unique_per_run": true,
-    "node_ids_are_runtime_only": true,
-    "raw_capture": {
-      "path": "results/artifacts/aec_20260911T200521Z_222082807004148_raw.wav",
+    "off": {
+      "path": "results/artifacts/aec_off.wav",
       "reference": "results/artifacts/aec_reference.wav",
-      "duration_s": 7.0600000000000005,
+      "duration_s": 7.380000000000001,
       "playback_target": 69,
       "capture_target": 71,
       "record_returncode": 1,
       "record_stdout": "",
-      "record_stderr": "",
-      "recording_stats": {
-        "path": "results/artifacts/aec_20260911T200521Z_222082807004148_raw.wav",
-        "sample_rate": 16000,
-        "frames": 112270,
-        "duration_s": 7.016875,
-        "rms": 0.0,
-        "peak": 0.0
+      "record_stderr": ""
+    },
+    "on": {
+      "path": "results/artifacts/aec_on.wav",
+      "reference": "results/artifacts/aec_reference.wav",
+      "duration_s": 7.380000000000001,
+      "playback_target": 89,
+      "capture_target": 80,
+      "record_returncode": 1,
+      "record_stdout": "",
+      "record_stderr": ""
+    },
+    "comparison": {
+      "reference_recording_correlation_off": {
+        "correlation": null,
+        "lag_samples": null,
+        "lag_seconds": null
+      },
+      "reference_recording_correlation_on": {
+        "correlation": null,
+        "lag_samples": null,
+        "lag_seconds": null
+      },
+      "residual_echo_attenuation_db": null,
+      "recording_rms": {
+        "off": 0.0,
+        "on": 0.0
+      },
+      "measurement_valid": false,
+      "recording_sample_rates": {
+        "reference": 24000,
+        "off": 16000,
+        "on": 16000
       }
     },
-    "raw_capture_validation": {
-      "status": "blocked",
-      "duration_s": 7.016875,
-      "rms": 0.0,
-      "peak": 0.0,
-      "signal_floor_rms": 1e-06,
-      "playback_target": {
-        "node_id": 69,
-        "name": "USB Audio アナログステレオ",
+    "aec_module": {
+      "module_id": "536870913",
+      "named_sink": {
+        "node_id": 89,
+        "name": "Echo-Cancel Sink",
         "kind": "sink"
       },
-      "capture_target": {
-        "node_id": 71,
-        "name": "USB Audio アナログステレオ",
+      "named_source": {
+        "node_id": 80,
+        "name": "Echo-Cancel Source",
         "kind": "source"
-      }
+      },
+      "sink_master": 69,
+      "source_master": 71
     },
-    "off": null,
-    "on": null,
-    "comparison": null,
-    "aec_attempted": false,
+    "reason": "physical capture was silent; AEC attenuation and ASR rerecognition are unmeasured",
     "asr_self_rerecognition": {
-      "status": "blocked",
-      "reason": "raw capture did not contain a measurable signal"
-    },
-    "reason": "raw USB capture is silent or below signal floor; AEC was not attempted"
+      "status": "unavailable",
+      "reason": "off/on recording RMS was at or below the signal floor"
+    }
   }
 }

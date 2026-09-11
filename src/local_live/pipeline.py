@@ -113,20 +113,29 @@ class LivePipeline:
                 if tool_calls and self.tool_registry:
                     assistant_tool_calls = []
                     for call in tool_calls:
-                        assistant_tool_calls.append(
-                            {
-                                "id": call.call_id,
-                                "type": "function",
-                                "function": {"name": call.name, "arguments": call.arguments},
-                            }
-                        )
-                    messages.append({"role": "assistant", "content": llm_text or None, "tool_calls": assistant_tool_calls})
+                        if getattr(self.llm, "tool_call_format", "openai") == "ollama":
+                            assistant_tool_calls.append(
+                                {"function": {"name": call.name, "arguments": call.arguments}}
+                            )
+                        else:
+                            assistant_tool_calls.append(
+                                {
+                                    "id": call.call_id,
+                                    "type": "function",
+                                    "function": {"name": call.name, "arguments": call.arguments},
+                                }
+                            )
+                    assistant_content = llm_text if llm_text else ("" if getattr(self.llm, "tool_call_format", "openai") == "ollama" else None)
+                    messages.append({"role": "assistant", "content": assistant_content, "tool_calls": assistant_tool_calls})
                     for call in tool_calls:
                         log.mark("tool_call", name=call.name, call_id=call.call_id)
                         content = self.tool_registry.call(call.name, call.arguments)
-                        messages.append(
-                            {"role": "tool", "tool_call_id": call.call_id, "name": call.name, "content": content}
-                        )
+                        if getattr(self.llm, "tool_call_format", "openai") == "ollama":
+                            messages.append({"role": "tool", "content": content})
+                        else:
+                            messages.append(
+                                {"role": "tool", "tool_call_id": call.call_id, "name": call.name, "content": content}
+                            )
                         log.mark("tool_result", name=call.name, call_id=call.call_id)
                     if round_index < self.max_tool_rounds:
                         continue

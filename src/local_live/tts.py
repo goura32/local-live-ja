@@ -23,6 +23,9 @@ class TTSResult:
     inference_elapsed_seconds: float
     first_audio_equivalent_seconds: float
     warm_first_audio_equivalent_seconds: float
+    audio_complete_seconds: float
+    playback_possible_seconds: float
+    timing_ns: dict[str, int]
     rtf: float | None
     device: str
     model: str
@@ -112,11 +115,16 @@ class Qwen3TTSEngine:
         load_started = time.monotonic_ns()
         model_was_loaded = self._model is not None
         with ResourceMonitor() as monitor:
+            if event_log:
+                event_log.mark("tts_model_load_start", cold=not model_was_loaded)
             model = self.load()
-            model_load_seconds = 0.0 if model_was_loaded else (time.monotonic_ns() - load_started) / 1e9
+            model_loaded_ns = time.monotonic_ns()
+            model_load_seconds = 0.0 if model_was_loaded else (model_loaded_ns - load_started) / 1e9
+            if event_log:
+                event_log.mark("tts_model_loaded", cold=not model_was_loaded)
             inference_started = time.monotonic_ns()
             if event_log:
-                event_log.mark("tts_start_output")
+                event_log.mark("tts_inference_start")
             wavs, sample_rate = model.generate_custom_voice(
                 text=text,
                 language=self.language,
@@ -130,15 +138,26 @@ class Qwen3TTSEngine:
                     torch.cuda.synchronize()
             except Exception:
                 pass
-            first_audio_ns = time.monotonic_ns()
+            generation_complete_ns = time.monotonic_ns()
+            if event_log:
+                event_log.mark("tts_generation_complete")
             if cancel_event is not None and cancel_event.is_set():
                 raise RuntimeError("TTS cancelled after generation")
             waveform = np.asarray(wavs[0])
             sf.write(str(path), waveform, int(sample_rate))
-        elapsed = (time.monotonic_ns() - started) / 1e9
-        inference_elapsed = (time.monotonic_ns() - inference_started) / 1e9
-        first_audio = (first_audio_ns - started) / 1e9
-        warm_first_audio = (first_audio_ns - inference_started) / 1e9
+            audio_complete_ns = time.monotonic_ns()
+            if event_log:
+                event_log.mark("tts_audio_complete", path=str(path))
+            playback_possible_ns = time.monotonic_ns()
+            if event_log:
+                event_log.mark("tts_playback_possible", path=str(path))
+        ended_ns = time.monotonic_ns()
+        elapsed = (ended_ns - started) / 1e9
+        inference_elapsed = (generation_complete_ns - inference_started) / 1e9
+        first_audio = (generation_complete_ns - started) / 1e9
+        warm_first_audio = (generation_complete_ns - inference_started) / 1e9
+        audio_complete = (audio_complete_ns - started) / 1e9
+        playback_possible = (playback_possible_ns - started) / 1e9
         audio_seconds = len(waveform) / int(sample_rate) if len(waveform) else None
         if event_log:
             event_log.mark("tts_end", path=str(path), sample_rate=int(sample_rate))
@@ -152,6 +171,18 @@ class Qwen3TTSEngine:
             inference_elapsed_seconds=inference_elapsed,
             first_audio_equivalent_seconds=first_audio,
             warm_first_audio_equivalent_seconds=warm_first_audio,
+            audio_complete_seconds=audio_complete,
+            playback_possible_seconds=playback_possible,
+            timing_ns={
+                "request_start": started,
+                "model_load_start": load_started,
+                "model_loaded": model_loaded_ns,
+                "inference_start": inference_started,
+                "generation_complete": generation_complete_ns,
+                "audio_complete": audio_complete_ns,
+                "playback_possible": playback_possible_ns,
+                "tts_end": ended_ns,
+            },
             rtf=inference_elapsed / audio_seconds if audio_seconds else None,
             device=self.resolved_device or self.resolve_device(),
             model=self.model_name,

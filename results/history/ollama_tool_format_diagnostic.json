@@ -1,0 +1,15 @@
+{
+  "diagnostic": "ollama_tool_followup_before_fix",
+  "observed_http_status": 400,
+  "observed_error": "Value looks like object, but can't find closing '}' symbol",
+  "before_fix": {
+    "assistant_tool_call_arguments_type": "JSON string",
+    "tool_result_extra_fields": ["tool_call_id", "name"]
+  },
+  "official_ollama_shape_used_after_fix": {
+    "assistant_tool_call_arguments_type": "JSON object",
+    "assistant_tool_call_fields": ["function.name", "function.arguments"],
+    "tool_result_fields": ["role", "content"]
+  },
+  "credential_values_included": false
+}

@@ -1,150 +1,187 @@
 # local-live-ja 実測結果
 
-この文書はCLIが生成したJSONを根拠に更新した。`null`、`blocked`、`unavailable`、`unsupported_or_failed`は0点ではなく、測定不能または未対応を表す。
+この文書は、ローカルfilesystemの`/home/ws1/projects/local-live-ja`で実行した最新JSONを根拠にする。`null`、`blocked`、`unavailable`、`unsupported_or_failed`は0点ではなく、測定不能・未実行・未対応を表す。生成WAV、model cache、raw log、credentialはGit管理しない。
 
 ## 判定
 
-PoCのソフトウェア縦切りは成立した。合成ユーザー音声を入力し、VAD、Whisper Turbo、local OllamaまたはOpenRouter、文単位TTS、PipeWire playbackまで自動実行できた。ASR GPU/CPU比較、TTS GPU/CPU参考測定、LLM streaming/tool/cancel、4構成E2Eを実行済みである。
+| component | state | 根拠 |
+|---|---|---|
+| ASR | measured | `large-v3-turbo`、GPU 2 mode + CPU、同一synthetic WAVで完走 |
+| TTS | measured | GPU cold 1回、短/中/長のwarm各3回、CPU cold reference |
+| local LLM | measured | Ollama `qwen3.5:9b-q4_K_M` normal stream完了 |
+| OpenRouter LLM | measured with variability | requested `openrouter/free`、actual modelはrequestごとに変動 |
+| tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
+| E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
+| AEC | blocked | raw USB captureがRMS=0、peak=0のためAECを実行していない |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、32 tests pass |
 
-AECの実音響性能比較だけは成立していない。検出したUSB Audio mic/speakerでPipeWire WebRTC AEC moduleのload/unloadと仮想sink/source生成は確認できたが、AEC OFF/ONのcapture RMSがともに0.0だったため、相関、残留echo減衰、ASR自己再認識量は未測定として`blocked`にした。無音を性能値として扱っていない。
+総合判定は`measured_with_blockers`。ソフトウェア縦切りとlocal Live候補は成立したが、実音響AECと物理playback roundtripは未測定である。Live用途の根拠は、GPU TTS warmの短文median 1.9032秒と、local GPU E2E Aのmedian 6.2533秒である。真のonline Qwen3-TTS streamingは前提にしていない。
 
-測定時刻は主に2026-09-11 18:00--18:10 UTC（2026-09-12 JST）。各値の完全なイベント時刻と環境snapshotは`results/*.json`、集約値は`results/summary.json`にある。
+## 実行環境
 
-## 構成
-
-`Microphone/PipeWire -> CPU energy VAD -> 発話終了後のutterance-final ASR -> LLM event stream -> sentence chunker -> Qwen3-TTS -> PipeWire playback`。
-
-- VADはCPUのenergy方式。continuous incremental ASRは実装していない。
-- ASRは`faster-whisper`の`large-v3-turbo`、`language=ja`。発話区間確定後に一括transcribeする。
-- LLMは`LLMProvider`相当の共通イベント（text delta、tool call、tool result、completion、cancel、error）を使用し、`OllamaLLM`と`OpenRouterLLM`を差し替え可能にした。
-- Ollamaは`/api/tags`で観測した`qwen3.5:9b-q4_K_M`を使用し、context targetは8192。モデル名を推測して固定していない。
-- OpenRouterはrequested modelを`openrouter/free`に固定し、各completionのAPI返却`actual_model`を保存する。free routerの配下モデル比較はしていない。
-- TTSは`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、speaker=`Ono_Anna`、language=`Japanese`。公式Python APIで文チャンクごとに生成し、真のonline streamingは仮定していない。chunk上限48文字、timeout 0.8秒。
-- AECは独自実装ではなく、`pactl load-module module-echo-cancel`経由でPipeWireの`libpipewire-module-echo-cancel.so`と`aec_method=webrtc`を使用する。これはこの環境で実際にnodeを生成できたPulse互換loaderである。
-- `Cancellation`によりLLM generation、pending TTS、playbackを同じ外部制御で停止できる。double-talk/barge-in判定は対象外。
-
-## 実環境・version
-
-`doctor`の最終結果はstatus=`warn`（failureなし）だった。warnはGitHub CLI認証のみで、ローカル音声PoCの依存ではない。
-
+- 測定working tree: `/home/ws1/projects/local-live-ja`
+- `doctor`: status=`pass`
 - host: `ws1`
 - OS/kernel: Linux x86_64、kernel `7.0.0-31-generic`、glibc 2.39
 - CPU: Intel Core i7-13700、24 logical CPUs
 - GPU: NVIDIA GeForce RTX 5070 Ti、driver 595.84、16,303 MiB、compute capability 12.0
-- Python: 3.12.3
-- PyTorch: 2.14.0、torch CUDA runtime 13.0。`nvcc`は未検出。
+- Python 3.12.3、PyTorch 2.14.0、torch CUDA runtime 13.0
 - faster-whisper 1.2.1、CTranslate2 4.8.2、transformers 4.57.3
 - qwen-tts 0.1.1、numpy 2.5.3、soundfile 0.14.0、sounddevice 0.5.6、webrtcvad-wheels 2.0.14
-- CUDA 12 compatibility wheels: nvidia-cublas-cu12 12.9.2.10、nvidia-cudnn-cu12 9.26.0.51、nvidia-cuda-nvrtc-cu12 12.9.86
-- PipeWire: 1.0.5
-- Ollama server API: 0.33.3（CLI binaryはPATH上には無かったが、既存server/APIは利用可能）
-- Git 2.43.0、GitHub CLI 2.45.0
-- OpenRouter credential: file存在、permission OK、API認証HTTP 200。値は表示・保存していない。
-- PipeWire候補: USB Audio source node 71 / sink node 69、GoStream source 55 / sink 54等を検出。最終自動選択は明示名USB Audio。
-- `flash-attn`は未導入、SoXは未検出。Qwen3-TTSはmanual PyTorch経路でベンチ完走した。
+- CUDA compatibility wheels: cublas 12.9.2.10、cudnn 9.26.0.51、cuda-nvrtc 12.9.86
+- PipeWire 1.0.5、Ollama API 0.33.3
+- `flash-attn`未導入、SoX executable未検出。ただしmanual PyTorch TTSとE2Eは完走した。
 
-## ASR: synthetic ASR regression
+## ASR: synthetic regression
 
-これはQwen3-TTSで作った28.8秒の同一WAVをWhisperへ戻す回帰試験であり、実マイク音声の認識精度やMOSではない。referenceには通常会話、日本語数字、英数字、GPU/CUDA/Docker/Ollama/Python、日付・時刻、GPU/USB microphone語を含めた。CERはUnicode正規化後に計算した。
+Qwen3-TTSで生成した同一28.0秒WAVを、`language=ja`の`large-v3-turbo`へ戻す回帰試験である。実マイク音声の精度、話者差、部屋音響、MOSではない。CERはUnicode正規化後に算出した。
 
 | mode | device / compute | elapsed (s) | RTF | CER | GPU peak (MiB) | ASR増分peak (MiB) |
 |---|---|---:|---:|---:|---:|---:|
-| GPU float16 | cuda / float16 | 1.9478 | 0.06763 | 0.21875 | 8975 | 2320 |
-| GPU int8_float16 | cuda / int8_float16 | 1.9386 | 0.06731 | 0.21875 | 7983 | 1098 |
-| CPU int8 | cpu / int8 | 5.4752 | 0.19011 | 0.21875 | 6885* | 0 |
+| GPU float16 | cuda / float16 | 1.6009 | 0.05750 | 0.203125 | 9365 | 2090 |
+| GPU int8_float16 | cuda / int8_float16 | 1.9962 | 0.07170 | 0.203125 | 8373 | 1096 |
+| CPU int8 | cpu / int8 | 12.8152 | 0.46032 | 0.203125 | 7277* | 0 |
 
-3モードとも同一WAV・同一referenceでCERは0.21875だった。GPU `int8_float16`はこの試験で認識結果同等、RTFがわずかに短く、ASR増分VRAMはfloat16の約半分だったため、未指定時のGPU既定に採用した。`*` CPU行のnvidia-smi peakは別プロセスの既存GPU使用量を含むため、比較には増分0 MiBを用いる。
+3 modeのCERは同一だった。GPU既定は、認識結果同等で増分VRAMが少ない`int8_float16`とする。CPU行のnvidia-smi peakは別プロセスの既存GPU使用量を含むため、CPU比較には増分0 MiBを使う。
 
-## TTS
+## TTS cold/warm latency
 
-公式APIはonline streaming generationを提供しないため、first-audio-equivalentは1文の生成要求からWAVが得られるまでの値である。`preload_seconds`は別計測で、音声品質は主観評価していない。
+Modelは`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、speaker=`Ono_Anna`、language=`Japanese`。GPU測定は新しいengineを未loadで開始し、short cold 1回の後、同じmodel instanceをresidentにしたまま各chunkを3回生成した。warm rowsの`model_load_seconds`は全て0.0である。
 
-| run | device | audio (s) | first-audio-equivalent (s) | warm (s) | RTF | GPU peak (MiB) | 増分peak (MiB) | CPU load |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| GPU | cuda:0 | 7.76 | 5.5221 | 5.5067 | 0.7103 | 9163 | 50 | 4.57% |
-| CPU参考 | cpu | 7.84 | 20.1509 | 20.1351 | 2.5688 | 7275* | 0 | 66.05% |
+`first_audio_equivalent`は公式Python APIが返したwaveformが得られる時刻であり、streamingの最初のsampleではない。coldの値はrequest開始からなのでmodel load込み、`warm_first_audio_equivalent`はinference開始からでmodel loadを含まない。`audio_complete`はWAV書込完了、`playback_possible`は呼び出し元がそのWAVを再生可能になった時刻である。これは物理speakerから音が出た時刻ではない。
 
-GPU preloadは8.2527秒、CPU preloadは4.0898秒だった。GPU RTF<1、CPU RTF>1だったので、E2E既定はGPU TTSとする。生成WAVはGit管理外である。
+### GPU cold
+
+| chunk | chars | model load (s) | first-audio-equivalent (s) | warm inference-to-audio (s) | audio complete (s) | playback possible (s) | total (s) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| short | 8 | 9.5825 | 12.5786 | 2.9961 | 12.5877 | 12.5877 | 12.5879 |
+
+### GPU warm
+
+| chunk | chars | 3 runs: total elapsed (s) | median total (s) | median inference (s) | median audio complete (s) | median playback possible (s) | median RTF |
+|---|---:|---|---:|---:|---:|---:|---:|
+| short | 8 | 3.0681, 1.9032, 1.6611 | 1.9032 | 1.8782 | 1.9021 | 1.9021 | 0.6521 |
+| medium | 20 | 2.7902, 2.8429, 2.7869 | 2.7902 | 2.7614 | 2.7900 | 2.7900 | 0.6504 |
+| long | 57 | 6.9308, 6.5041, 6.8689 | 6.8689 | 6.8408 | 6.8689 | 6.8689 | 0.6434 |
+
+CPU referenceはcold 1回で、model load 4.7537秒、inference開始からaudio相当まで29.1917秒、audio complete 33.9474秒、total 33.9475秒、RTF 3.6858だった。したがって実用的な初動時間はGPU warm shortの約1.9秒を基準にし、長いLLM出力はsentence chunkingで分割する。Qwen3-TTS独自online engineは作っていない。
 
 ## LLM
 
-通常streamではlocalが日本語短文と`stop`を返し、TTFT 0.1473秒、elapsed 0.2278秒だった。local requested/actualはともに`qwen3.5:9b-q4_K_M`。OpenRouter通常requestはrequested=`openrouter/free`、actual=`nvidia/nemotron-3.5-lightning:free`、TTFT 4.5726秒、elapsed 4.5974秒だったが、256 completion tokensをreasoningに使い切り、英語のthinking processを返して`length`終了した。日本語出力保証はできない。
+| provider | requested model | normal TTFT (s) | normal total (s) | actual model | tool chain |
+|---|---|---:|---:|---|---|
+| local Ollama | `qwen3.5:9b-q4_K_M` | 0.1646 | 0.2453 | `qwen3.5:9b-q4_K_M` | success, 2 calls / 2 rounds |
+| OpenRouter | `openrouter/free` | 0.9962 | 1.0680 | `inclusionai/ling-3.0-flash-vl:free` in this request | success, 2 calls / 2 rounds |
 
-mock tool chain（calculator `17*23`、fixed_test_data `status`）は、localが2 calls/2 roundsまで実行した後、Ollama HTTP 400で`failed`。OpenRouterは2 calls/2 roundsを完了し、2 round目に日本語のtool result要約を返して`success`だった。free routerではrequestごとにactual modelが変わることも確認した（tool chainでは`poolside/laguna-s-2.1:free`、`liquid/lfm-2.5-2.6b:free`）。未対応/失敗をprompt hackで補っていない。
+OpenRouterの`actual_model`はfree routerがrequestごとに選ぶため、上表の値を固定modelの品質比較には使わない。E2Eではactual modelをrunごとに保存している。
 
-両providerともベンチのmidstream cancelは`cancelled` eventを観測した。toolはcalculatorと固定データだけで、実サービスの破壊的操作はしていない。
+### Ollama tool-calling修正
 
-## 4構成E2E
+修正前の2 round目はHTTP 400で、response bodyの安全な要約は次のとおりだった。
 
-各構成は「同じ日本語synthetic user WAV -> ASR -> provider -> GPU TTS -> assistant output ASR」。GPU ASRの構成は比較を揃えるためfloat16、CPU ASRはint8。E2E latencyは最初のVAD eventから最後のplayback endまでである。
+- status: `400`
+- error: `Value looks like object, but can't find closing '}' symbol`
+- 原因: Ollama native chat形式が`function.arguments`のobjectを要求するのに、実装がJSON文字列を送っていた。
+- 修正: Ollama assistant tool callは`function: {name, arguments: {...}}`、tool resultは`{role: "tool", content: "..."}`とし、OpenAI互換形式を使うOpenRouterとは分離した。
+- 修正後: local Ollamaは`計算結果は391...`まで2 rounds完了。HTTP 400は発生していない。
 
-| case | ASR / LLM / TTS | ASR RTF | LLM TTFT (s) | E2E latency (s) | assistant CER |
-|---|---|---:|---:|---:|---|
-| A | GPU / local / GPU | 0.07144 | 0.1768 | 245.1195 | [0.0, 0.0, 0.0] |
-| B | CPU / local / GPU | 0.20382 | 0.1372 | 17.0981 | [0.0, 0.0] |
-| C | GPU / OpenRouter/free / GPU | 0.01454 | 1.5763 | 8.5883 | [0.0, 0.0] |
-| D | CPU / OpenRouter/free / GPU | 0.14947 | 3.1065 | 20.6415 | [4.8333] |
+修正前の完全なベンチJSONは`results/history/bench_llm_baseline_869809d.json`、本文要約と公式形式との差分は`results/history/ollama_tool_format_diagnostic.json`に残した。credentialやraw response body全体は保存していない。
 
-- A local actual=`qwen3.5:9b-q4_K_M`、assistant outputは日本語で3 TTS chunks。
-- B local actual=`qwen3.5:9b-q4_K_M`、2 chunks。
-- C actual=`google/gemma-4-31b-it:free`、日本語短文で2 chunks、出力CER 0。
-- D actual=`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`、短文1 chunkだがsynthetic referenceとのCERは4.8333。
-- Aはevent上`vad_start -> vad_end`が約227.4秒となる一過性の大きな待ち時間を含んだ。直後の同じWAVの単独read+VADは3回とも0.003--0.005秒で、この遅延をVADアルゴリズム性能とは解釈していない。原因は未特定なので、Aのlatencyはそのまま実測値として記録しoutlier扱いにした。
-- C/Dのactual modelはfree routerがrequestごとに選んだ値であり、品質比較やランキングではない。
+## E2E A/B/C/D
 
-別途`local-live run --input-wav ... --provider local --no-aec`もcompletedした。最終runは未指定GPU ASR=`cuda/int8_float16`、RTF=0.08752、LLMから5 TTS chunks、PipeWire `pw-play`まで通った。
+同一synthetic user WAVに対して、各構成はfull warm-up後に成功run 3本を目標にした。C/Dのvisible textなしrunは失敗として保持し、medianからは成功runだけを使った。outlierは削除していない。GPU ASRはPoC既定の`int8_float16`、CPU ASRは`int8`、TTSはGPUである。
 
-## AEC OFF/ON
+| case | ASR / LLM / TTS | attempts | successful | 個別total E2E (s) | median total E2E (s) |
+|---|---|---:|---:|---|---:|
+| A | GPU / local / GPU | 3 | 3 | 5.2876, 6.2533, 6.4607 | 6.2533 |
+| B | CPU / local / GPU | 3 | 3 | 34.6375, 36.3003, 33.6340 | 34.6375 |
+| C | GPU / OpenRouter/free / GPU | 7 | 3 | 5.5378 failed, 13.5509, 6.5473 failed, 2.5966 failed, 10.2914, 2.4427 failed, 8.6235 | 10.2914 |
+| D | CPU / OpenRouter/free / GPU | 5 | 3 | 27.2507, 15.3549 failed, 402.4608, 17.4276 failed, 36.9513 | 36.9513 |
 
-PipeWire `libpipewire-module-echo-cancel.so`はdoctorで存在を確認し、benchでは`pactl` wrapperで`aec_method=webrtc`、master sink=69、master source=71、virtual Echo-Cancel Sink=89 / Source=80を生成・解放できた。これはAEC moduleの構築・接続確認であり、AEC性能の成功を意味しない。
+各構成の成功run median stageは次のとおり。`playback_roundtrip_duration_s=null`は、E2Eベンチが生成WAVとassistant ASRの論理縦切りを測り、物理speaker/microphone roundtripはAECベンチへ分離しているためである。nullを0秒としてtotalに足していない。
 
-同一`aec_reference.wav`をUSB Audio sinkへ再生し、OFFはsource 71、ONはEcho-Cancel Source 80を`pw-record`した。OFF/ON WAVは作成されたが、両方のrecording RMS=0.0だった。比較結果は以下のとおり。
+| case | ASR duration (s) | LLM TTFT (s) | LLM total (s) | TTS duration (s) | playback/roundtrip (s) | total E2E (s) | peak VRAM (MiB) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| A | 0.4146 | 0.0826 | 0.1837 | 5.1900 | null | 6.2533 | 10353 |
+| B | 11.1497 | 0.0955 | 0.1595 | 4.8087 | null | 34.6375 | 9369 |
+| C | 0.4103 | 1.1354 | 1.9694 | 5.9084 | null | 10.2914 | 10373 |
+| D | 11.1897 | 3.5243 | 3.6341 | 3.4492 | null | 36.9513 | 10249 |
 
-- reference/recording correlation: OFF=null、ON=null（無音のため未測定）
-- cross-correlation lag: OFF/ONともnull
-- residual echo attenuation: null
-- ASR self-rerecognition: unavailable（signal floor以下）
+各runには上表の全項目に加え、input read、VAD、assistant-ASR、event timing、actual model、failed reasonを保存した。current JSONのoutlier annotationは次のとおり。
+
+- C failed attemptsはOpenRouterがvisible textを返さず、`LLM returned no visible text`となった。Cは7 attempts中3成功で、failed 4本を削除していない。
+- D run 3は402.4608秒。OpenRouterが英語のthinking processをvisible outputとして返し、28 TTS chunksを生成した。stageはTTS 114.7151秒、assistant-ASR 268.3298秒で、dominant stageはassistant-ASR。`tts_duration_s`と`assistant_asr_duration_s`をoutlier flagにした。Dのmedianはこのrunを削除せず、3成功runのmedianとして36.9513秒を保存した。
+- 基準commit 869時点のA 245.1195秒outlierも削除していない。旧JSONは`results/history/bench_e2e_baseline_869809d.json`にあり、旧eventでは約227.4秒がVAD区間に現れていた。同一WAVの単独read+VADが0.003--0.005秒だったため、VAD性能値と解釈していない。
+
+### assistant CERの比較対象
+
+assistant CERは全runで、実際のTTS rowの`text`を`spoken_text`として、その同じTTS WAVをASRしたtextを`asr_text`として、対応indexごとに比較している。LLMの期待回答、reasoning、tool-call JSON、発話していないtextは比較対象にしていない。最新JSONの`assistant_roundtrip`に両方の文字列とCERを保存した。
+
+- A成功runのCER arrays: `[0.0, 0.0]`, `[0.0, 0.2353]`, `[0.0, 1.6471]`
+- B成功runのCER arrays: `[0.0, 0.0]`, `[0.0, 0.6471]`, `[0.0, 0.1176]`
+- C成功runのCER arrays: `[0.1111]`, `[0.0, 0.0, 0.0]`, `[0.0, 0.0]`
+- D成功runのCER arrays: `[0.1538]`, 28-chunk long-output array, `[0.0, 0.0]`
+
+基準JSONのD=`4.8333`は、old runで実際にspokenだった`了解です、テスト開始します。`と、その生成WAVをASRした長い誤認識列を比較した値だった。比較対象の取り違えではないが、old schemaではTTS rowとassistant-ASR rowの対応path/timingが弱く、今回index対応の`assistant_roundtrip`へ修正した。最新Dの高CER/402秒runは、actual free modelがthinking processを発話textとして返したことと、長文TTS/ASRの品質・時間変動が原因であり、CERロジックの期待回答混入ではない。
+
+## AEC
+
+最新run IDは`aec_20260911T200521Z_222082807004148`。raw captureを最初に1回だけ実行し、物理信号を確認できなかったためAEC moduleをloadしていない。
+
+- playback target: runtime解決したnode.name=`USB Audio アナログステレオ`、node_id=69（sink）
+- capture target: runtime解決したnode.name=`USB Audio アナログステレオ`、node_id=71（source）
+- raw recording duration: 7.016875秒
+- raw RMS: 0.0
+- raw peak: 0.0
+- signal floor RMS: 0.000001
+- `aec_attempted`: false
+- AEC OFF/ON: null / null
+- correlation、cross-correlation lag、residual echo attenuation、Whisper self-rerecognition: null/blocked
 - result status: `blocked`
 
-`pw-record`は停止時return code 1だったがstderrは空で、問題はreturn codeではなく0.0 RMSである。USB Audio/GoStream等のcandidateは検出できているため、次回はcapture endpointに実サンプルが入る状態を確認して同じCLIを再実行する。double-talkは試験していない。
+node IDは設定ファイルへ永続化していない。各runでPipeWire inventoryを再取得し、node.name/propertyから現在のnodeを解決して、録音時だけruntime IDを渡す。旧AEC試行の不確定値と固定filename時代の結果は`results/history/bench_aec_baseline_869809d.json`とGit履歴に残した。raw captureが閾値を超えるまではOFF/ON比較を実行しない。
 
-## 失敗・制約
+## テストと成果物
 
-- GitHub CLI: `gh auth status`のプロセス終了codeは0だが、認証marker検証はfalseだった。したがってこのworkspaceからGitHub private repository作成/pushは未完了である。ローカルcommit後にGitHub authを再設定して作成・pushする必要がある。
-- OpenRouterは認証HTTP 200でもfree router配下modelがrequestごとに変わり、normal streamが英語reasoning/`length`終了になる場合がある。これはprovider構成の制約として記録し、local PoCの失敗とは扱っていない。
-- local Qwen3.5 tool chainは2 round目のOllama HTTP 400で失敗した。provider/modelがtool result messageを受け付けない経路として記録した。
-- AECは物理capture無音で性能未測定。無音から減衰量を推測していない。
-- E2E Aには未特定の一過性待ち時間outlierがある。
-- synthetic ASR regressionはTTS生成音声の自己回帰であり、実マイクの騒音・話者差・部屋音響の評価ではない。
-- 真のonline Qwen3-TTS streaming、double-talk、有人barge-in、主観MOS、外部有料LLM選定、production UI/agent frameworkは対象外。
-- flash-attn/SoX不足の警告は残るが、今回のQwen3-TTS manual PyTorchベンチとE2Eを阻害しなかった。
+- pytest command: `.venv/bin/python -m pytest -q`（環境変数でbytecode/BLAS threadを抑制）
+- working tree: `/home/ws1/projects/local-live-ja`
+- execution: single process, serial
+- exit code: 0
+- passed: 32（基準の28 tests + 測定回帰4 tests）
+- 過去のSIGTERM/SIGKILL実行はpassに算入していない。
+- `uv build`: baseline commitで成功済み。今回のsource変更後も下記最終検証で再実行する。
+- JSON: `results/doctor.json`, `bench_asr.json`, `bench_tts.json`, `bench_llm.json`, `bench_e2e.json`, `bench_aec.json`, `run_latest.json`, `summary.json`
+- 履歴: `results/history/`。current E2E/AEC/LLM baselineとfree-router retry attemptを保存している。
+- schema: current benchmark JSONはv2、summaryはv2。
 
-## 現時点の推奨既定
+## 残ったblocker
 
-1. CPU VAD + 発話終了後ASR。
-2. GPU ASR `large-v3-turbo`, `device=cuda`, `compute_type=int8_float16`, `language=ja`。CPU fallbackは`device=cpu`, `compute_type=int8`。
-3. local Ollama `qwen3.5:9b-q4_K_M`, context 8192、短い応答。
-4. Qwen3-TTS 0.6B CustomVoice `Ono_Anna`, Japanese, GPU。LLM streamを48文字/0.8秒で文chunkして逐次TTSする。
-5. AECはmodule load後にcapture RMSを確認できた場合だけ有効な比較値として採用する。現machineではAEC性能値を採用しない。
-6. tool callingが必要な場合はmock tool経路を使い、実運用ではproviderごとの対応状態とactual modelをログへ記録する。
+1. USB microphone raw captureが無音。speaker再生中でもRMS/peak=0のため、AEC性能値を出せない。実入力経路を直すまでAECはblocked。
+2. E2Eの物理playback/roundtripは未測定。論理WAV-readyとassistant-ASRは測ったが、物理音響性能はAECのraw-first gateにより分離している。
+3. OpenRouter free routerはactual model、visible text、reasoning、出力長、TTFTがrequestごとに変動する。local PoCの失敗とは混同しない。C/D failed attemptsとD長文outlierは保存済み。
+4. GPU warm shortの初動は約1.9秒であり、sub-second live responseではない。sentence chunkingで初動を確保するが、Qwen3-TTS公式Python API自体のtrue online streamingは未提供。
+5. flash-attnとSoX executableは未導入。manual TTS経路は完走しているため、現測定のblocking issueではない。
 
-## 次段階
+## 推奨既定
 
-- USB microphoneのcapture RMSとUSB speakerから室内への実音響loopを確認し、AEC OFF/ONを再測定する。追加スピーカー、double-talk試験は要求しない。
-- GitHub CLIを再認証してprivate repositoryを作成し、このrepoをpushする。
-- Aの待ち時間outlierをevent/IO単位で再現調査し、warm/cold、disk wait、GPU contentionを分離する。
-- 実マイク日本語データで別ベンチを追加する（synthetic ASR regressionのCERと混同しない）。
-- 低遅延をさらに必要とする場合だけ、sentence chunkの実測を基にTTS起動並列化またはincremental ASRを検討する。Qwen3-TTS独自streaming engineは作らない。
+1. CPU energy VAD + 発話終了後のutterance-final ASR。
+2. `large-v3-turbo`、`language=ja`、GPU `int8_float16`、CPU fallback `int8`。
+3. local Ollama `qwen3.5:9b-q4_K_M`を通常経路。OpenRouterは交換可能な比較経路としてactual modelを記録する。
+4. Qwen3-TTS CustomVoice `Ono_Anna`、Japanese、GPU。LLM streamを最大48文字/0.8秒でsentence chunkする。
+5. AECはraw captureが成立したrunだけOFF/ONを実行し、無音から数値を推測しない。
+6. tool callingはcalculator/fixed dataのdeterministic mockだけを使う。providerが失敗した場合はunsupported/failedとして保存する。
 
 ## 再現コマンド
 
 ```text
-uv sync --extra dev --extra voice
-uv run local-live doctor
-uv run local-live bench asr
-uv run local-live bench tts
-uv run local-live bench llm
-uv run local-live bench e2e
-uv run local-live bench aec
-uv run python bench/summarize_results.py
+cd ~/projects/local-live-ja
+UV_LINK_MODE=copy uv sync --extra dev --extra voice
+.venv/bin/local-live doctor
+.venv/bin/local-live bench asr --force-audio
+.venv/bin/local-live bench tts
+.venv/bin/local-live bench llm
+.venv/bin/local-live bench e2e
+.venv/bin/local-live bench aec
+.venv/bin/python -m pytest -q
+.venv/bin/python bench/summarize_results.py
 ```

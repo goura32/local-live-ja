@@ -1,7 +1,7 @@
 {
   "schema": "local-live-ja/doctor/v1",
   "environment": {
-    "captured_at": "2026-09-11T18:10:00.047593+00:00",
+    "captured_at": "2026-09-11T20:26:57.367044+00:00",
     "hostname": "ws1",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
@@ -168,17 +168,15 @@
       }
     },
     "git_github": {
-      "status": "warn",
+      "status": "pass",
       "git_version": "git version 2.43.0",
-      "git_repo_root": "/mnt/hdd/hermes/projects/local-live-ja",
+      "git_repo_root": "/home/ws1/projects/local-live-ja",
       "gh_installed": true,
       "gh_auth_exit_code": 0,
-      "github_authentication": false
+      "github_authentication": true
     }
   },
-  "warnings": [
-    "git_github"
-  ],
+  "warnings": [],
   "failures": [],
-  "status": "warn"
+  "status": "pass"
 }

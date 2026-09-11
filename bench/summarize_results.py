@@ -23,6 +23,62 @@ def pick(row: dict[str, Any], *keys: str) -> dict[str, Any]:
     return {key: row.get(key) for key in keys}
 
 
+def compact_tts_row(row: dict[str, Any]) -> dict[str, Any]:
+    return pick(
+        row,
+        "status",
+        "chunk",
+        "phase",
+        "run_number",
+        "text_chars",
+        "device",
+        "audio_seconds",
+        "elapsed_seconds",
+        "model_load_seconds",
+        "inference_elapsed_seconds",
+        "first_audio_equivalent_seconds",
+        "warm_first_audio_equivalent_seconds",
+        "audio_complete_seconds",
+        "playback_possible_seconds",
+        "rtf",
+        "gpu_memory_peak_mib",
+        "gpu_memory_delta_peak_mib",
+        "error_type",
+        "error",
+    )
+
+
+def compact_e2e_run(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **pick(
+            row,
+            "status",
+            "run_number",
+            "warmup",
+            "requested_model",
+            "actual_model",
+            "asr_duration_s",
+            "llm_ttft_s",
+            "llm_total_duration_s",
+            "tts_duration_s",
+            "playback_roundtrip_duration_s",
+            "total_e2e_duration_s",
+            "peak_vram_mib",
+            "assistant_cer",
+            "outlier_flags",
+            "dominant_stage",
+            "error_type",
+            "error",
+        ),
+        "stage_durations": row.get("stage_durations"),
+        "assistant_roundtrip": row.get("assistant_roundtrip"),
+        "timing_ns": row.get("timing_ns"),
+        "llm": pick(row.get("llm") or {}, "text", "ttft_s", "elapsed_s", "completion", "error", "error_details", "cancelled"),
+        "tts": [compact_tts_row(item) for item in row.get("tts", [])],
+        "assistant_asr": [pick(item, "text", "elapsed_seconds", "rtf", "device", "compute_type") for item in row.get("assistant_asr", [])],
+    }
+
+
 def build_summary() -> dict[str, Any]:
     doctor = load("doctor.json")
     asr = load("bench_asr.json")
@@ -31,6 +87,7 @@ def build_summary() -> dict[str, Any]:
     e2e = load("bench_e2e.json")
     aec = load("bench_aec.json")
     run = load("run_latest.json")
+    pytest_final = load("pytest_final.json")
 
     asr_data = asr.get("data", {})
     tts_data = tts.get("data", {})
@@ -39,7 +96,7 @@ def build_summary() -> dict[str, Any]:
     aec_data = aec.get("data", {})
 
     return {
-        "schema": "local-live-ja/summary/v1",
+        "schema": "local-live-ja/summary/v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "environment": doctor.get("environment") or asr.get("environment") or None,
         "benchmark_paths": {
@@ -68,7 +125,23 @@ def build_summary() -> dict[str, Any]:
             "speaker": tts_data.get("speaker"),
             "language": tts_data.get("language"),
             "streaming_supported_by_official_python_api": tts_data.get("streaming_supported_by_official_python_api"),
-            "runs": {name: pick(row, "status", "device", "audio_seconds", "elapsed_seconds", "model_load_seconds", "inference_elapsed_seconds", "first_audio_equivalent_seconds", "warm_first_audio_equivalent_seconds", "rtf", "gpu_memory_peak_mib", "gpu_memory_delta_peak_mib", "cpu_load_percent", "preload_seconds", "error_type", "error") for name, row in tts_data.get("runs", {}).items()},
+            "runs": {
+                name: {
+                    **compact_tts_row(row),
+                    "cold_start": compact_tts_row(row["cold_start"]) if isinstance(row.get("cold_start"), dict) else None,
+                    "warm_start": {
+                        chunk: {
+                            "text_chars": chunk_data.get("text_chars"),
+                            "model_resident_for_all_runs": chunk_data.get("model_resident_for_all_runs"),
+                            "runs": [compact_tts_row(item) for item in chunk_data.get("runs", [])],
+                            "median": chunk_data.get("median"),
+                        }
+                        for chunk, chunk_data in row.get("warm_start", {}).items()
+                    },
+                    "latency_matrix": pick(row.get("latency_matrix") or {}, "status", "device", "warm_repeat_target", "cold_definition", "warm_definition"),
+                }
+                for name, row in tts_data.get("runs", {}).items()
+            },
         },
         "llm": {
             "requested_openrouter_model": llm_data.get("requested_openrouter_model"),
@@ -86,17 +159,25 @@ def build_summary() -> dict[str, Any]:
         },
         "e2e": {
             "status": e2e_data.get("status"),
+            "repeat_target": e2e_data.get("repeat_target"),
+            "gpu_compute_type": e2e_data.get("gpu_compute_type"),
             "configurations": {
                 name: {
                     "status": row.get("status"),
                     "provider": row.get("provider"),
                     "requested_model": row.get("requested_model"),
                     "actual_model": row.get("actual_model"),
-                    "e2e_latency_s": row.get("e2e_latency_s"),
-                    "user_asr": pick(row.get("user_asr", {}), "device", "compute_type", "rtf", "elapsed_seconds", "gpu_memory_peak_mib", "cpu_load_percent"),
-                    "llm": pick(row.get("llm", {}), "text", "ttft_s", "elapsed_s", "completion", "error", "cancelled"),
-                    "tts": [pick(item, "device", "audio_seconds", "elapsed_seconds", "rtf", "first_audio_equivalent_seconds", "gpu_memory_peak_mib", "cpu_load_percent") for item in row.get("tts", [])],
-                    "assistant_cer": row.get("assistant_cer"),
+                    "actual_models_by_run": row.get("actual_models_by_run"),
+                    "compute_type": row.get("compute_type"),
+                    "repeat_target": row.get("repeat_target"),
+                    "max_attempts": row.get("max_attempts"),
+                    "attempt_count": row.get("attempt_count"),
+                    "measured_run_count": row.get("measured_run_count"),
+                    "warmup": compact_e2e_run(row["warmup"]) if isinstance(row.get("warmup"), dict) else None,
+                    "warmup_recovery": compact_tts_row(row["warmup_recovery"]) if isinstance(row.get("warmup_recovery"), dict) else None,
+                    "runs": [compact_e2e_run(item) for item in row.get("runs", [])],
+                    "median": row.get("median"),
+                    "outlier_policy": row.get("outlier_policy"),
                     "error_type": row.get("error_type"),
                     "error": row.get("error"),
                 }
@@ -111,7 +192,37 @@ def build_summary() -> dict[str, Any]:
             "error": run.get("error"),
             "timing": run.get("timing"),
         },
+        "pytest": pytest_final,
+        "component_judgement": component_judgement(asr_data, tts_data, llm_data, e2e_data, aec_data, pytest_final),
     }
+
+
+def component_judgement(
+    asr_data: dict[str, Any],
+    tts_data: dict[str, Any],
+    llm_data: dict[str, Any],
+    e2e_data: dict[str, Any],
+    aec_data: dict[str, Any],
+    pytest_data: dict[str, Any],
+) -> dict[str, Any]:
+    """Return component states without collapsing blocked work into PASS/FAIL."""
+    asr_rows = list(asr_data.get("modes", {}).values())
+    tts_rows = list(tts_data.get("runs", {}).values())
+    providers = llm_data.get("providers", {})
+    e2e_rows = list(e2e_data.get("configurations", {}).values())
+    states = {
+        "asr": "measured" if asr_rows and all(row.get("status") == "measured" for row in asr_rows) else "partial",
+        "tts": "measured" if any(row.get("status") == "measured" for row in tts_rows) else "partial",
+        "local_llm": "measured" if (providers.get("local", {}).get("normal_stream", {}).get("text")) else "partial",
+        "openrouter_llm": "measured" if (providers.get("openrouter", {}).get("normal_stream", {}).get("text")) else "partial",
+        "tool_calling_local": providers.get("local", {}).get("tool_calling", {}).get("status", "partial"),
+        "tool_calling_openrouter": providers.get("openrouter", {}).get("tool_calling", {}).get("status", "partial"),
+        "e2e": "measured" if e2e_rows and all(row.get("status") == "measured" for row in e2e_rows) else "partial",
+        "aec": aec_data.get("status", "partial"),
+        "test_reproducibility": "pass" if pytest_data.get("exit_code") == 0 else "unverified",
+    }
+    states["overall"] = "measured_with_blockers" if "blocked" in states.values() or "partial" in states.values() else "measured"
+    return states
 
 
 def main() -> None:
