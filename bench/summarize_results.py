@@ -179,6 +179,49 @@ def compact_phase5(unattended: dict[str, Any], echo_rejection: dict[str, Any], i
     }
 
 
+def compact_phase6(physical_onset: dict[str, Any], unattended: dict[str, Any]) -> dict[str, Any]:
+    """Keep Phase 6 measurement-hardening evidence compact; rows remain in bench files."""
+    phase6 = unattended if unattended.get("phase") == 6 else {}
+    physical = phase6.get("physical_onset") or physical_onset
+    stability = phase6.get("stability") or {}
+    stability_summary = stability.get("summary") or {}
+    return {
+        "status": phase6.get("status") or physical.get("status"),
+        "turn57_diagnosis": phase6.get("turn57_diagnosis") or physical.get("turn57_diagnosis"),
+        "physical_path_distribution": physical.get("physical_path_distribution"),
+        "fixed_replay": {
+            "status": physical.get("status"),
+            "summary": (physical.get("fixed_replay") or {}).get("summary"),
+        },
+        "fixture_replay": {
+            "summary": (physical.get("fixture_replay") or {}).get("summary"),
+            "fixtures": (physical.get("fixture_replay") or {}).get("fixtures"),
+        },
+        "negative_controls": {
+            "summary": (physical.get("negative_controls") or {}).get("summary"),
+        },
+        "stability": {
+            "status": stability.get("status"),
+            "attempt_count": stability_summary.get("attempt_count"),
+            "application_success_count": stability_summary.get("application_success_count"),
+            "application_failed_count": stability_summary.get("application_failed_count"),
+            "physical_measurement_confirmation_count": stability_summary.get("physical_measurement_confirmation_count"),
+            "physical_measurement_confirmation_rate": stability_summary.get("physical_measurement_confirmation_rate"),
+            "summary": stability_summary,
+            "phase6_measurement": stability.get("phase6_measurement"),
+            "server_restart": stability.get("server_restart"),
+        },
+        "summary": phase6.get("summary"),
+        "late_onset_cause_counts": phase6.get("late_onset_cause_counts"),
+        "late_onset_analysis": phase6.get("late_onset_analysis"),
+        "audio_state_restore": phase6.get("audio_state_restore"),
+        "resource_regression": phase6.get("resource_regression"),
+        "first_sentence_buffering": phase6.get("first_sentence_buffering"),
+        "deferred_manual": phase6.get("deferred_manual", physical.get("deferred_manual", [])),
+        "pass_candidate": phase6.get("pass_candidate"),
+    }
+
+
 def build_summary() -> dict[str, Any]:
     doctor = load("doctor.json")
     asr = load("bench_asr.json")
@@ -195,6 +238,7 @@ def build_summary() -> dict[str, Any]:
     mic_readiness = load("bench_mic_readiness.json")
     interruption = load("bench_interruption.json")
     unattended = load("bench_unattended.json")
+    physical_onset = load("bench_physical_onset.json")
     run = load("run_latest.json")
     pytest_final = load("pytest_final.json")
 
@@ -212,6 +256,7 @@ def build_summary() -> dict[str, Any]:
     mic_readiness_data = mic_readiness.get("data", {})
     interruption_data = interruption.get("data", {})
     unattended_data = unattended.get("data", {})
+    physical_onset_data = physical_onset.get("data", {})
 
     return {
         "schema": "local-live-ja/summary/v2",
@@ -233,6 +278,7 @@ def build_summary() -> dict[str, Any]:
             "mic_readiness": "results/bench_mic_readiness.json",
             "interruption": "results/bench_interruption.json",
             "unattended": "results/bench_unattended.json",
+            "physical_onset": "results/bench_physical_onset.json",
             "live_latency_python_reference": "results/bench_live_latency_python.json",
             "run": "results/run_latest.json",
         },
@@ -375,6 +421,7 @@ def build_summary() -> dict[str, Any]:
         },
         "phase4": compact_phase4(stability_data, echo_rejection_data, mic_readiness_data, interruption_data),
         "phase5": compact_phase5(unattended_data, echo_rejection_data, interruption_data),
+        "phase6": compact_phase6(physical_onset_data, unattended_data),
         "run": {
             "status": run.get("status"),
             "assistant_text": run.get("spoken_text", run.get("assistant_text")),

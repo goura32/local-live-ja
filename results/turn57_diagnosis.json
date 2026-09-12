@@ -1,0 +1,65 @@
+{
+  "schema": "local-live-ja/phase6-turn57-diagnosis/v1",
+  "source": {
+    "result_files": [
+      "results/bench_stability.json",
+      "results/bench_unattended.json"
+    ],
+    "turn_index": 57,
+    "baseline_commit": "d005ca3a88aaa999446247baffcc7d5164ee37fb"
+  },
+  "artifact_lifecycle": {
+    "diagnosis_values_preserved": true,
+    "original_raw_wav_exact_binary": "not_preserved; the legacy fixed path was reused by the later final stability run",
+    "original_authoritative_playback_pcm_exact_binary": "not_recorded in the pre-Phase-6 run",
+    "current_same_named_raw_wav": "belongs to the later final stability run, not the pre-Phase-6 diagnostic capture"
+  },
+  "observed": {
+    "application_status": "not_separately_recorded; existing row status is blocked because physical measurement was required",
+    "blocked_reason": "physical_audio_not_detected",
+    "tts_status": "measured",
+    "first_pcm_received_s_from_tts_request": 0.059335519,
+    "first_actual_speech_pcm_s_from_tts_request": 0.649487534,
+    "pcm_bytes_aggregate": 165120,
+    "network_chunks": 5,
+    "persistent_playback_start_s_from_record_start": 0.708138625,
+    "playback_duration_s": 3.700243935,
+    "playback_completed": true,
+    "recording_duration_s": 4.904875,
+    "recording_frames": 78478,
+    "recording_rms": 0.030370622873306274,
+    "recording_peak": 0.45782470703125,
+    "recording_clipping_ratio": 0.0,
+    "recorder_returncode": 1,
+    "pipewire_and_service_health": "start/end health probes were ready/reachable"
+  },
+  "detector": {
+    "energy_detected": false,
+    "noise_floor_rms": 0.02176366001367569,
+    "threshold_rms": 0.14357931166887283,
+    "search_start_s": 0.658138625,
+    "frame_ms": 10,
+    "min_consecutive_frames": 2,
+    "alignment_correlation": 0.7214379906654358,
+    "alignment_lag_s": -1.014,
+    "classification": "unresolved; candidate microphone/reference alignment failure or detector miss"
+  },
+  "not_recorded": [
+    "exact PCM bytes written to pw-cat stdin",
+    "PCM write count and per-write timestamps",
+    "persistent playback process alive state and exit status",
+    "short-frame raw microphone energy series",
+    "expected physical onset window derived from playback reference",
+    "alignment confidence/margin against the actual bytes written to playback",
+    "recorder termination classification for expected SIGTERM returncode 1",
+    "application success independent from physical measurement success"
+  ],
+  "classification": {
+    "playback_failure": "not_supported by observed TTS/playback-completed evidence, but process return status was not recorded",
+    "microphone_capture_failure": "not_supported by nonzero RMS/peak and a full-length recording, not proven absent",
+    "recording_window_too_short": "not_supported; recording exceeded playback completion with tail",
+    "energy_detector_false_negative": "plausible but unproven; threshold was 0.14358 while raw RMS was 0.03037",
+    "reference_alignment_failure": "plausible; recorded correlation was 0.72144 with -1.014 s lag, and the reference was not the authoritative pw-cat byte stream",
+    "final": "unknown_due_to_missing_playback-write-and-short-frame-evidence"
+  }
+}

@@ -503,6 +503,11 @@ class PipeWirePCMPlayback:
         self._process: subprocess.Popen[bytes] | None = None
         self.started_ns: int | None = None
         self.last_queued_ns: int | None = None
+        self.first_queued_ns: int | None = None
+        self.pcm_bytes_queued = 0
+        self.pcm_write_count = 0
+        self.process_alive_at_start: bool | None = None
+        self.process_exit_status: int | None = None
 
     @property
     def active(self) -> bool:
@@ -537,8 +542,16 @@ class PipeWirePCMPlayback:
             raise RuntimeError(f"pw-cat unavailable: {type(exc).__name__}") from exc
         process = self._process
         if process is None or process.stdin is None:
+            if process is not None:
+                _reap_process(process, terminate=True)
             self._process = None
             raise RuntimeError("pw-cat stdin was not created")
+        self.first_queued_ns = None
+        self.last_queued_ns = None
+        self.pcm_bytes_queued = 0
+        self.pcm_write_count = 0
+        self.process_exit_status = None
+        self.process_alive_at_start = process.poll() is None
         self.started_ns = time.monotonic_ns()
         return {"started_ns": self.started_ns, "target": self.target, "command": command}
 
@@ -549,15 +562,24 @@ class PipeWirePCMPlayback:
         if not payload:
             return {"queued": False}
         if process.poll() is not None:
-            self._process = None
+            try:
+                _reap_process(process, terminate=False)
+            finally:
+                self._process = None
             raise RuntimeError("PCM playback stream exited before queue")
         try:
             process.stdin.write(payload)
             process.stdin.flush()
         except (BrokenPipeError, OSError) as exc:
-            self._process = None
+            try:
+                _reap_process(process, terminate=True)
+            finally:
+                self._process = None
             raise RuntimeError("PCM playback stream closed") from exc
         self.last_queued_ns = time.monotonic_ns()
+        self.first_queued_ns = self.first_queued_ns or self.last_queued_ns
+        self.pcm_bytes_queued += len(payload)
+        self.pcm_write_count += 1
         return {"queued": True}
 
     def finish(self) -> dict[str, Any]:
@@ -571,6 +593,7 @@ class PipeWirePCMPlayback:
             process.kill()
             process.wait()
         finally:
+            self.process_exit_status = process.returncode
             self._process = None
         stdout_pipe = getattr(process, "stdout", None)
         stderr_pipe = getattr(process, "stderr", None)
@@ -579,25 +602,86 @@ class PipeWirePCMPlayback:
         if process.returncode not in (0, None):
             error = stderr.decode(errors="replace").strip() if isinstance(stderr, bytes) else str(stderr).strip()
             raise RuntimeError(f"pw-cat failed: {error or 'unknown error'}")
-        return {"cancelled": False, "stdout": stdout.decode(errors="replace").strip() if isinstance(stdout, bytes) else str(stdout).strip()}
+        return {
+            "cancelled": False,
+            "stdout": stdout.decode(errors="replace").strip() if isinstance(stdout, bytes) else str(stdout).strip(),
+            "pcm_bytes_queued": self.pcm_bytes_queued,
+            "pcm_write_count": self.pcm_write_count,
+            "process_alive_at_start": self.process_alive_at_start,
+            "process_exit_status": self.process_exit_status,
+            "first_queued_ns": self.first_queued_ns,
+            "last_queued_ns": self.last_queued_ns,
+        }
 
     def cancel(self) -> dict[str, Any]:
         process = self._process
         if process is None:
             return {"cancelled": True, "already_inactive": True}
-        if process.stdin is not None:
-            try:
-                process.stdin.close()
-            except OSError:
-                pass
-        process.terminate()
+        try:
+            _close_pipe(getattr(process, "stdin", None))
+            _reap_process(process, terminate=True)
+        finally:
+            self.process_exit_status = process.returncode
+            self._process = None
+        return {
+            "cancelled": True,
+            "pcm_bytes_queued": self.pcm_bytes_queued,
+            "pcm_write_count": self.pcm_write_count,
+            "process_alive_at_start": self.process_alive_at_start,
+            "process_exit_status": self.process_exit_status,
+            "first_queued_ns": self.first_queued_ns,
+            "last_queued_ns": self.last_queued_ns,
+        }
+
+
+def _close_pipe(pipe: Any) -> None:
+    if pipe is None:
+        return
+    try:
+        pipe.close()
+    except (OSError, ValueError):
+        pass
+
+
+def _reap_process(process: Any, *, terminate: bool) -> None:
+    """Close a child process without leaking it on playback error/cancel."""
+    if terminate:
+        try:
+            if process.poll() is None:
+                process.terminate()
+        except (OSError, ProcessLookupError):
+            pass
+    communicate = getattr(process, "communicate", None)
+    if not callable(communicate):
         try:
             process.wait(timeout=2.0)
-        except subprocess.TimeoutExpired:
+        except TypeError:
+            try:
+                process.wait()
+            except (OSError, ProcessLookupError):
+                pass
+        except (OSError, ProcessLookupError):
+            pass
+        return
+    try:
+        communicate(timeout=2.0)
+    except subprocess.TimeoutExpired:
+        try:
             process.kill()
+        except (OSError, ProcessLookupError):
+            pass
+        try:
+            process.communicate()
+        except (OSError, ProcessLookupError):
+            try:
+                process.wait()
+            except (OSError, ProcessLookupError):
+                pass
+    except (OSError, ProcessLookupError):
+        try:
             process.wait()
-        self._process = None
-        return {"cancelled": True}
+        except (OSError, ProcessLookupError):
+            pass
 
 
 def _module_id(stdout: str) -> str | None:
@@ -688,12 +772,20 @@ def audio_file_stats(audio_path: str | Path) -> dict[str, Any]:
 class RawCaptureSession:
     """Keep a stable-name raw capture alive across a complete pipeline turn."""
 
-    def __init__(self, output_path: str | Path, *, target: str, sample_rate: int = 16000) -> None:
+    def __init__(
+        self,
+        output_path: str | Path,
+        *,
+        target: str,
+        sample_rate: int = 16000,
+        popen_factory: Callable[..., Any] = subprocess.Popen,
+    ) -> None:
         if not isinstance(target, str) or target.isdecimal():
             raise ValueError("numeric PipeWire node IDs are not stable capture targets")
         self.output_path = Path(output_path)
         self.target = target
         self.sample_rate = sample_rate
+        self._popen_factory = popen_factory
         self.process: subprocess.Popen[str] | None = None
         self.started_ns: int | None = None
         self._result: dict[str, Any] | None = None
@@ -702,6 +794,9 @@ class RawCaptureSession:
         if self.process is not None:
             raise RuntimeError("raw capture already started")
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
+        self.output_path.unlink(missing_ok=True)
+        self._result = None
+        self.started_ns = None
         command = [
             "pw-record",
             "--target",
@@ -715,7 +810,7 @@ class RawCaptureSession:
             str(self.output_path),
         ]
         try:
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            self.process = self._popen_factory(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         except OSError as exc:
             raise RuntimeError(f"pw-record unavailable: {type(exc).__name__}") from exc
         self.started_ns = time.monotonic_ns()
@@ -727,29 +822,38 @@ class RawCaptureSession:
         process = self.process
         if process is None:
             raise RuntimeError("raw capture was not started")
-        if tail_s > 0:
-            time.sleep(tail_s)
-        process.terminate()
         try:
-            stdout, stderr = process.communicate(timeout=5.0)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            stdout, stderr = process.communicate()
-        ended_ns = time.monotonic_ns()
-        if not self.output_path.exists() or self.output_path.stat().st_size <= 44:
-            raise RuntimeError(
-                f"pw-record produced an empty file (returncode={process.returncode}): {stderr.strip() or 'unknown error'}"
-            )
-        self._result = {
-            "path": str(self.output_path),
-            "target": self.target,
-            "record_returncode": process.returncode,
-            "record_stdout": stdout.strip(),
-            "record_stderr": stderr.strip(),
-            "timing_ns": {"record_start": self.started_ns, "record_end": ended_ns},
-            "recording_stats": audio_file_stats(self.output_path),
-        }
-        return self._result
+            if tail_s > 0:
+                time.sleep(tail_s)
+            try:
+                process.terminate()
+            except (OSError, ProcessLookupError):
+                pass
+            try:
+                stdout, stderr = process.communicate(timeout=5.0)
+            except subprocess.TimeoutExpired:
+                try:
+                    process.kill()
+                except (OSError, ProcessLookupError):
+                    pass
+                stdout, stderr = process.communicate()
+            ended_ns = time.monotonic_ns()
+            if not self.output_path.exists() or self.output_path.stat().st_size <= 44:
+                raise RuntimeError(
+                    f"pw-record produced an empty file (returncode={process.returncode}): {stderr.strip() or 'unknown error'}"
+                )
+            self._result = {
+                "path": str(self.output_path),
+                "target": self.target,
+                "record_returncode": process.returncode,
+                "record_stdout": stdout.strip(),
+                "record_stderr": stderr.strip(),
+                "timing_ns": {"record_start": self.started_ns, "record_end": ended_ns},
+                "recording_stats": audio_file_stats(self.output_path),
+            }
+            return self._result
+        finally:
+            self.process = None
 
 
 def playback_on_active_capture(audio_path: str | Path, *, playback_target: str, capture: RawCaptureSession) -> dict[str, Any]:

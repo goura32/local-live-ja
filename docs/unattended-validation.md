@@ -27,7 +27,16 @@ The echo check applies the Phase 4 threshold first. Any alternative threshold is
 
 One fixed assistant reference is replayed at least 30 times without human participation. Each row retains playback return state, raw microphone RMS/peak, recording duration, expected and detected onset, onset timing error, reference cross-correlation, device availability, PipeWire health, threshold sensitivity, and a cause classification. Threshold sensitivity uses bounded 3x/4x/5x noise multipliers and does not change the production detector solely to increase success rate.
 
-## Fault and cleanup policy
+## Phase 6 physical onset hardening
+
+`local-live bench physical-onset` runs the fixed reference 100 times, five independent Japanese fixtures 10 times each, and 30 no-playback negative captures. It uses the actual PCM byte stream queued to persistent `pw-cat` as the alignment reference; HTTP chunk boundaries and generated WAV paths are not treated as authoritative. Each positive row stores playback evidence (first PCM, first actual speech offset, bytes/write count, process alive/exit, completion), raw microphone evidence (duration, RMS/peak/clipping, short-frame energy series, adaptive noise floor), and reference alignment evidence (best lag, correlation, confidence margin, expected window).
+
+Detector A is the existing adaptive short-frame RMS detector. Detector B is a separate multi-window normalized-correlation detector. Final classifications distinguish `confirmed`, `correlation_recovered`, `energy_only`, `microphone_capture_failure`, `playback_failure`, `late_outside_window`, `no_physical_match`, `false_positive`, `no_playback_negative`, and `unknown`. `application_status` is recorded independently from `physical_measurement_status`, so a measurement miss is not counted as an application failure.
+
+The expected onset window is derived from the checked-in physical path distribution (`results/bench_playback_path.json`) plus a bounded margin. Recording tail is derived from the same distribution and playback duration. Phase 6 does not change the Phase 4 echo threshold, ASR/LLM/TTS models, AEC, volume, or serving versions.
+
+`local-live bench phase6` runs the physical protocol and the final 100-turn stability/restart protocol. The final run reached `unattended_validation_complete`: fixed replay 100/100 confirmed, fixtures 50/50 confirmed, negative false-positive rate 0/30, and stability application success 100/100 with physical confirmation 100/100. The detailed result is in `results/bench_unattended.json`; `results/turn57_diagnosis.json` records what the old turn 57 did not capture. The old fixed-name turn 57 WAV was reused by the later stability run, so the diagnosis file explicitly marks the original binary as not preserved.
+
 
 Fault probes are process-level or mock-only: HTTP stream disconnect, premature playback exit, Ollama request failure, invalid PCM, unavailable server, and unavailable microphone target. They do not unbind hardware or alter OS configuration. Every server, playback, capture, HTTP client, and volume guard is cleaned up in normal, exception, and cancellation paths. Results retain failed or blocked probes rather than converting them to success.
 

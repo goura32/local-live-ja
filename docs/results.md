@@ -13,7 +13,7 @@
 | tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
 | E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
 | AEC | measured with limitations | stable targetで16条件matrixと3候補×3 repeatを測定。VAD false triggerは残る |
-| test reproducibility | pass | 単一process・直列pytest、exit code 0、93 tests pass |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、107 tests pass |
 
 総合判定は`measured_with_limitations`。phase-2でsynthetic user endからraw USB microphone acoustic onsetまでの物理latency、TTS length matrix、AEC volume/gain matrix、CPU ASR resident profileを追加した。live latencyは3.4000秒で2秒目標未達、AECは減衰改善を確認したがassistant-only VAD false triggerが残る。真のonline Qwen3-TTS streamingは前提にしていない。
 
@@ -556,7 +556,7 @@ A short automated readiness recording resolved the raw USB microphone target and
 - `results/summary.json`: aggregate and component judgement
 - `docs/echo-rejection.md`: algorithm and limitation notes
 
-Component judgement is `continuous_stability=measured_with_limitations`, `echo_rejection=pass`, `interruption=pass`, `server_restart=pass`, and `microphone_readiness=measured`. Phase 4 overall is `measured_with_limitations`: continuous latency and onset thresholds passed, but two initial physical-onset blocks and the unresolved physical-stop tail keep the result from being a blanket production claim. The next step may proceed to a human real-microphone conversation only as a controlled experiment; the largest remaining issue is robust physical onset/self-echo behavior under real double-talk, especially separating residual assistant audio from an overlapping user voice.
+Component judgement is `continuous_stability=measured_with_limitations`, `echo_rejection=pass`, `interruption=pass`, `server_restart=pass`, and `microphone_readiness=measured`. Phase 4 overall is `measured_with_limitations`: continuous latency and onset thresholds passed, but two initial physical-onset blocks and the unresolved physical-stop tail keep the result from being a blanket production claim. Phase 6 subsequently completed the unattended physical-onset measurement hardening; human real-microphone conversation remains `deferred_manual`, not an automatically scheduled next phase.
 
 ## Phase 5: unattended robustness and synthetic double-talk
 
@@ -603,3 +603,23 @@ Phase 5 remains `measured_with_limitations`, not a production-readiness claim. T
 - `results/bench_interruption.json`: 15 cancellation rows, stale-PCM and `spoken_text` checks, recovery probe
 - `results/summary.json`: compact Phase 5 aggregate
 - `docs/unattended-validation.md`: unattended protocol and exclusions
+
+## Phase 6: physical onset measurement hardening
+
+Phase 6はturn 57の既存artifactを先に診断し、measurement evidenceをplayback、raw microphone、actual-reference alignmentへ分離する。固定構成、ASR/LLM/TTS、speaker、vLLM version、AEC、Phase 4 echo thresholdは変更しない。人間発話、human double-talk/barge-in、MOS、主観音質、manual gain/device tuning、production approvalは`deferred_manual`とする。
+
+`results/turn57_diagnosis.json`では、旧turn 57にraw WAVとaggregate timingはあったが、実PCM write count、persistent playback exit status、short-frame energy series、actual-playback-PCM confidence/marginが`not_recorded`だったことを明示した。Phase 6ではHTTP chunk境界ではなく、persistent `pw-cat`へ実際にqueueした連結PCMをreferenceにする。
+
+固定replayの実測は100/100 measured、confirmed 100、correlation_recovered 0、blocked 0、failed 0、unknown 0だった。追加fixtureは5種類×10回=50/50 measured、confirmed 50。no-playback negativeは30/30 measured、false positive 0/30（0%）、unknown 0/30だった。全positive 150件でdevice availabilityはtrue、PipeWire healthはready、persistent playback process exitは0だった。既知physical path分布5件（median 0.218581 s、p95 0.718257 s、max 0.838216 s）からexpected onset windowを導出し、固定値だけに依存しなかった。
+
+最終100-turn stabilityは100 attempts、application success 100/100、application failed 0、physical measurement confirmed 100/100だった。confirmed-only latencyはmedian 0.365884 s、p95 0.690515 s、p99 0.832720 s、max 0.847195 s。confirmed+recoveredも同じ100件で同値だった。旧energy detectorだけでなくactual PCM alignmentを保存し、turn 57はapplication successかつ`confirmed`へ再分類された。energy detectorのwindow外7件はactual PCM alignmentで回復し、`energy_detector_late_reference_recovered`として記録した。Phase 6でphysical path window外へ残ったlate onsetは0件だった。
+
+resourceはPhase 5のper-turn monitorを回帰確認として再利用した。FD/child/playback/active HTTPのper-turn monotonic growthは全て0、VRAM peak 15,089 MiB、free minimum 753 MiB、OOM 0、memory leak suspected falseだった。外側snapshotのFD `4→43`はwarm-cache/runtime初期化差分として注記し、leak判定には使っていない。server restartは5/5、owned stop returncode 0、audio snapshot restore errorはnull、8091は終了後解放された。
+
+first_sentence_bufferingは100件観測、median 0.349629 s、max 0.775215 s、outlier dominant 10件だった。自然文boundaryは100/100、timeout fallbackの原因タグは`not_recorded`だが、run中のhang/errorはなく、既存chunkerのbounded behaviorと自然文境界variationでありbugは確認しなかった。総合判定は`unattended_validation_complete`である。
+
+- `results/bench_physical_onset.json`: Phase 6 fixed replay、fixture replay、negative controls、三系統evidence、expected window、分類、audio state restore
+- `results/bench_stability.json`: 100-turn application/measurement status分離、actual PCM alignment、confirmed-only/confirmed+recovered latency
+- `results/bench_unattended.json`: Phase 6総合判定、physical onset、stability、resource regression、restart、deferred_manual
+- `results/summary.json`: compact Phase 4/5/6 aggregate
+- `docs/physical-onset.md`: protocol、turn 57 diagnosis、分類、PASS条件

@@ -19,6 +19,8 @@ The current measurement contract is:
 - `bench interruption`: starts the fixed resident vLLM server and interrupts first-PCM, middle-playback, and end-playback boundaries five times each, recording playback/HTTP/LLM cancellation cleanup, spoken-text commit state, and next-turn recovery in `results/bench_interruption.json`.
 - `bench mic-readiness`: resolves raw USB/AEC targets, records short RMS/peak/clipping/VAD metrics, loads the fixed GPU ASR, and restores audio settings in `results/bench_mic_readiness.json`.
 - `bench unattended`: runs the Phase 5 unattended protocol: 30 fixed physical onset replays, extended echo rejection, 100 continuous turns when the fixed devices/server are available, five-turn server restart coverage, repeated cancellation, mock/process fault injection, resource lifecycle, and VRAM margin. It writes `results/bench_unattended.json` and refreshes the other Phase 5 result files.
+- `bench physical-onset`: runs Phase 6 measurement hardening with 100 fixed PCM replays, 30 no-playback negative captures, and five independent Japanese fixtures × 10 replays. It records the exact PCM bytes queued to persistent `pw-cat`, playback/process evidence, raw-mic short-frame energy, adaptive noise floor, actual-reference alignment, expected onset windows from the prior physical-path distribution, and independent application/measurement classifications.
+- `bench phase6`: runs `bench physical-onset` followed by the final 100-turn stability run. Stability rows preserve application success separately from `confirmed`/`correlation_recovered`/blocked physical measurement states. Phase 6 compact output is refreshed by `bench/summarize_results.py`.
 
 After running the benchmarks, refresh the compact machine-readable rollup with:
 

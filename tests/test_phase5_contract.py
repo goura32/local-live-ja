@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from local_live.audio import PipeWirePCMPlayback, RawCaptureSession
 from local_live.audio_metrics import detect_acoustic_onset
 from local_live.echo_rejection import (
     EchoRejectionConfig,
@@ -361,3 +362,110 @@ def test_live_http_counter_excludes_time_wait(monkeypatch) -> None:
     result = telemetry.current_process_resources(http_ports=(8091,))
     assert result["open_fds"] == 9
     assert result["active_http_connections"] == 1
+
+
+def test_raw_capture_unlinks_stale_output_and_clears_process_on_success(tmp_path) -> None:
+    import wave
+
+    output = tmp_path / "capture.wav"
+    output.write_bytes(b"stale capture")
+    seen_before_spawn: list[bool] = []
+
+    class FakeProcess:
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            return "", ""
+
+        def terminate(self):
+            return None
+
+        def kill(self):
+            return None
+
+    def spawn(command, **kwargs):
+        seen_before_spawn.append(output.exists())
+        with wave.open(str(output), "wb") as handle:
+            handle.setnchannels(1)
+            handle.setsampwidth(2)
+            handle.setframerate(16000)
+            handle.writeframes(b"\x00\x00" * 160)
+        return FakeProcess()
+
+    capture = RawCaptureSession(output, target="USB Mic", popen_factory=spawn)
+    capture.start()
+    result = capture.stop(tail_s=0)
+
+    assert seen_before_spawn == [False]
+    assert capture.process is None
+    assert result["recording_stats"]["frames"] == 160
+    assert capture.stop(tail_s=0) == result
+
+
+def test_raw_capture_clears_process_and_rejects_failed_output(tmp_path) -> None:
+    output = tmp_path / "failed.wav"
+    output.write_bytes(b"old file must not be measured")
+
+    class FailedProcess:
+        returncode = 1
+
+        def communicate(self, timeout=None):
+            return "", "target unavailable"
+
+        def terminate(self):
+            return None
+
+        def kill(self):
+            return None
+
+    capture = RawCaptureSession(output, target="USB Mic", popen_factory=lambda command, **kwargs: FailedProcess())
+    capture.start()
+    with pytest.raises(RuntimeError, match="empty file"):
+        capture.stop(tail_s=0)
+    assert capture.process is None
+    assert not output.exists()
+
+
+def test_pcm_playback_reaps_process_after_broken_pipe() -> None:
+    class BrokenStdin:
+        def close(self):
+            return None
+
+        def write(self, payload):
+            raise BrokenPipeError("child exited")
+
+        def flush(self):
+            return None
+
+    class BrokenProcess:
+        def __init__(self):
+            self.stdin = BrokenStdin()
+            self.returncode = 1
+            self.terminated = False
+            self.waited = False
+
+        def poll(self):
+            return None if not self.terminated else self.returncode
+
+        def terminate(self):
+            self.terminated = True
+
+        def wait(self, timeout=None):
+            self.waited = True
+            return self.returncode
+
+        def kill(self):
+            self.terminated = True
+
+        def communicate(self, timeout=None):
+            self.waited = True
+            return b"", b""
+
+    process = BrokenProcess()
+    playback = PipeWirePCMPlayback("USB Speaker", popen_factory=lambda command, **kwargs: process)
+    playback.start(sample_rate=24000, channels=1)
+    with pytest.raises(RuntimeError, match="closed"):
+        playback.queue(b"audio")
+    assert playback.active is False
+    assert process.terminated is True
+    assert process.waited is True

@@ -97,6 +97,10 @@ def test_persistent_playback_queues_one_stream_and_finishes_without_per_chunk_pr
     assert playback.queue(b"second") == {"queued": True}
     result = playback.finish()
     assert result["cancelled"] is False
+    assert result["pcm_bytes_queued"] == len(b"first") + len(b"second")
+    assert result["pcm_write_count"] == 2
+    assert result["process_alive_at_start"] is True
+    assert result["process_exit_status"] == 0
     assert process.stdin.writes == [b"first", b"second"]
     assert process.stdin.closed is True
     assert process.waited is True

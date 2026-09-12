@@ -80,6 +80,13 @@ bench:
   onset_repeat_repeats: 30
   cancellation_repeats_per_timing: 5
   cancellation_wait_s: 60.0
+  phase6_fixed_replay_repeats: 100
+  phase6_negative_repeats: 30
+  phase6_fixture_repeats: 10
+  phase6_fixture_count: 5
+  phase6_pcm_chunk_bytes: 8192
+  phase6_record_lead_s: 0.4
+  phase6_negative_capture_s: 1.2
   mic_readiness_duration_s: 1.0
 
 echo_rejection:
