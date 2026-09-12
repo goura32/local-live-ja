@@ -74,3 +74,30 @@ def trim_to_speech(audio: np.ndarray, sample_rate: int, intervals: list[tuple[fl
 def vad_summary(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
     intervals = detect_speech_intervals(audio, sample_rate)
     return {"sample_rate": sample_rate, "intervals": intervals, "speech_seconds": sum(e - s for s, e in intervals)}
+
+
+def assistant_only_vad_metrics(
+    audio: np.ndarray,
+    sample_rate: int,
+    *,
+    playback_duration_s: float,
+    frame_ms: int = 20,
+) -> dict[str, Any]:
+    """Measure user-VAD activity while the assistant is the only source."""
+    if playback_duration_s <= 0 or frame_ms <= 0:
+        raise ValueError("playback_duration_s and frame_ms must be positive")
+    intervals = detect_speech_intervals(audio, sample_rate, frame_ms=frame_ms)
+    false_trigger_total = sum(max(0.0, end - start) for start, end in intervals)
+    speech_frames = sum(
+        max(1, int(round((end - start) * 1000 / frame_ms)))
+        for start, end in intervals
+    )
+    return {
+        "playback_duration_s": playback_duration_s,
+        "speech_frames": speech_frames,
+        "false_trigger_count": len(intervals),
+        "false_trigger_total_duration_s": false_trigger_total,
+        "false_trigger_ratio": false_trigger_total / playback_duration_s,
+        "intervals": intervals,
+        "frame_ms": frame_ms,
+    }

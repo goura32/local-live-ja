@@ -155,7 +155,10 @@ class EventLog:
     events: list[dict[str, Any]] = field(default_factory=list)
 
     def mark(self, name: str, **payload: Any) -> dict[str, Any]:
-        item = {"event": name, "monotonic_ns": time.monotonic_ns(), **payload}
+        return self.mark_at(name, time.monotonic_ns(), **payload)
+
+    def mark_at(self, name: str, monotonic_ns: int, **payload: Any) -> dict[str, Any]:
+        item = {"event": name, "monotonic_ns": monotonic_ns, **payload}
         self.events.append(item)
         return item
 

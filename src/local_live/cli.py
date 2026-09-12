@@ -11,8 +11,16 @@ import numpy as np
 import soundfile as sf
 
 from .asr import WhisperASR
-from .audio import EchoCancelSession, PipeWireInventory, PipeWirePlayback, record_fixed
-from .bench import run_aec_bench, run_asr_bench, run_e2e_bench, run_llm_bench, run_tts_bench
+from .audio import EchoCancelSession, PipeWireInventory, PipeWirePlayback, record_fixed, stable_target
+from .bench import (
+    run_aec_bench,
+    run_aec_matrix_bench,
+    run_asr_bench,
+    run_e2e_bench,
+    run_live_latency_bench,
+    run_llm_bench,
+    run_tts_bench,
+)
 from .config import load_config, nested
 from .doctor import run_doctor
 from .llm.ollama import OllamaLLM
@@ -43,6 +51,9 @@ def build_parser() -> argparse.ArgumentParser:
     e2e.add_argument("--skip-openrouter", action="store_true")
     aec = bench_sub.add_parser("aec")
     aec.add_argument("--force-audio", action="store_true")
+    bench_sub.add_parser("live-latency")
+    aec_matrix = bench_sub.add_parser("aec-matrix")
+    aec_matrix.add_argument("--force-audio", action="store_true")
 
     run = subparsers.add_parser("run")
     run.add_argument("--input-wav")
@@ -63,7 +74,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if result.get("status") != "fail" else 1
     if args.command == "bench":
         result = _run_bench(args, config)
-        path = Path(nested(config, "app", "result_dir", default="results")) / f"bench_{args.bench_name}.json"
+        path_name = args.bench_name.replace("-", "_")
+        path = Path(nested(config, "app", "result_dir", default="results")) / f"bench_{path_name}.json"
         _print_status(f"bench {args.bench_name}", result.get("data", {}).get("status", "written"), path)
         return 0
     if args.command == "run":
@@ -82,6 +94,10 @@ def _run_bench(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, An
         return run_e2e_bench(config, force_audio=args.force_audio, skip_openrouter=args.skip_openrouter)
     if args.bench_name == "aec":
         return run_aec_bench(config, force_audio=args.force_audio)
+    if args.bench_name == "live-latency":
+        return run_live_latency_bench(config)
+    if args.bench_name == "aec-matrix":
+        return run_aec_matrix_bench(config, force_audio=args.force_audio)
     raise ValueError(args.bench_name)
 
 
@@ -101,14 +117,14 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
             if not args.no_aec:
                 aec_session = _make_aec_session(
                     config,
-                    sink_master=(speaker.target or speaker.node_id) if speaker else None,
-                    source_master=(mic.target or mic.node_id) if mic else None,
+                    sink_master=stable_target(speaker) if speaker else None,
+                    source_master=stable_target(mic) if mic else None,
                 )
                 aec_session.load()
                 after = PipeWireInventory.discover()
                 mic = next((node for node in after.sources if node.node_id == aec_session.source_node_id), mic)
                 speaker = next((node for node in after.sinks if node.node_id == aec_session.sink_node_id), speaker)
-            record_target = (mic.target or mic.node_id) if mic else None
+            record_target = stable_target(mic) if mic else None
             log.mark("vad_start")
             record_path = artifact / "live_input.wav"
             record_fixed(record_path, target=record_target, duration_s=args.duration, sample_rate=16000, channels=1)
@@ -151,7 +167,7 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
             device="auto",
             max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
         )
-        playback_target = (speaker.target or speaker.node_id) if speaker else None
+        playback_target = stable_target(speaker) if speaker else None
         pipeline = LivePipeline(
             llm=provider,
             tts=tts,

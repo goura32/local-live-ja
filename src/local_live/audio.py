@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import time
 from dataclasses import dataclass
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -136,6 +138,167 @@ def _parse_pactl_nodes(output: str, kind: str) -> list[AudioNode]:
     return result
 
 
+def stable_target(node: AudioNode | None) -> str:
+    """Return a persistent Pulse/PipeWire name, never a runtime object ID."""
+    if node is None or not node.target or not node.target.strip():
+        raise ValueError("audio node has no stable target name")
+    target = node.target.strip()
+    if target.isdecimal():
+        raise ValueError("numeric PipeWire node IDs are not stable audio targets")
+    return target
+
+
+@dataclass(frozen=True)
+class PulseVolumeState:
+    target: str
+    volume_percent: float
+    muted: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "target": self.target,
+            "volume_percent": self.volume_percent,
+            "muted": self.muted,
+        }
+
+
+@dataclass(frozen=True)
+class AudioStateSnapshot:
+    speaker: PulseVolumeState
+    microphone: PulseVolumeState
+    default_sink: str
+    default_source: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "speaker": self.speaker.to_dict(),
+            "microphone": self.microphone.to_dict(),
+            "default_sink": self.default_sink,
+            "default_source": self.default_source,
+        }
+
+
+def _require_pactl_result(
+    runner: Callable[..., tuple[int, str, str]], command: list[str]
+) -> str:
+    code, stdout, stderr = runner(command, timeout=10.0)
+    if code != 0:
+        raise RuntimeError(f"pactl command failed: {command[1] if len(command) > 1 else 'unknown'}")
+    return stdout.strip()
+
+
+def _parse_pulse_percent(output: str) -> float:
+    match = re.search(r"/\s*([0-9]+(?:\.[0-9]+)?)%", output)
+    if not match:
+        raise ValueError("pactl volume output did not contain a percentage")
+    return float(match.group(1))
+
+
+def _parse_pulse_mute(output: str) -> bool:
+    lowered = output.casefold()
+    if re.search(r"\b(?:yes|true)\b", lowered) or "はい" in output:
+        return True
+    if re.search(r"\b(?:no|false)\b", lowered) or "いいえ" in output:
+        return False
+    raise ValueError("pactl mute output did not contain a boolean")
+
+
+def _query_pulse_volume_state(
+    target: str,
+    *,
+    kind: str,
+    runner: Callable[..., tuple[int, str, str]],
+) -> PulseVolumeState:
+    if kind not in {"sink", "source"}:
+        raise ValueError(f"unsupported Pulse kind: {kind}")
+    volume = _require_pactl_result(runner, ["pactl", f"get-{kind}-volume", target])
+    mute = _require_pactl_result(runner, ["pactl", f"get-{kind}-mute", target])
+    return PulseVolumeState(target, _parse_pulse_percent(volume), _parse_pulse_mute(mute))
+
+
+class AudioVolumeGuard:
+    """Snapshot and restore Pulse volume/mute/default state around measurements."""
+
+    def __init__(
+        self,
+        *,
+        speaker_target: str,
+        microphone_target: str,
+        command_runner: Callable[..., tuple[int, str, str]] | None = None,
+    ) -> None:
+        if not speaker_target or not microphone_target:
+            raise ValueError("speaker and microphone targets are required")
+        self.speaker_target = speaker_target
+        self.microphone_target = microphone_target
+        self._runner = command_runner or _run
+        self.snapshot: AudioStateSnapshot | None = None
+        self.restore_error: str | None = None
+        self._restored = False
+
+    def __enter__(self) -> "AudioVolumeGuard":
+        self.snapshot = AudioStateSnapshot(
+            speaker=_query_pulse_volume_state(self.speaker_target, kind="sink", runner=self._runner),
+            microphone=_query_pulse_volume_state(self.microphone_target, kind="source", runner=self._runner),
+            default_sink=_require_pactl_result(self._runner, ["pactl", "get-default-sink"]),
+            default_source=_require_pactl_result(self._runner, ["pactl", "get-default-source"]),
+        )
+        if not self.snapshot.default_sink or not self.snapshot.default_source:
+            raise RuntimeError("pactl did not return default sink/source")
+        return self
+
+    @staticmethod
+    def _validate_percent(value: int | float) -> int:
+        if isinstance(value, bool) or value < 0 or value > 100:
+            raise ValueError("volume must be between 0 and 100 percent")
+        return int(value)
+
+    def set_volumes(self, *, speaker_percent: int | float, microphone_percent: int | float) -> None:
+        speaker = self._validate_percent(speaker_percent)
+        microphone = self._validate_percent(microphone_percent)
+        self._run_checked(["pactl", "set-sink-volume", self.speaker_target, f"{speaker}%"])
+        self._run_checked(["pactl", "set-source-volume", self.microphone_target, f"{microphone}%"])
+
+    def set_mutes(self, *, speaker_muted: bool, microphone_muted: bool) -> None:
+        self._run_checked(["pactl", "set-sink-mute", self.speaker_target, "yes" if speaker_muted else "no"])
+        self._run_checked(["pactl", "set-source-mute", self.microphone_target, "yes" if microphone_muted else "no"])
+
+    def _run_checked(self, command: list[str]) -> None:
+        code, _stdout, _stderr = self._runner(command, timeout=10.0)
+        if code != 0:
+            raise RuntimeError(f"pactl command failed: {command[1]}")
+
+    def restore(self) -> None:
+        if self.snapshot is None or self._restored:
+            return
+        errors: list[str] = []
+        snapshot = self.snapshot
+        commands = [
+            ["pactl", "set-sink-volume", snapshot.speaker.target, f"{snapshot.speaker.volume_percent:g}%"],
+            ["pactl", "set-source-volume", snapshot.microphone.target, f"{snapshot.microphone.volume_percent:g}%"],
+            ["pactl", "set-sink-mute", snapshot.speaker.target, "yes" if snapshot.speaker.muted else "no"],
+            ["pactl", "set-source-mute", snapshot.microphone.target, "yes" if snapshot.microphone.muted else "no"],
+            ["pactl", "set-default-sink", snapshot.default_sink],
+            ["pactl", "set-default-source", snapshot.default_source],
+        ]
+        for command in commands:
+            try:
+                self._run_checked(command)
+            except Exception as exc:
+                errors.append(f"{command[1]}:{type(exc).__name__}")
+        self._restored = True
+        if errors:
+            self.restore_error = ", ".join(errors)
+            raise RuntimeError(f"audio state restore failed: {self.restore_error}")
+
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> bool:
+        try:
+            self.restore()
+        except Exception:
+            if exc_type is None:
+                raise
+        return False
+
+
 def build_echo_cancel_args(
     *,
     sink_name: str,
@@ -206,6 +369,8 @@ class EchoCancelSession:
         self.source_target: str | None = None
 
     def load(self) -> dict[str, Any]:
+        if isinstance(self.sink_master, int) or isinstance(self.source_master, int):
+            raise ValueError("AEC master targets must be stable names, not numeric node IDs")
         args = build_pulse_echo_cancel_args(
             sink_name=self.sink_name,
             source_name=self.source_name,
@@ -237,8 +402,12 @@ class EchoCancelSession:
             raise RuntimeError("echo-cancel module loaded but new source/sink did not appear")
         self.sink_node_id = sink.node_id
         self.source_node_id = source.node_id
-        self.sink_target = sink.target or str(sink.node_id)
-        self.source_target = source.target or str(source.node_id)
+        try:
+            self.sink_target = stable_target(sink)
+            self.source_target = stable_target(source)
+        except ValueError:
+            self.unload()
+            raise
         return {
             "module_id": self.module_id,
             "module_loader": "pactl module-echo-cancel",
@@ -273,6 +442,8 @@ class PipeWirePlayback:
         self._process: subprocess.Popen[str] | None = None
 
     def play(self, audio_path: str | Path, *, cancel_event: Any = None) -> dict[str, Any]:
+        if self.target is not None and (not isinstance(self.target, str) or self.target.isdecimal()):
+            raise ValueError("numeric PipeWire node IDs are not stable playback targets")
         command = ["pw-play"]
         if self.target is not None:
             command += ["--target", str(self.target)]
@@ -304,7 +475,10 @@ def _module_id(stdout: str) -> str | None:
 
 def _run(command: list[str], timeout: float = 10.0) -> tuple[int, str, str]:
     try:
-        completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
+        env = os.environ.copy()
+        env["LC_ALL"] = "C"
+        env["LANG"] = "C"
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=env)
         return completed.returncode, completed.stdout.strip(), completed.stderr.strip()
     except (OSError, subprocess.TimeoutExpired) as exc:
         return 127, "", type(exc).__name__
@@ -313,13 +487,15 @@ def _run(command: list[str], timeout: float = 10.0) -> tuple[int, str, str]:
 def record_fixed(
     output_path: str | Path,
     *,
-    target: int | str | None,
+    target: str | None,
     duration_s: float,
     sample_rate: int = 16000,
     channels: int = 1,
 ) -> dict[str, Any]:
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
+    if target is not None and (not isinstance(target, str) or target.isdecimal()):
+        raise ValueError("numeric PipeWire node IDs are not stable record targets")
     command = ["pw-record"]
     if target is not None:
         command += ["--target", str(target)]
@@ -354,6 +530,8 @@ def audio_file_stats(audio_path: str | Path) -> dict[str, Any]:
     samples, sample_rate = sf.read(str(path), always_2d=False)
     array = np.asarray(samples, dtype=np.float32)
     peak = float(np.max(np.abs(array))) if array.size else 0.0
+    from .audio_metrics import clipping_ratio
+
     return {
         "path": str(path),
         "sample_rate": int(sample_rate),
@@ -361,6 +539,110 @@ def audio_file_stats(audio_path: str | Path) -> dict[str, Any]:
         "duration_s": float(info.duration),
         "rms": signal_rms(array),
         "peak": peak,
+        "clipping_ratio": clipping_ratio(array),
+    }
+
+
+class RawCaptureSession:
+    """Keep a stable-name raw capture alive across a complete pipeline turn."""
+
+    def __init__(self, output_path: str | Path, *, target: str, sample_rate: int = 16000) -> None:
+        if not isinstance(target, str) or target.isdecimal():
+            raise ValueError("numeric PipeWire node IDs are not stable capture targets")
+        self.output_path = Path(output_path)
+        self.target = target
+        self.sample_rate = sample_rate
+        self.process: subprocess.Popen[str] | None = None
+        self.started_ns: int | None = None
+        self._result: dict[str, Any] | None = None
+
+    def start(self) -> dict[str, Any]:
+        if self.process is not None:
+            raise RuntimeError("raw capture already started")
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
+        command = [
+            "pw-record",
+            "--target",
+            self.target,
+            "--rate",
+            str(self.sample_rate),
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            str(self.output_path),
+        ]
+        try:
+            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except OSError as exc:
+            raise RuntimeError(f"pw-record unavailable: {type(exc).__name__}") from exc
+        self.started_ns = time.monotonic_ns()
+        return {"path": str(self.output_path), "target": self.target, "started_ns": self.started_ns}
+
+    def stop(self, *, tail_s: float = 0.5) -> dict[str, Any]:
+        if self._result is not None:
+            return self._result
+        process = self.process
+        if process is None:
+            raise RuntimeError("raw capture was not started")
+        if tail_s > 0:
+            time.sleep(tail_s)
+        process.terminate()
+        try:
+            stdout, stderr = process.communicate(timeout=5.0)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+        ended_ns = time.monotonic_ns()
+        if not self.output_path.exists() or self.output_path.stat().st_size <= 44:
+            raise RuntimeError(
+                f"pw-record produced an empty file (returncode={process.returncode}): {stderr.strip() or 'unknown error'}"
+            )
+        self._result = {
+            "path": str(self.output_path),
+            "target": self.target,
+            "record_returncode": process.returncode,
+            "record_stdout": stdout.strip(),
+            "record_stderr": stderr.strip(),
+            "timing_ns": {"record_start": self.started_ns, "record_end": ended_ns},
+            "recording_stats": audio_file_stats(self.output_path),
+        }
+        return self._result
+
+
+def playback_on_active_capture(audio_path: str | Path, *, playback_target: str, capture: RawCaptureSession) -> dict[str, Any]:
+    """Play immediately on a capture already recording the physical side-channel."""
+    if not isinstance(playback_target, str) or playback_target.isdecimal():
+        raise ValueError("numeric PipeWire node IDs are not stable playback targets")
+    if capture.process is None or capture.started_ns is None:
+        raise RuntimeError("active raw capture must be started before playback")
+    info = sf.info(str(audio_path))
+    command = ["pw-play", "--target", playback_target, str(audio_path)]
+    try:
+        player = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except OSError as exc:
+        raise RuntimeError(f"pw-play unavailable: {type(exc).__name__}") from exc
+    playback_started_ns = time.monotonic_ns()
+    try:
+        stdout, stderr = player.communicate(timeout=max(10.0, info.duration + 10.0))
+    except subprocess.TimeoutExpired:
+        player.kill()
+        stdout, stderr = player.communicate()
+        raise RuntimeError("pw-play timed out")
+    playback_ended_ns = time.monotonic_ns()
+    if player.returncode != 0:
+        raise RuntimeError(f"pw-play failed: {stderr.strip() or 'unknown error'}")
+    return {
+        "path": str(audio_path),
+        "playback_target": playback_target,
+        "playback_stdout": stdout.strip(),
+        "playback_stderr": stderr.strip(),
+        "timing_ns": {
+            "record_start": capture.started_ns,
+            "pw_play_start": playback_started_ns,
+            "playback_end": playback_ended_ns,
+        },
+        "duration_s": float(info.duration),
     }
 
 
@@ -368,12 +650,15 @@ def play_and_record(
     audio_path: str | Path,
     recording_path: str | Path,
     *,
-    playback_target: int | str | None,
-    capture_target: int | str | None,
+    playback_target: str | None,
+    capture_target: str | None,
     lead_s: float = 0.4,
     tail_s: float = 0.5,
     sample_rate: int = 16000,
 ) -> dict[str, Any]:
+    for label, target in (("playback", playback_target), ("capture", capture_target)):
+        if target is not None and (not isinstance(target, str) or target.isdecimal()):
+            raise ValueError(f"numeric PipeWire node IDs are not stable {label} targets")
     info = sf.info(str(audio_path))
     record_duration = float(info.duration) + lead_s + tail_s
     output = Path(recording_path)
@@ -386,24 +671,47 @@ def play_and_record(
     if playback_target is not None:
         play_command += ["--target", str(playback_target)]
     play_command.append(str(audio_path))
-    recorder = subprocess.Popen(record_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    time.sleep(lead_s)
-    started = time.monotonic_ns()
-    player = subprocess.run(play_command, capture_output=True, text=True, timeout=max(10.0, info.duration + 10.0), check=False)
-    remaining = max(0.0, record_duration - lead_s - (time.monotonic_ns() - started) / 1e9)
-    if remaining:
-        time.sleep(remaining)
-    recorder.terminate()
+    recorder: subprocess.Popen[str] | None = None
+    player: subprocess.Popen[str] | None = None
+    record_started_ns: int | None = None
+    playback_started_ns: int | None = None
+    playback_ended_ns: int | None = None
+    record_ended_ns: int | None = None
+    rec_stdout = ""
+    rec_stderr = ""
+    player_stdout = ""
+    player_stderr = ""
     try:
-        rec_stdout, rec_stderr = recorder.communicate(timeout=5.0)
-    except subprocess.TimeoutExpired:
-        recorder.kill()
-        rec_stdout, rec_stderr = recorder.communicate()
-    if player.returncode != 0:
-        raise RuntimeError(f"pw-play failed: {player.stderr.strip() or 'unknown error'}")
+        recorder = subprocess.Popen(record_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        record_started_ns = time.monotonic_ns()
+        time.sleep(lead_s)
+        player = subprocess.Popen(play_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        playback_started_ns = time.monotonic_ns()
+        try:
+            player_stdout, player_stderr = player.communicate(timeout=max(10.0, info.duration + 10.0))
+        except subprocess.TimeoutExpired:
+            player.kill()
+            player_stdout, player_stderr = player.communicate()
+            raise RuntimeError("pw-play timed out")
+        playback_ended_ns = time.monotonic_ns()
+        remaining = max(0.0, record_duration - lead_s - (playback_ended_ns - playback_started_ns) / 1e9)
+        if remaining:
+            time.sleep(remaining)
+    finally:
+        if recorder is not None:
+            recorder.terminate()
+            try:
+                rec_stdout, rec_stderr = recorder.communicate(timeout=5.0)
+            except subprocess.TimeoutExpired:
+                recorder.kill()
+                rec_stdout, rec_stderr = recorder.communicate()
+            record_ended_ns = time.monotonic_ns()
+    if player is None or player.returncode != 0:
+        raise RuntimeError(f"pw-play failed: {player_stderr.strip() or 'unknown error'}")
     if not output.exists() or output.stat().st_size <= 44:
+        return_code = recorder.returncode if recorder is not None else None
         raise RuntimeError(
-            f"pw-record produced an empty file (returncode={recorder.returncode}): {rec_stderr.strip() or 'unknown error'}"
+            f"pw-record produced an empty file (returncode={return_code}): {rec_stderr.strip() or 'unknown error'}"
         )
     return {
         "path": str(output),
@@ -411,9 +719,17 @@ def play_and_record(
         "duration_s": record_duration,
         "playback_target": playback_target,
         "capture_target": capture_target,
-        "record_returncode": recorder.returncode,
+        "record_returncode": recorder.returncode if recorder is not None else None,
         "record_stdout": rec_stdout.strip(),
         "record_stderr": rec_stderr.strip(),
+        "playback_stdout": player_stdout.strip(),
+        "playback_stderr": player_stderr.strip(),
+        "timing_ns": {
+            "record_start": record_started_ns,
+            "pw_play_start": playback_started_ns,
+            "playback_end": playback_ended_ns,
+            "record_end": record_ended_ns,
+        },
         "recording_stats": audio_file_stats(output),
     }
 

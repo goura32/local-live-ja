@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import soundfile as sf
 
 from .telemetry import EventLog, ResourceMonitor
@@ -144,6 +145,67 @@ class WhisperASR:
             audio_seconds=audio_seconds,
             elapsed_seconds=elapsed,
             rtf=rtf,
+            gpu_memory_peak_mib=monitor.gpu_memory_peak_mib,
+            gpu_memory_delta_peak_mib=monitor.gpu_memory_delta_peak_mib,
+            cpu_load_percent=monitor.cpu_load_percent,
+            segments=[
+                {
+                    "start": float(getattr(segment, "start", 0.0)),
+                    "end": float(getattr(segment, "end", 0.0)),
+                    "text": str(getattr(segment, "text", "")),
+                }
+                for segment in materialized
+            ],
+        )
+
+    def transcribe_samples(
+        self,
+        samples: Any,
+        *,
+        sample_rate: int = 16000,
+        model: Any = None,
+        event_log: EventLog | None = None,
+    ) -> ASRResult:
+        """Transcribe already-decoded mono samples with a resident model.
+
+        The profile benchmark uses 16 kHz float32 samples so file decoding and
+        resampling can be timed outside the faster-whisper/CTranslate2 call.
+        Passing ``model`` explicitly prevents a hidden cold load.
+        """
+        if sample_rate <= 0:
+            raise ValueError("sample_rate must be positive")
+        array = np.asarray(samples, dtype=np.float32)
+        if array.ndim > 1:
+            array = array.mean(axis=1)
+        if event_log:
+            event_log.mark("asr_samples_start", model=self.model_name, device=self.device, compute_type=self.compute_type)
+        started = time.monotonic_ns()
+        with ResourceMonitor() as monitor:
+            resolved_model = model if model is not None else self.load()
+            segments, info = resolved_model.transcribe(
+                array,
+                language=self.language,
+                beam_size=self.beam_size,
+                vad_filter=True,
+                condition_on_previous_text=False,
+            )
+            materialized = list(segments)
+        elapsed = (time.monotonic_ns() - started) / 1e9
+        text = "".join(str(segment.text) for segment in materialized).strip()
+        if event_log:
+            event_log.mark("asr_samples_final", text_chars=len(text), detected_language=getattr(info, "language", None))
+        audio_seconds = len(array) / sample_rate if len(array) else None
+        return ASRResult(
+            text=text,
+            model=self.model_name,
+            device=self.device,
+            compute_type=self.compute_type,
+            language_requested=self.language,
+            detected_language=getattr(info, "language", None),
+            language_probability=_float_or_none(getattr(info, "language_probability", None)),
+            audio_seconds=audio_seconds,
+            elapsed_seconds=elapsed,
+            rtf=elapsed / audio_seconds if audio_seconds and audio_seconds > 0 else None,
             gpu_memory_peak_mib=monitor.gpu_memory_peak_mib,
             gpu_memory_delta_peak_mib=monitor.gpu_memory_delta_peak_mib,
             cpu_load_percent=monitor.cpu_load_percent,

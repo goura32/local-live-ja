@@ -18,6 +18,8 @@ uv run local-live bench tts
 uv run local-live bench llm
 uv run local-live bench e2e
 uv run local-live bench aec
+uv run local-live bench live-latency
+uv run local-live bench aec-matrix
 uv run local-live run --input-wav results/artifacts/user.wav
 ```
 

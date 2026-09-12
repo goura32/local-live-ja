@@ -86,6 +86,8 @@ def build_summary() -> dict[str, Any]:
     llm = load("bench_llm.json")
     e2e = load("bench_e2e.json")
     aec = load("bench_aec.json")
+    live_latency = load("bench_live_latency.json")
+    aec_matrix = load("bench_aec_matrix.json")
     run = load("run_latest.json")
     pytest_final = load("pytest_final.json")
 
@@ -94,6 +96,8 @@ def build_summary() -> dict[str, Any]:
     llm_data = llm.get("data", {})
     e2e_data = e2e.get("data", {})
     aec_data = aec.get("data", {})
+    live_latency_data = live_latency.get("data", {})
+    aec_matrix_data = aec_matrix.get("data", {})
 
     return {
         "schema": "local-live-ja/summary/v2",
@@ -106,6 +110,8 @@ def build_summary() -> dict[str, Any]:
             "llm": "results/bench_llm.json",
             "e2e": "results/bench_e2e.json",
             "aec": "results/bench_aec.json",
+            "live_latency": "results/bench_live_latency.json",
+            "aec_matrix": "results/bench_aec_matrix.json",
             "run": "results/run_latest.json",
         },
         "doctor": {
@@ -119,6 +125,7 @@ def build_summary() -> dict[str, Any]:
             "same_wav_for_all_modes": asr_data.get("same_wav_for_all_modes"),
             "reference_text": asr_data.get("reference_text"),
             "modes": {name: pick(row, "status", "device", "compute_type", "text", "cer", "rtf", "elapsed_seconds", "gpu_memory_peak_mib", "gpu_memory_delta_peak_mib", "cpu_load_percent", "error_type", "error") for name, row in asr_data.get("modes", {}).items()},
+            "cpu_resident_profile": asr_data.get("cpu_resident_profile"),
         },
         "tts": {
             "model": tts_data.get("model"),
@@ -185,6 +192,34 @@ def build_summary() -> dict[str, Any]:
             },
         },
         "aec": aec_data,
+        "live_latency": {
+            "status": live_latency_data.get("status"),
+            "metric_name": live_latency_data.get("metric_name"),
+            "metric_definition": live_latency_data.get("metric_definition"),
+            "event_definition": live_latency_data.get("event_definition"),
+            "targets": live_latency_data.get("targets"),
+            "volume_snapshot": live_latency_data.get("volume_snapshot"),
+            "warmup": live_latency_data.get("warmup"),
+            "summary": live_latency_data.get("summary"),
+            "runs": live_latency_data.get("runs"),
+            "chunking_comparison": live_latency_data.get("chunking_comparison"),
+            "error_type": live_latency_data.get("error_type"),
+            "error": live_latency_data.get("error"),
+        },
+        "aec_matrix": {
+            "status": aec_matrix_data.get("status"),
+            "matrix": aec_matrix_data.get("matrix"),
+            "sequence": aec_matrix_data.get("sequence"),
+            "clipping_definition": aec_matrix_data.get("clipping_definition"),
+            "volume_snapshot": aec_matrix_data.get("volume_snapshot"),
+            "matrix_summary": aec_matrix_data.get("matrix_summary"),
+            "best_echo_only_operating_envelope": aec_matrix_data.get("best_echo_only_operating_envelope"),
+            "best_candidates": aec_matrix_data.get("best_candidates"),
+            "best_condition_remeasurements": aec_matrix_data.get("best_condition_remeasurements"),
+            "baseline_attenuation_db": aec_matrix_data.get("baseline_attenuation_db"),
+            "error_type": aec_matrix_data.get("error_type"),
+            "error": aec_matrix_data.get("error"),
+        },
         "run": {
             "status": run.get("status"),
             "assistant_text": run.get("assistant_text"),
@@ -193,7 +228,7 @@ def build_summary() -> dict[str, Any]:
             "timing": run.get("timing"),
         },
         "pytest": pytest_final,
-        "component_judgement": component_judgement(asr_data, tts_data, llm_data, e2e_data, aec_data, pytest_final),
+        "component_judgement": component_judgement(asr_data, tts_data, llm_data, e2e_data, aec_data, pytest_final, live_latency_data, aec_matrix_data),
     }
 
 
@@ -204,12 +239,16 @@ def component_judgement(
     e2e_data: dict[str, Any],
     aec_data: dict[str, Any],
     pytest_data: dict[str, Any],
+    live_latency_data: dict[str, Any] | None = None,
+    aec_matrix_data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return component states without collapsing blocked work into PASS/FAIL."""
     asr_rows = list(asr_data.get("modes", {}).values())
     tts_rows = list(tts_data.get("runs", {}).values())
     providers = llm_data.get("providers", {})
     e2e_rows = list(e2e_data.get("configurations", {}).values())
+    live_latency_data = live_latency_data or {}
+    aec_matrix_data = aec_matrix_data or {}
     states = {
         "asr": "measured" if asr_rows and all(row.get("status") == "measured" for row in asr_rows) else "partial",
         "tts": "measured" if any(row.get("status") == "measured" for row in tts_rows) else "partial",
@@ -219,9 +258,30 @@ def component_judgement(
         "tool_calling_openrouter": providers.get("openrouter", {}).get("tool_calling", {}).get("status", "partial"),
         "e2e": "measured" if e2e_rows and all(row.get("status") == "measured" for row in e2e_rows) else "partial",
         "aec": aec_data.get("status", "partial"),
+        "live_latency": live_latency_data.get("status", "missing"),
+        "aec_matrix": aec_matrix_data.get("status", "missing"),
+        "cpu_asr_profile": ("measured" if asr_data.get("cpu_resident_profile", {}).get("status") == "measured" else "partial"),
         "test_reproducibility": "pass" if pytest_data.get("exit_code") == 0 else "unverified",
     }
-    states["overall"] = "measured_with_blockers" if "blocked" in states.values() or "partial" in states.values() else "measured"
+    live_summary = live_latency_data.get("summary") or {}
+    live_median = (live_summary.get("speech_end_to_first_physical_audio_s") or {}).get("median")
+    if states["live_latency"] == "measured" and isinstance(live_median, (int, float)) and live_median >= 2.0:
+        states["live_latency"] = "measured_target_missed"
+    repeat_summaries = aec_matrix_data.get("best_condition_remeasurements") or {}
+    if states["aec_matrix"] == "measured" and any(
+        ((item.get("summary") or {}).get("vad_false_trigger_rate") or 0) > 0
+        for item in repeat_summaries.values()
+    ):
+        states["aec_matrix"] = "measured_with_false_triggers"
+    limitations = [
+        name
+        for name, state in states.items()
+        if name != "overall" and state not in {"measured", "pass", "success"}
+    ]
+    states["limitations"] = limitations
+    states["overall"] = "measured_with_blockers" if "blocked" in states.values() or "partial" in states.values() else (
+        "measured_with_limitations" if limitations else "measured"
+    )
     return states
 
 
