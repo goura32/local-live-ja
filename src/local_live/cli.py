@@ -19,6 +19,7 @@ from .bench import (
     run_e2e_bench,
     run_live_latency_bench,
     run_llm_bench,
+    run_playback_path_bench,
     run_tts_bench,
 )
 from .config import load_config, nested
@@ -52,6 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     aec = bench_sub.add_parser("aec")
     aec.add_argument("--force-audio", action="store_true")
     bench_sub.add_parser("live-latency")
+    bench_sub.add_parser("playback-path")
     aec_matrix = bench_sub.add_parser("aec-matrix")
     aec_matrix.add_argument("--force-audio", action="store_true")
 
@@ -96,6 +98,8 @@ def _run_bench(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, An
         return run_aec_bench(config, force_audio=args.force_audio)
     if args.bench_name == "live-latency":
         return run_live_latency_bench(config)
+    if args.bench_name == "playback-path":
+        return run_playback_path_bench(config)
     if args.bench_name == "aec-matrix":
         return run_aec_matrix_bench(config, force_audio=args.force_audio)
     raise ValueError(args.bench_name)
@@ -166,6 +170,7 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
             language="Japanese",
             device="auto",
             max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
+            generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
         )
         playback_target = stable_target(speaker) if speaker else None
         pipeline = LivePipeline(

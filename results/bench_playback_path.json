@@ -1,0 +1,441 @@
+{
+  "schema": "local-live-ja/bench-playback_path/v2",
+  "benchmark": "playback_path",
+  "started_at": "2026-09-12T07:37:32Z",
+  "finished_at": "2026-09-12T07:37:42Z",
+  "environment": {
+    "captured_at": "2026-09-12T07:37:42.990959+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "status": "measured",
+    "metric_name": "pure_playback_path_latency",
+    "metric_definition": "pw-play invocation to the same known signal's raw USB microphone onset, subtracting its known in-WAV start; excludes TTS inference and generated-WAV leading silence",
+    "probe_definition": "16 kHz mono 440 Hz, amplitude 0.08, 0.8 s duration, 0.1 s leading silence with 30 ms fades",
+    "repeat_target": 5,
+    "reference_path": "results/artifacts/playback_path_probe.wav",
+    "expected_signal_start_s": 0.1,
+    "targets": {
+      "speaker": {
+        "node_id": 131,
+        "name": "USB Audio アナログステレオ",
+        "kind": "sink",
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      },
+      "microphone": {
+        "node_id": 132,
+        "name": "USB Audio アナログステレオ",
+        "kind": "source",
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      }
+    },
+    "volume_snapshot": {
+      "speaker": {
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+        "volume_percent": 40.0,
+        "muted": false
+      },
+      "microphone": {
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+        "volume_percent": 100.0,
+        "muted": false
+      },
+      "default_sink": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo",
+      "default_source": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+    },
+    "volume_restore_error": null,
+    "runs": [
+      {
+        "run_number": 1,
+        "status": "measured",
+        "playback": {
+          "path": "results/artifacts/playback_path_20260912T073732Z_263613722622863_run1.wav",
+          "reference": "results/artifacts/playback_path_probe.wav",
+          "duration_s": 1.7000000000000002,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 263613723308003,
+            "pw_play_start": 263614125092399,
+            "playback_end": 263616175115023,
+            "record_end": 263616178088323
+          },
+          "recording_stats": {
+            "path": "results/artifacts/playback_path_20260912T073732Z_263613722622863_run1.wav",
+            "sample_rate": 16000,
+            "frames": 33422,
+            "duration_s": 2.088875,
+            "rms": 0.014211993664503098,
+            "peak": 1.0,
+            "clipping_ratio": 2.992041170486506e-05
+          }
+        },
+        "acoustic_onset": {
+          "detected": true,
+          "onset_s": 1.34,
+          "onset_frame": 134,
+          "noise_floor_rms": 0.0010876370361074805,
+          "threshold_rms": 0.004350548144429922,
+          "sample_rate": 16000,
+          "frame_ms": 10,
+          "search_start_s": 0.351784396,
+          "noise_window_s": 0.351784396,
+          "min_consecutive_frames": 2,
+          "reference_alignment": {
+            "correlation": 0.9887697696685791,
+            "lag_samples": -19904,
+            "lag_seconds": -1.244
+          }
+        },
+        "expected_signal_start_ns": 263614225092399,
+        "physical_audio_detected_ns": 263615063308003,
+        "pw_play_to_expected_signal_s": 0.1,
+        "expected_signal_to_measured_microphone_s": 0.838215604,
+        "pw_play_to_measured_onset_s": 0.938215604
+      },
+      {
+        "run_number": 2,
+        "status": "measured",
+        "playback": {
+          "path": "results/artifacts/playback_path_20260912T073735Z_263616241008595_run2.wav",
+          "reference": "results/artifacts/playback_path_probe.wav",
+          "duration_s": 1.7000000000000002,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 263616241574786,
+            "pw_play_start": 263616642993813,
+            "playback_end": 263617706846933,
+            "record_end": 263617947430722
+          },
+          "recording_stats": {
+            "path": "results/artifacts/playback_path_20260912T073735Z_263616241008595_run2.wav",
+            "sample_rate": 16000,
+            "frames": 26936,
+            "duration_s": 1.6835,
+            "rms": 0.0259818397462368,
+            "peak": 0.07989501953125,
+            "clipping_ratio": 0.0
+          }
+        },
+        "acoustic_onset": {
+          "detected": true,
+          "onset_s": 0.72,
+          "onset_frame": 72,
+          "noise_floor_rms": 0.001338840345852077,
+          "threshold_rms": 0.005355361383408308,
+          "sample_rate": 16000,
+          "frame_ms": 10,
+          "search_start_s": 0.351419027,
+          "noise_window_s": 0.351419027,
+          "min_consecutive_frames": 2,
+          "reference_alignment": {
+            "correlation": 0.9678590297698975,
+            "lag_samples": -10004,
+            "lag_seconds": -0.62525
+          }
+        },
+        "expected_signal_start_ns": 263616742993813,
+        "physical_audio_detected_ns": 263616961574786,
+        "pw_play_to_expected_signal_s": 0.1,
+        "expected_signal_to_measured_microphone_s": 0.218580973,
+        "pw_play_to_measured_onset_s": 0.318580973
+      },
+      {
+        "run_number": 3,
+        "status": "measured",
+        "playback": {
+          "path": "results/artifacts/playback_path_20260912T073737Z_263617999100404_run3.wav",
+          "reference": "results/artifacts/playback_path_probe.wav",
+          "duration_s": 1.7000000000000002,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 263617999687292,
+            "pw_play_start": 263618401204896,
+            "playback_end": 263619456448521,
+            "record_end": 263619705364911
+          },
+          "recording_stats": {
+            "path": "results/artifacts/playback_path_20260912T073737Z_263617999100404_run3.wav",
+            "sample_rate": 16000,
+            "frames": 27278,
+            "duration_s": 1.704875,
+            "rms": 0.039979804307222366,
+            "peak": 0.11004638671875,
+            "clipping_ratio": 0.0
+          }
+        },
+        "acoustic_onset": {
+          "detected": true,
+          "onset_s": 0.72,
+          "onset_frame": 72,
+          "noise_floor_rms": 0.002093556569889188,
+          "threshold_rms": 0.008374226279556751,
+          "sample_rate": 16000,
+          "frame_ms": 10,
+          "search_start_s": 0.351517604,
+          "noise_window_s": 0.351517604,
+          "min_consecutive_frames": 2,
+          "reference_alignment": {
+            "correlation": 0.9909708499908447,
+            "lag_samples": -9860,
+            "lag_seconds": -0.61625
+          }
+        },
+        "expected_signal_start_ns": 263618501204896,
+        "physical_audio_detected_ns": 263618719687292,
+        "pw_play_to_expected_signal_s": 0.1,
+        "expected_signal_to_measured_microphone_s": 0.218482396,
+        "pw_play_to_measured_onset_s": 0.318482396
+      },
+      {
+        "run_number": 4,
+        "status": "measured",
+        "playback": {
+          "path": "results/artifacts/playback_path_20260912T073738Z_263619762417158_run4.wav",
+          "reference": "results/artifacts/playback_path_probe.wav",
+          "duration_s": 1.7000000000000002,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 263619762972942,
+            "pw_play_start": 263620164550866,
+            "playback_end": 263621248108203,
+            "record_end": 263621468886877
+          },
+          "recording_stats": {
+            "path": "results/artifacts/playback_path_20260912T073738Z_263619762417158_run4.wav",
+            "sample_rate": 16000,
+            "frames": 27278,
+            "duration_s": 1.704875,
+            "rms": 0.05150691792368889,
+            "peak": 0.12646484375,
+            "clipping_ratio": 0.0
+          }
+        },
+        "acoustic_onset": {
+          "detected": true,
+          "onset_s": 0.74,
+          "onset_frame": 74,
+          "noise_floor_rms": 0.0024899449199438095,
+          "threshold_rms": 0.009959779679775238,
+          "sample_rate": 16000,
+          "frame_ms": 10,
+          "search_start_s": 0.351577924,
+          "noise_window_s": 0.351577924,
+          "min_consecutive_frames": 2,
+          "reference_alignment": {
+            "correlation": 0.9956567883491516,
+            "lag_samples": -10292,
+            "lag_seconds": -0.64325
+          }
+        },
+        "expected_signal_start_ns": 263620264550866,
+        "physical_audio_detected_ns": 263620502972942,
+        "pw_play_to_expected_signal_s": 0.1,
+        "expected_signal_to_measured_microphone_s": 0.238422076,
+        "pw_play_to_measured_onset_s": 0.338422076
+      },
+      {
+        "run_number": 5,
+        "status": "measured",
+        "playback": {
+          "path": "results/artifacts/playback_path_20260912T073740Z_263621522842175_run5.wav",
+          "reference": "results/artifacts/playback_path_probe.wav",
+          "duration_s": 1.7000000000000002,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 263621523350520,
+            "pw_play_start": 263621924959960,
+            "playback_end": 263622997929264,
+            "record_end": 263623230544894
+          },
+          "recording_stats": {
+            "path": "results/artifacts/playback_path_20260912T073740Z_263621522842175_run5.wav",
+            "sample_rate": 16000,
+            "frames": 26936,
+            "duration_s": 1.6835,
+            "rms": 0.05092160031199455,
+            "peak": 0.12921142578125,
+            "clipping_ratio": 0.0
+          }
+        },
+        "acoustic_onset": {
+          "detected": true,
+          "onset_s": 0.72,
+          "onset_frame": 72,
+          "noise_floor_rms": 0.002162555931136012,
+          "threshold_rms": 0.008650223724544048,
+          "sample_rate": 16000,
+          "frame_ms": 10,
+          "search_start_s": 0.35160944,
+          "noise_window_s": 0.35160944,
+          "min_consecutive_frames": 2,
+          "reference_alignment": {
+            "correlation": 0.9959880709648132,
+            "lag_samples": -9804,
+            "lag_seconds": -0.61275
+          }
+        },
+        "expected_signal_start_ns": 263622024959960,
+        "physical_audio_detected_ns": 263622243350520,
+        "pw_play_to_expected_signal_s": 0.1,
+        "expected_signal_to_measured_microphone_s": 0.21839056,
+        "pw_play_to_measured_onset_s": 0.31839056
+      }
+    ],
+    "summary": {
+      "measured_run_count": 5,
+      "repeat_target": 5,
+      "expected_signal_to_measured_microphone_s": {
+        "values": [
+          0.838215604,
+          0.218580973,
+          0.218482396,
+          0.238422076,
+          0.21839056
+        ],
+        "count": 5,
+        "median": 0.218580973,
+        "p95_equivalent": 0.7182568983999998,
+        "min": 0.21839056,
+        "max": 0.838215604,
+        "mean": 0.3464183218,
+        "stddev": 0.27505856309894894
+      },
+      "pw_play_to_measured_onset_s": {
+        "values": [
+          0.938215604,
+          0.318580973,
+          0.318482396,
+          0.338422076,
+          0.31839056
+        ],
+        "count": 5,
+        "median": 0.318580973,
+        "p95_equivalent": 0.8182568983999998,
+        "min": 0.31839056,
+        "max": 0.938215604,
+        "mean": 0.4464183218,
+        "stddev": 0.275058563098949
+      },
+      "outlier_policy": "retain every attempt; no latency value is deleted"
+    },
+    "inventory": {
+      "sinks": [
+        {
+          "node_id": 54,
+          "name": "GoStream アナログステレオ",
+          "kind": "sink",
+          "target": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+        },
+        {
+          "node_id": 120,
+          "name": "Built-in Audio デジタルステレオ (IEC958)",
+          "kind": "sink",
+          "target": "alsa_output.pci-0000_00_1f.3.iec958-stereo"
+        },
+        {
+          "node_id": 131,
+          "name": "USB Audio アナログステレオ",
+          "kind": "sink",
+          "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        }
+      ],
+      "sources": [
+        {
+          "node_id": 55,
+          "name": "GoStream アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+        },
+        {
+          "node_id": 121,
+          "name": "Built-in Audio アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.pci-0000_00_1f.3.analog-stereo.9"
+        },
+        {
+          "node_id": 132,
+          "name": "USB Audio アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        }
+      ],
+      "devices": [
+        "Built-in Audio",
+        "GoStream",
+        "HDA NVidia",
+        "USB Audio",
+        "card 1: GoStream [GoStream], device 0: USB Audio [USB Audio]",
+        "card 3: Audio [USB Audio], device 0: USB Audio [USB Audio]"
+      ],
+      "usb_microphone": {
+        "node_id": 132,
+        "name": "USB Audio アナログステレオ",
+        "kind": "source",
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      },
+      "usb_speaker": {
+        "node_id": 131,
+        "name": "USB Audio アナログステレオ",
+        "kind": "sink",
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      }
+    }
+  }
+}

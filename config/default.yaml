@@ -33,16 +33,31 @@ tts:
   device: auto
   cpu_reference: true
   max_new_tokens: 2048
+  generation_kwargs:
+    do_sample: true
+    top_k: 50
+    top_p: 1.0
+    temperature: 0.9
+    repetition_penalty: 1.05
+    subtalker_dosample: true
+    subtalker_top_k: 50
+    subtalker_top_p: 1.0
+    subtalker_temperature: 0.9
+    max_new_tokens: 2048
   sentence_max_chars: 48
   sentence_timeout_s: 0.8
+  safe_trim_enabled: true
+  safe_trim_pre_roll_s: 0.05
 
 bench:
   e2e_repeats: 3
   e2e_max_attempts: 9
   tts_warm_repeats: 5
+  tts_generation_policy_repeats: 3
   cpu_asr_warm_repeats: 5
-  live_latency_repeats: 5
-  live_latency_max_attempts: 8
+  live_latency_repeats: 10
+  live_latency_max_attempts: 14
+  playback_path_repeats: 5
   aec_matrix_repeats: 3
   aec_matrix_clipping_ratio_threshold: 0.001
   aec_matrix_peak_threshold: 0.98

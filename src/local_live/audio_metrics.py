@@ -57,6 +57,124 @@ def clipping_ratio(value: np.ndarray, *, threshold: float = 0.98) -> float:
     return float(np.count_nonzero(np.abs(array) >= threshold) / len(array))
 
 
+def measure_generated_audio_leading_silence(
+    value: np.ndarray,
+    sample_rate: int,
+    *,
+    frame_ms: int = 10,
+    min_consecutive_frames: int = 3,
+    noise_window_s: float = 0.1,
+    absolute_floor: float = 0.004,
+    peak_relative_threshold: float = 0.02,
+    noise_multiplier: float = 4.0,
+) -> dict[str, Any]:
+    """Measure low-energy audio before a stable generated-speech onset.
+
+    A frame is active when its RMS is above the largest of an absolute floor,
+    a peak-relative floor, and a noise-floor estimate.  The stable onset is
+    the beginning of the first run of ``min_consecutive_frames`` active
+    frames.  This intentionally leaves onset detection separate from
+    trimming: callers can retain a pre-roll before the measured onset.
+    """
+    if sample_rate <= 0 or frame_ms <= 0 or min_consecutive_frames < 1:
+        raise ValueError("invalid generated-audio onset parameters")
+    if noise_window_s <= 0 or absolute_floor < 0 or peak_relative_threshold < 0:
+        raise ValueError("invalid generated-audio threshold parameters")
+    array = _mono(value)
+    frame_length = max(1, int(round(sample_rate * frame_ms / 1000)))
+    frame_count = int(np.ceil(len(array) / frame_length)) if len(array) else 0
+    if frame_count:
+        padded = np.pad(array, (0, frame_count * frame_length - len(array)))
+        frames = padded.reshape(frame_count, frame_length)
+        frame_rms = np.sqrt(np.mean(np.square(frames), axis=1))
+    else:
+        frame_rms = np.empty(0, dtype=np.float32)
+    peak = float(np.max(np.abs(array))) if len(array) else 0.0
+    rms = signal_rms(array)
+    noise_count = min(
+        frame_count,
+        max(1, int(round(noise_window_s * sample_rate / frame_length))),
+    )
+    noise_values = frame_rms[:noise_count]
+    noise = float(np.median(noise_values)) if len(noise_values) else 0.0
+    mad = float(np.median(np.abs(noise_values - noise))) if len(noise_values) else 0.0
+    threshold = max(
+        float(absolute_floor),
+        peak * float(peak_relative_threshold),
+        noise * float(noise_multiplier),
+        noise + 6.0 * mad,
+    )
+    if peak > 0.0 and frame_count <= min_consecutive_frames:
+        # A very short clip can have speech in the noise-estimation window.
+        # Do not make an otherwise fully active clip impossible to detect.
+        threshold = min(threshold, float(np.max(frame_rms)))
+    active = frame_rms >= threshold
+    first_low_frame = int(np.flatnonzero(active)[0]) if np.any(active) else None
+    stable_frame: int | None = None
+    required_frames = min(min_consecutive_frames, frame_count) if frame_count else min_consecutive_frames
+    for index in range(max(0, frame_count - required_frames + 1)):
+        if bool(np.all(active[index : index + required_frames])):
+            stable_frame = index
+            break
+    nonzero = np.flatnonzero(np.abs(array) > 0.0)
+    first_nonzero = int(nonzero[0]) if len(nonzero) else None
+    stable_s = stable_frame * frame_length / sample_rate if stable_frame is not None else None
+    return {
+        "detected": stable_frame is not None,
+        "first_nonzero_sample": first_nonzero,
+        "first_nonzero_s": first_nonzero / sample_rate if first_nonzero is not None else None,
+        "first_low_threshold_crossing_frame": first_low_frame,
+        "first_low_threshold_crossing_s": first_low_frame * frame_length / sample_rate if first_low_frame is not None else None,
+        "stable_speech_onset_frame": stable_frame,
+        "stable_speech_onset_s": stable_s,
+        "leading_silence_duration_s": stable_s,
+        "peak": peak,
+        "rms": rms,
+        "audio_duration_s": len(array) / sample_rate,
+        "sample_rate": sample_rate,
+        "frame_ms": frame_ms,
+        "min_consecutive_frames": min_consecutive_frames,
+        "noise_window_s": noise_window_s,
+        "noise_floor_rms": noise,
+        "noise_floor_mad": mad,
+        "absolute_floor": absolute_floor,
+        "peak_relative_threshold": peak_relative_threshold,
+        "noise_multiplier": noise_multiplier,
+        "threshold_rms": threshold,
+    }
+
+
+def trim_leading_silence(
+    value: np.ndarray,
+    sample_rate: int,
+    analysis: dict[str, Any] | None = None,
+    *,
+    pre_roll_s: float = 0.1,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Remove only measured leading low-energy audio while retaining pre-roll."""
+    if sample_rate <= 0 or pre_roll_s < 0:
+        raise ValueError("sample_rate must be positive and pre_roll_s non-negative")
+    original = np.asarray(value)
+    measured = analysis or measure_generated_audio_leading_silence(original, sample_rate)
+    onset = measured.get("stable_speech_onset_s") if measured.get("detected") else None
+    if onset is None:
+        start_sample = 0
+    else:
+        start_sample = max(0, int(np.floor((float(onset) - pre_roll_s) * sample_rate)))
+        start_sample = min(start_sample, len(original))
+    trimmed = original[start_sample:]
+    return trimmed, {
+        "trimmed": start_sample > 0,
+        "pre_roll_s": pre_roll_s,
+        "start_sample": start_sample,
+        "start_s": start_sample / sample_rate,
+        "removed_duration_s": start_sample / sample_rate,
+        "output_duration_s": len(trimmed) / sample_rate,
+        "input_duration_s": len(original) / sample_rate,
+        "detected_onset_s": onset,
+    }
+
+
 def noise_floor_rms(
     value: np.ndarray,
     sample_rate: int,

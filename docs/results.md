@@ -296,6 +296,92 @@ faster-whisper/CTranslate2 inferenceである。E2Eとの差は約0.25秒で、�
 整合する。thread tuning sweepは行っていない。CPU ASRは品質確認用fallbackとしては採用可能だが、
 現在のLive latencyの主経路には遅すぎる。
 
+## Phase 3A: Qwen3-TTS low-latency optimization
+
+Phase 3Aでは、新しいTTS engine、serving方式、独自streaming engineを導入せず、公式Qwen3-TTS Python APIの同一resident modelだけを比較した。GPU ASRは`large-v3-turbo / int8_float16`、LLMはlocal Ollama、AEC algorithmとphase-2のvolume envelopeは変更していない。
+
+### 生成WAV onsetとsafe trim
+
+生成WAVは10 ms frame RMSで測定した。thresholdは`max(absolute floor 0.004, peakの2%, noise floorの4倍, noise floor + 6 MAD)`、stable onsetは3連続active frameとした。`first_nonzero_sample`だけでtrimせず、stable onsetからpre-rollを残した。
+
+代表5文（肯定、説明、数字、技術用語、2文）のtrim前leading silenceはmedian 0.5100秒、範囲0.2400–1.2600秒だった。50/100/150/200/250 ms pre-rollを同一生成WAVから作り、元WAVとtrim WAVを同じGPU Whisperへ戻した。
+
+| pre-roll | 全5文 quality OK | trim-induced CER悪化 | trim-induced語頭回帰 | removed duration median |
+|---:|---:|---:|---:|---:|
+| 0 ms | 5/5 | 0 | 0 | 0.0000 s |
+| 50 ms | 5/5 | 0 | 0 | 0.4600 s |
+| 100 ms | 5/5 | 0 | 0 | 0.4100 s |
+| 150 ms | 5/5 | 0 | 0 | 0.3600 s |
+| 200 ms | 5/5 | 0 | 0 | 0.3100 s |
+| 250 ms | 5/5 | 0 | 0 | 0.2600 s |
+
+latency削減を優先しつつ品質劣化のない最小値として、`trim + 50 ms pre-roll`を採用した。technical terms文の絶対CERはbaselineから高かったが、trim前後の差分は0であり、trimによる悪化ではない。
+
+### Qwen3-TTS warm matrix
+
+GPU cold chars_8はmodel load `6.2181 s`、total `9.0130 s`、inference start → first-audio-equivalent `2.7848 s`。warmは同一resident model、各5回、公式sampling policyで測定した。
+
+| length | chars | total median | inference median | RTF median |
+|---|---:|---:|---:|---:|
+| chars_5 | 5 | 1.4941 s | 1.4688 s | 0.6129 |
+| chars_8 | 8 | 1.5819 s | 1.5567 s | 0.6081 |
+| chars_12 | 12 | 1.9154 s | 1.8889 s | 0.6077 |
+| chars_20 | 20 | 3.0012 s | 2.9833 s | 0.6055 |
+| chars_30 | 29 | 3.4135 s | 3.3844 s | 0.6044 |
+| chars_50 | 61 | 6.6719 s | 6.6431 s | 0.6015 |
+
+### official generation policy comparison
+
+同じresident official modelで`こんにちは。`を各3回測定した。sampled baselineを変更せず、短いtoken capとdeterministicを採否比較した。
+
+| policy | inference median | total median | audio duration median | onset |
+|---|---:|---:|---:|---:|
+| sampled_2048（採用） | 1.4555 s | 1.4802 s | 2.32 s | 3/3 |
+| sampled_1024 | 1.5645 s | 1.5928 s | 2.56 s | 3/3 |
+| deterministic_1024（不採用） | 47.1753 s | 47.2204 s | 81.84 s | 0/3 |
+
+`do_sample=False`は品質以前に極端な長時間/長音声となった。`sampled_1024`もbaselineより速くならなかったため、generation policyは公式sampling defaults相当の`sampled_2048`を維持する。
+
+### P0: 分解後のphysical latency
+
+指標は`synthetic_user_end → first physical assistant audio`であり、人間の実発話latencyではない。各runで、TTS inference start、waveform ready、WAV ready、generated WAV speech onset、trim ready、`pw-play` start、raw USB microphone onsetを保存した。raw side-channelはAEC sourceではなく、stable Pulse/PipeWire `node.name` targetを使用した。
+
+最新10回は全てmeasuredで、trim/pre-rollは50 ms、first chunk policyは句読点/自然なphrase境界優先（語中強制splitなし、48 chars/0.8 s）だった。
+
+- individual: 2.5800 / 2.6300 / 3.3100 / 3.3200 / 3.2700 / 2.8800 / 1.7200 / 3.3700 / 2.2500 / 2.2400 s
+- median: 2.7550 s
+- p95相当: 3.3475 s
+- mean / standard deviation: 2.7570 / 0.5700 s
+- min / max: 1.7200 / 3.3700 s
+- trim前generated WAV leading silence（この10回）: median 0.6000 s
+- trim後speaker speech pre-roll: median 0.0500 s
+- WAV ready → pw-play: median 0.0027 s
+- expected speaker onset → measured raw microphone: median 0.2397 s
+- volume/mute/default sink/source restore: errorなし
+
+### pure playback path
+
+TTS生成と分離するため、先頭の期待信号位置が既知の低振幅probe WAVを同一条件で5回再生した。`expected signal → raw microphone onset`は`0.8382 / 0.2186 / 0.2185 / 0.2384 / 0.2184` s、median `0.2186 s`、p95相当 `0.7183 s`、mean `0.3464 s`、std `0.2751 s`だった。1回のpeak=1.0/clipping ratio約3e-5は削除せずoutlierとして保持した。
+
+### latency budget
+
+| stage | median | share of total |
+|---|---:|---:|
+| ASR | 0.3771 s | 13.69% |
+| LLM TTFT | 0.0754 s | 2.74% |
+| first chunk buffering | 0.0091 s | 0.33% |
+| TTS inference | 1.9803 s | 71.88% |
+| TTS file postprocess | 0.0287 s | 1.04% |
+| TTS leading audio after trim | 0.0500 s | 1.81% |
+| WAV ready → pw-play | 0.0027 s | 0.10% |
+| expected speaker onset → measured microphone | 0.2397 s | 8.70% |
+
+最大支配stageはTTS inferenceである。trimで元leading silenceの中央値約0.60秒を50 ms pre-rollまで削減できたが、公式APIの短文inference中央値が約1.98秒残るため、physical medianは2秒を安定して切らなかった。stage shareの合計とtotalの差は、イベント境界・録音検出・LLM/TTS間の未分類overheadを含む。
+
+### Phase 3A判定
+
+median `<2.0 s` は未達、stretch goal `<1.5 s` も未達である。trimは低コストで約0.5秒規模の改善余地を回収したが、現行official Qwen3-TTS生成方式自体が最大bottleneckとして残る。従って次フェーズでは、P0としてQwen3-TTS serving方式または別TTS engineの比較へ進む。Phase 3Aの生成方式は公式Python pathのまま継続し、新engine移行はこのphaseでは行っていない。
+
 ### 状態と履歴
 
 今回の状態は `results/summary.json` の `component_judgement` に記録した。

@@ -61,6 +61,9 @@ def test_tts_result_exposes_generation_and_playback_boundaries(tmp_path, monkeyp
     assert timing["audio_complete"] <= timing["playback_possible"]
     assert result["audio_complete_seconds"] >= result["first_audio_equivalent_seconds"]
     assert result["playback_possible_seconds"] >= result["audio_complete_seconds"]
+    assert result["generated_audio_analysis"]["detected"] is False
+    assert timing["tts_waveform_ready"] == timing["generation_complete"]
+    assert timing["wav_ready"] == timing["audio_complete"]
 
 
 def test_audio_file_stats_exposes_actual_duration_rms_and_peak(tmp_path):

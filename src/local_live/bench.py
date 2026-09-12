@@ -23,7 +23,14 @@ from .audio import (
     play_and_record,
     stable_target,
 )
-from .audio_metrics import clipping_ratio, detect_acoustic_onset, noise_floor_rms, resample_mono
+from .audio_metrics import (
+    clipping_ratio,
+    detect_acoustic_onset,
+    measure_generated_audio_leading_silence,
+    noise_floor_rms,
+    resample_mono,
+    trim_leading_silence,
+)
 from .config import load_config, nested
 from .llm.events import Cancelled, Completion, LLMError, TextDelta, ToolCall
 from .llm.ollama import OllamaLLM
@@ -83,6 +90,37 @@ LIVE_CHUNKING_CANDIDATES = [
     {"max_chars": 24, "timeout_s": 0.5, "label": "bounded_24_0.5"},
     {"max_chars": 16, "timeout_s": 0.3, "label": "aggressive_16_0.3"},
 ]
+TRIM_PRE_ROLL_CANDIDATES = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25]
+TRIM_EVALUATION_RESPONSES = {
+    "short_affirmation": "はい。",
+    "simple_explanation": "確認しました。準備は完了です。",
+    "numeric_reply": "合計は391です。",
+    "technical_terms": "CUDAとOllamaを確認します。",
+    "two_sentences": "準備が整いました。次に進みます。",
+}
+FIRST_CHUNK_POLICY = {
+    "name": "natural_sentence_boundary",
+    "description": "Prefer punctuation or a natural phrase boundary; never force a Japanese word-internal split.",
+    "max_chars": 48,
+    "timeout_s": 0.8,
+}
+TTS_GENERATION_POLICIES = [
+    {
+        "label": "sampled_2048",
+        "description": "Official sampled defaults with the existing token cap.",
+        "kwargs": {"do_sample": True, "max_new_tokens": 2048},
+    },
+    {
+        "label": "sampled_1024",
+        "description": "Official sampled path with a shorter token cap for short replies.",
+        "kwargs": {"do_sample": True, "max_new_tokens": 1024},
+    },
+    {
+        "label": "deterministic_1024",
+        "description": "Official non-streaming path with sampling disabled and a shorter cap.",
+        "kwargs": {"do_sample": False, "subtalker_dosample": False, "max_new_tokens": 1024},
+    },
+]
 
 
 def benchmark_path(config: dict[str, Any], name: str) -> Path:
@@ -132,6 +170,7 @@ def ensure_synthetic_audio(config: dict[str, Any], *, force: bool = False) -> tu
         language=nested(config, "tts", "language", default="Japanese"),
         device="auto",
         max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
+        generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
     )
     result = engine.synthesize(SYNTHETIC_ASR_TEXT, output_path=path)
     engine.unload()
@@ -477,6 +516,8 @@ def _live_latency_attempt(
     capture_target: str,
     max_chars: int,
     timeout_s: float,
+    trim_enabled: bool,
+    trim_pre_roll_s: float,
 ) -> dict[str, Any]:
     log = EventLog()
     started_ns = time.monotonic_ns()
@@ -518,9 +559,60 @@ def _live_latency_attempt(
             event_log=log,
         )
         tts_timing = tts_row.get("timing_ns", {})
-        _mark_timing_event(log, "tts_audio_ready", tts_timing.get("playback_possible"), path=tts_row.get("path"))
+        waveform, waveform_rate = sf.read(str(tts_row["path"]), always_2d=False)
+        generated_analysis = tts_row.get("generated_audio_analysis") or measure_generated_audio_leading_silence(
+            np.asarray(waveform), int(waveform_rate)
+        )
+        wav_ready_ns = tts_timing.get("wav_ready", tts_timing.get("audio_complete"))
+        trim_started_ns = time.monotonic_ns()
+        if trim_enabled:
+            playback_waveform, trim_metadata = trim_leading_silence(
+                np.asarray(waveform),
+                int(waveform_rate),
+                generated_analysis,
+                pre_roll_s=trim_pre_roll_s,
+            )
+            playback_path = artifact_dir(config) / f"{run_id}_run{run_number}_assistant_first_trimmed.wav"
+            sf.write(str(playback_path), playback_waveform, int(waveform_rate))
+        else:
+            playback_waveform = np.asarray(waveform)
+            playback_path = Path(tts_row["path"])
+            trim_metadata = {
+                "trimmed": False,
+                "pre_roll_s": 0.0,
+                "start_sample": 0,
+                "start_s": 0.0,
+                "removed_duration_s": 0.0,
+                "output_duration_s": len(playback_waveform) / int(waveform_rate),
+                "input_duration_s": len(waveform) / int(waveform_rate),
+                "detected_onset_s": generated_analysis.get("stable_speech_onset_s"),
+            }
+        trim_ready_ns = time.monotonic_ns()
+        waveform_ready_ns = tts_timing.get("tts_waveform_ready", tts_timing.get("generation_complete"))
+        original_onset_s = generated_analysis.get("stable_speech_onset_s")
+        generated_onset_ns = (
+            waveform_ready_ns + int(round(float(original_onset_s) * 1e9))
+            if isinstance(waveform_ready_ns, int) and isinstance(original_onset_s, (int, float))
+            else None
+        )
+        trimmed_analysis = measure_generated_audio_leading_silence(playback_waveform, int(waveform_rate))
+        _mark_timing_event(
+            log,
+            "tts_waveform_ready",
+            tts_timing.get("tts_waveform_ready", tts_timing.get("generation_complete")),
+            path=tts_row.get("path"),
+        )
+        _mark_timing_event(
+            log,
+            "generated_wav_speech_onset",
+            generated_onset_ns,
+            onset_s=original_onset_s,
+        )
+        _mark_timing_event(log, "wav_ready", wav_ready_ns, path=tts_row.get("path"))
+        _mark_timing_event(log, "tts_audio_ready", wav_ready_ns, path=tts_row.get("path"))
+        _mark_timing_event(log, "trim_ready", trim_ready_ns, path=str(playback_path), pre_roll_s=trim_metadata.get("pre_roll_s", 0.0))
         physical = _physical_playback(
-            Path(tts_row["path"]),
+            playback_path,
             recording_path,
             playback_target=playback_target,
             capture_target=capture_target,
@@ -535,21 +627,45 @@ def _live_latency_attempt(
             playback_timing.get("physical_audio_detected"),
             onset_s=physical.get("acoustic_onset", {}).get("onset_s"),
         )
-        _mark_timing_event(log, "playback_end", playback_timing.get("playback_end"), path=tts_row.get("path"))
+        _mark_timing_event(log, "playback_end", playback_timing.get("playback_end"), path=str(playback_path))
         physical_ns = playback_timing.get("physical_audio_detected")
         pw_play_ns = playback_timing.get("pw_play_start")
         playback_end_ns = playback_timing.get("playback_end")
         first_token_ns = turn.get("first_token_ns")
         first_chunk_ns = turn.get("first_chunk_ns")
-        tts_ready_ns = tts_timing.get("playback_possible")
+        tts_ready_ns = wav_ready_ns
+        original_onset_s = generated_analysis.get("stable_speech_onset_s")
+        expected_speaker_onset_s = (
+            max(0.0, float(original_onset_s) - float(trim_metadata.get("start_s", 0.0)))
+            if isinstance(original_onset_s, (int, float))
+            else trimmed_analysis.get("stable_speech_onset_s")
+        )
+        pw_to_physical_s = (physical_ns - pw_play_ns) / 1e9 if physical_ns and pw_play_ns else None
+        expected_to_physical_s = (
+            pw_to_physical_s - expected_speaker_onset_s
+            if isinstance(pw_to_physical_s, (int, float)) and isinstance(expected_speaker_onset_s, (int, float))
+            else None
+        )
         stages = {
             "asr_duration_s": user_asr.elapsed_seconds,
             "llm_ttft_s": turn.get("ttft_s"),
             "llm_until_first_chunk_s": turn.get("until_first_chunk_s"),
             "sentence_buffering_s": turn.get("sentence_buffering_s"),
             "tts_duration_s": tts_row.get("elapsed_seconds"),
+            "tts_inference_s": tts_row.get("inference_elapsed_seconds"),
+            "tts_postprocess_s": (
+                float(tts_row.get("elapsed_seconds")) - float(tts_row.get("inference_elapsed_seconds"))
+                if isinstance(tts_row.get("elapsed_seconds"), (int, float)) and isinstance(tts_row.get("inference_elapsed_seconds"), (int, float))
+                else None
+            ),
+            "generated_wav_leading_silence_s": generated_analysis.get("leading_silence_duration_s"),
+            "trimmed_leading_audio_s": expected_speaker_onset_s,
+            "trim_processing_s": (trim_ready_ns - trim_started_ns) / 1e9,
+            "wav_ready_to_trim_ready_s": (trim_ready_ns - tts_ready_ns) / 1e9 if trim_ready_ns and tts_ready_ns else None,
             "wav_ready_to_pw_play_s": (pw_play_ns - tts_ready_ns) / 1e9 if pw_play_ns and tts_ready_ns else None,
-            "pw_play_to_acoustic_onset_s": (physical_ns - pw_play_ns) / 1e9 if physical_ns and pw_play_ns else None,
+            "pw_play_to_expected_speaker_onset_s": expected_speaker_onset_s,
+            "expected_speaker_onset_to_measured_mic_s": expected_to_physical_s,
+            "pw_play_to_acoustic_onset_s": pw_to_physical_s,
             "playback_duration_s": (playback_end_ns - pw_play_ns) / 1e9 if playback_end_ns and pw_play_ns else None,
             "speech_end_to_first_physical_audio_s": (physical_ns - synthetic_user_end_ns) / 1e9 if physical_ns else None,
         }
@@ -575,6 +691,13 @@ def _live_latency_attempt(
                 "error": turn.get("error_detail"),
             },
             "tts": tts_row,
+            "generated_audio_analysis": generated_analysis,
+            "trim": {
+                "enabled": trim_enabled,
+                "playback_path": str(playback_path),
+                "metadata": trim_metadata,
+                "trimmed_audio_analysis": trimmed_analysis,
+            },
             "playback": physical,
             "stages": stages,
             "speech_end_to_first_physical_audio_s": stages["speech_end_to_first_physical_audio_s"],
@@ -587,6 +710,11 @@ def _live_latency_attempt(
                 "llm_first_token": first_token_ns,
                 "first_sentence_chunk_ready": first_chunk_ns,
                 "tts_start": tts_start_ns,
+                "tts_inference_start": tts_timing.get("tts_inference_start", tts_timing.get("inference_start")),
+                "tts_waveform_ready": tts_timing.get("tts_waveform_ready", tts_timing.get("generation_complete")),
+                "generated_wav_speech_onset": generated_onset_ns,
+                "wav_ready": wav_ready_ns,
+                "trim_ready": trim_ready_ns,
                 "tts_audio_ready": tts_ready_ns,
                 "pw_play_start": pw_play_ns,
                 "physical_audio_detected": physical_ns,
@@ -626,6 +754,8 @@ def _chunking_candidate_measurement(
     tts: Qwen3TTSEngine,
     playback_target: str,
     capture_target: str,
+    trim_enabled: bool = False,
+    trim_pre_roll_s: float = 0.1,
 ) -> dict[str, Any]:
     started_ns = time.monotonic_ns()
     chunker = SentenceChunker(max_chars=int(candidate["max_chars"]), timeout_s=float(candidate["timeout_s"]))
@@ -645,15 +775,59 @@ def _chunking_candidate_measurement(
             output_path=artifact_dir(config) / f"{run_id}_{candidate['label']}_assistant.wav",
             event_log=log,
         )
+        original_path = Path(tts_row["path"])
+        waveform, waveform_rate = sf.read(str(original_path), always_2d=False)
+        generated_analysis = tts_row.get("generated_audio_analysis") or measure_generated_audio_leading_silence(
+            np.asarray(waveform), int(waveform_rate)
+        )
+        if trim_enabled:
+            playback_waveform, trim_metadata = trim_leading_silence(
+                np.asarray(waveform),
+                int(waveform_rate),
+                generated_analysis,
+                pre_roll_s=trim_pre_roll_s,
+            )
+            playback_path = artifact_dir(config) / f"{run_id}_{candidate['label']}_assistant_trimmed.wav"
+            sf.write(str(playback_path), playback_waveform, int(waveform_rate))
+        else:
+            playback_path = original_path
+            playback_waveform = np.asarray(waveform)
+            trim_metadata = {
+                "trimmed": False,
+                "pre_roll_s": 0.0,
+                "start_sample": 0,
+                "start_s": 0.0,
+                "removed_duration_s": 0.0,
+                "output_duration_s": len(waveform) / int(waveform_rate),
+                "input_duration_s": len(waveform) / int(waveform_rate),
+                "detected_onset_s": generated_analysis.get("stable_speech_onset_s"),
+            }
+        trimmed_analysis = measure_generated_audio_leading_silence(playback_waveform if trim_enabled else waveform, int(waveform_rate))
         physical = _physical_playback(
-            Path(tts_row["path"]),
+            playback_path,
             artifact_dir(config) / f"{run_id}_{candidate['label']}_raw.wav",
             playback_target=playback_target,
             capture_target=capture_target,
         )
-        tts_ready_ns = tts_row.get("timing_ns", {}).get("playback_possible")
+        tts_ready_ns = tts_row.get("timing_ns", {}).get("wav_ready", tts_row.get("timing_ns", {}).get("audio_complete"))
         pw_play_ns = physical.get("timing_ns", {}).get("pw_play_start")
         physical_ns = physical.get("timing_ns", {}).get("physical_audio_detected")
+        original_onset_s = generated_analysis.get("stable_speech_onset_s")
+        expected_speaker_onset_s = (
+            max(0.0, float(original_onset_s) - float(trim_metadata.get("start_s", 0.0)))
+            if isinstance(original_onset_s, (int, float))
+            else trimmed_analysis.get("stable_speech_onset_s")
+        )
+        pw_play_to_physical_s = (
+            (physical_ns - pw_play_ns) / 1e9
+            if physical_ns and pw_play_ns
+            else None
+        )
+        expected_to_physical_s = (
+            pw_play_to_physical_s - expected_speaker_onset_s
+            if isinstance(pw_play_to_physical_s, (int, float)) and isinstance(expected_speaker_onset_s, (int, float))
+            else None
+        )
         log.mark_at("tts_audio_ready", tts_ready_ns or time.monotonic_ns(), path=tts_row.get("path"))
         _mark_timing_event(log, "pw_play_start", pw_play_ns, target=playback_target)
         _mark_timing_event(log, "physical_audio_detected", physical_ns, onset_s=physical.get("acoustic_onset", {}).get("onset_s"))
@@ -664,30 +838,77 @@ def _chunking_candidate_measurement(
             "chunks": chunks,
             "chunk_count": len(chunks),
             "first_chunk": first_chunk,
+            "first_chunk_text": first_chunk,
             "first_chunk_chars": len(first_chunk),
             "fragmentation_proxy": {
                 "short_chunk_count_lt_8": sum(len(chunk) < 8 for chunk in chunks),
                 "classification": "possible_overfragmentation" if len(chunks) > 2 else "no_obvious_overfragmentation",
             },
             "tts": tts_row,
+            "generated_audio_analysis": generated_analysis,
+            "trim": {
+                "enabled": trim_enabled,
+                "playback_path": str(playback_path),
+                "metadata": trim_metadata,
+                "trimmed_audio_analysis": trimmed_analysis,
+            },
             "playback": physical,
             "first_chunk_ready_s": (first_chunk_ready_ns - started_ns) / 1e9,
+            "chunk_ready_latency_s": (first_chunk_ready_ns - started_ns) / 1e9,
             "tts_ready_s": (tts_ready_ns - started_ns) / 1e9 if tts_ready_ns else None,
+            "tts_latency_s": tts_row.get("elapsed_seconds"),
             "physical_onset_s": (physical_ns - started_ns) / 1e9 if physical_ns else None,
             "wav_ready_to_pw_play_s": (pw_play_ns - tts_ready_ns) / 1e9 if pw_play_ns and tts_ready_ns else None,
-            "pw_play_to_acoustic_onset_s": (physical_ns - pw_play_ns) / 1e9 if physical_ns and pw_play_ns else None,
+            "generated_wav_leading_silence_s": generated_analysis.get("leading_silence_duration_s"),
+            "trimmed_leading_audio_s": expected_speaker_onset_s,
+            "pw_play_to_expected_speaker_onset_s": expected_speaker_onset_s,
+            "expected_speaker_onset_to_measured_mic_s": expected_to_physical_s,
+            "pw_play_to_acoustic_onset_s": pw_play_to_physical_s,
             "events": log.events,
         }
     except Exception as exc:
         return {**candidate, "status": "error", "error_type": type(exc).__name__, "error": str(exc)}
 
 
+def _first_chunk_response_measurement(
+    config: dict[str, Any],
+    *,
+    run_id: str,
+    response_name: str,
+    response_text: str,
+    tts: Qwen3TTSEngine,
+    playback_target: str,
+    capture_target: str,
+    trim_enabled: bool = False,
+    trim_pre_roll_s: float = 0.1,
+) -> dict[str, Any]:
+    result = _chunking_candidate_measurement(
+        config,
+        run_id=run_id,
+        candidate={**FIRST_CHUNK_POLICY, "label": f"first_policy_{response_name}"},
+        representative_text=response_text,
+        tts=tts,
+        playback_target=playback_target,
+        capture_target=capture_target,
+        trim_enabled=trim_enabled,
+        trim_pre_roll_s=trim_pre_roll_s,
+    )
+    result["response_name"] = response_name
+    result["response_text"] = response_text
+    result["measurement_scope"] = "chunker plus one physical playback; not a full user-ASR/LLM turn"
+    tts_row = result.get("tts") or {}
+    analysis = tts_row.get("generated_audio_analysis")
+    result["generated_wav_leading_silence_s"] = analysis.get("leading_silence_duration_s") if analysis else None
+    result["total_first_physical_audio_latency_s"] = result.get("physical_onset_s")
+    return result
+
+
 def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
     """Measure direct synthetic speech-end to first physical assistant audio."""
     started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     run_id = _measurement_id("live_latency")
-    repeats = max(5, int(nested(config, "bench", "live_latency_repeats", default=5)))
-    max_attempts = max(repeats, int(nested(config, "bench", "live_latency_max_attempts", default=8)))
+    repeats = max(10, int(nested(config, "bench", "live_latency_repeats", default=10)))
+    max_attempts = max(repeats, int(nested(config, "bench", "live_latency_max_attempts", default=14)))
     data: dict[str, Any] = {
         "status": "blocked",
         "run_id": run_id,
@@ -705,6 +926,12 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
         "runs": [],
         "summary": None,
         "chunking_comparison": [],
+        "first_chunk_policy": FIRST_CHUNK_POLICY,
+        "first_chunk_policy_comparison": [],
+        "trim_policy": {
+            "enabled": bool(nested(config, "tts", "safe_trim_enabled", default=False)),
+            "pre_roll_s": float(nested(config, "tts", "safe_trim_pre_roll_s", default=0.1)),
+        },
     }
     asr: WhisperASR | None = None
     tts: Qwen3TTSEngine | None = None
@@ -733,6 +960,7 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
             language=nested(config, "tts", "language", default="Japanese"),
             device="cuda:0" if _cuda_available() else "auto",
             max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
+        generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
         )
         provider = _provider_pair(config)["local"]
         with AudioVolumeGuard(speaker_target=playback_target, microphone_target=capture_target) as volume:
@@ -785,6 +1013,8 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
                         capture_target=capture_target,
                         max_chars=max_chars,
                         timeout_s=timeout_s,
+                        trim_enabled=bool(nested(config, "tts", "safe_trim_enabled", default=False)),
+                        trim_pre_roll_s=float(nested(config, "tts", "safe_trim_pre_roll_s", default=0.1)),
                     )
                 )
             measured = [row for row in data["runs"] if row.get("status") == "measured"]
@@ -794,7 +1024,14 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
                 "llm_ttft_s",
                 "sentence_buffering_s",
                 "tts_duration_s",
+                "tts_inference_s",
+                "tts_postprocess_s",
+                "generated_wav_leading_silence_s",
+                "trimmed_leading_audio_s",
+                "trim_processing_s",
                 "wav_ready_to_pw_play_s",
+                "pw_play_to_expected_speaker_onset_s",
+                "expected_speaker_onset_to_measured_mic_s",
                 "pw_play_to_acoustic_onset_s",
             ]
             stage_medians = _summarize_runs([row["stages"] for row in measured], stage_fields)
@@ -817,6 +1054,10 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
                 "dominant_stage": dominant_stage,
                 "outlier_policy": "retain every attempt; no latency value is deleted",
             }
+            data["latency_budget"] = _latency_budget(
+                [row["stages"] for row in measured],
+                statistics.median(latency_values) if latency_values else None,
+            )
             data["chunking_comparison"] = [
                 _chunking_candidate_measurement(
                     config,
@@ -826,8 +1067,24 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
                     tts=tts,
                     playback_target=playback_target,
                     capture_target=capture_target,
+                    trim_enabled=bool(nested(config, "tts", "safe_trim_enabled", default=False)),
+                    trim_pre_roll_s=float(nested(config, "tts", "safe_trim_pre_roll_s", default=0.1)),
                 )
                 for candidate in LIVE_CHUNKING_CANDIDATES
+            ]
+            data["first_chunk_policy_comparison"] = [
+                _first_chunk_response_measurement(
+                    config,
+                    run_id=run_id,
+                    response_name=response_name,
+                    response_text=response_text,
+                    tts=tts,
+                    playback_target=playback_target,
+                    capture_target=capture_target,
+                    trim_enabled=bool(nested(config, "tts", "safe_trim_enabled", default=False)),
+                    trim_pre_roll_s=float(nested(config, "tts", "safe_trim_pre_roll_s", default=0.1)),
+                )
+                for response_name, response_text in TRIM_EVALUATION_RESPONSES.items()
             ]
             data["status"] = "measured" if len(measured) >= repeats else "partial"
             data["measurement_parameters"] = {
@@ -835,6 +1092,9 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
                 "baseline_timeout_s": timeout_s,
                 "lead_s": 0.4,
                 "tail_s": 0.5,
+                "trim_enabled": bool(nested(config, "tts", "safe_trim_enabled", default=False)),
+                "trim_pre_roll_s": float(nested(config, "tts", "safe_trim_pre_roll_s", default=0.1)),
+                "first_chunk_policy": FIRST_CHUNK_POLICY,
                 "onset_gate": "10 ms RMS frames, leading noise-floor median/MAD, threshold max(4x floor, floor+6x MAD, 0.004), 2 consecutive frames",
             }
         data["volume_restore_error"] = volume_guard.restore_error if volume_guard is not None else None
@@ -850,6 +1110,129 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
         if tts is not None:
             tts.unload()
     return write_benchmark(config, "live_latency", data, started_at=started)
+
+
+def _make_playback_probe(config: dict[str, Any]) -> tuple[Path, float]:
+    sample_rate = 16000
+    expected_start_s = 0.1
+    duration_s = 0.8
+    path = artifact_dir(config) / "playback_path_probe.wav"
+    total = int(round((expected_start_s + duration_s) * sample_rate))
+    audio = np.zeros(total, dtype=np.float32)
+    start = int(round(expected_start_s * sample_rate))
+    count = total - start
+    phase = np.arange(count, dtype=np.float32) / sample_rate
+    fade = np.ones(count, dtype=np.float32)
+    fade_samples = min(count // 4, int(round(0.03 * sample_rate)))
+    if fade_samples:
+        fade[:fade_samples] = np.linspace(0.0, 1.0, fade_samples, endpoint=False)
+        fade[-fade_samples:] = np.linspace(1.0, 0.0, fade_samples, endpoint=False)
+    audio[start:] = 0.08 * np.sin(2.0 * np.pi * 440.0 * phase) * fade
+    sf.write(str(path), audio, sample_rate)
+    return path, expected_start_s
+
+
+def run_playback_path_bench(config: dict[str, Any]) -> dict[str, Any]:
+    """Measure physical playback/capture latency without TTS generation."""
+    started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    repeats = max(5, int(nested(config, "bench", "playback_path_repeats", default=5)))
+    data: dict[str, Any] = {
+        "status": "blocked",
+        "metric_name": "pure_playback_path_latency",
+        "metric_definition": "pw-play invocation to the same known signal's raw USB microphone onset, subtracting its known in-WAV start; excludes TTS inference and generated-WAV leading silence",
+        "probe_definition": "16 kHz mono 440 Hz, amplitude 0.08, 0.8 s duration, 0.1 s leading silence with 30 ms fades",
+        "repeat_target": repeats,
+        "reference_path": None,
+        "expected_signal_start_s": None,
+        "targets": None,
+        "volume_snapshot": None,
+        "volume_restore_error": None,
+        "runs": [],
+        "summary": None,
+    }
+    volume_guard: AudioVolumeGuard | None = None
+    try:
+        reference_path, expected_start_s = _make_playback_probe(config)
+        data["reference_path"] = str(reference_path)
+        data["expected_signal_start_s"] = expected_start_s
+        inventory = PipeWireInventory.discover()
+        mic = inventory.usb_microphone()
+        speaker = inventory.usb_speaker()
+        playback_target = stable_target(speaker)
+        capture_target = stable_target(mic)
+        data["inventory"] = inventory.to_dict()
+        data["targets"] = {"speaker": speaker.__dict__, "microphone": mic.__dict__}
+        with AudioVolumeGuard(speaker_target=playback_target, microphone_target=capture_target) as volume:
+            volume_guard = volume
+            data["volume_snapshot"] = volume.snapshot.to_dict() if volume.snapshot else None
+            volume.set_mutes(speaker_muted=False, microphone_muted=False)
+            for run_number in range(1, repeats + 1):
+                recording_path = artifact_dir(config) / f"{_measurement_id('playback_path')}_run{run_number}.wav"
+                playback = play_and_record(
+                    reference_path,
+                    recording_path,
+                    playback_target=playback_target,
+                    capture_target=capture_target,
+                    lead_s=0.4,
+                    tail_s=0.4,
+                    sample_rate=16000,
+                )
+                recording, recording_rate = sf.read(str(recording_path), always_2d=False)
+                timing = playback["timing_ns"]
+                record_start_ns = timing.get("record_start")
+                pw_play_ns = timing.get("pw_play_start")
+                play_offset_s = (pw_play_ns - record_start_ns) / 1e9 if pw_play_ns and record_start_ns else 0.4
+                onset = detect_acoustic_onset(
+                    np.asarray(recording),
+                    int(recording_rate),
+                    search_start_s=max(0.1, play_offset_s - 0.05),
+                    noise_window_s=max(0.1, play_offset_s - 0.05),
+                    reference=np.asarray(sf.read(str(reference_path), always_2d=False)[0]),
+                    reference_rate=16000,
+                )
+                physical_ns = (
+                    record_start_ns + int(round(float(onset["onset_s"]) * 1e9))
+                    if onset.get("detected") and record_start_ns is not None
+                    else None
+                )
+                expected_ns = pw_play_ns + int(round(expected_start_s * 1e9)) if pw_play_ns is not None else None
+                latency_s = (physical_ns - expected_ns) / 1e9 if physical_ns is not None and expected_ns is not None else None
+                data["runs"].append(
+                    {
+                        "run_number": run_number,
+                        "status": "measured" if latency_s is not None else "blocked",
+                        "playback": playback,
+                        "acoustic_onset": onset,
+                        "expected_signal_start_ns": expected_ns,
+                        "physical_audio_detected_ns": physical_ns,
+                        "pw_play_to_expected_signal_s": expected_start_s,
+                        "expected_signal_to_measured_microphone_s": latency_s,
+                        "pw_play_to_measured_onset_s": (
+                            (physical_ns - pw_play_ns) / 1e9
+                            if physical_ns is not None and pw_play_ns is not None
+                            else None
+                        ),
+                    }
+                )
+            measured = [row for row in data["runs"] if row.get("status") == "measured"]
+            values = [float(row["expected_signal_to_measured_microphone_s"]) for row in measured]
+            data["summary"] = {
+                "measured_run_count": len(measured),
+                "repeat_target": repeats,
+                "expected_signal_to_measured_microphone_s": _distribution(values),
+                "pw_play_to_measured_onset_s": _distribution(
+                    [float(row["pw_play_to_measured_onset_s"]) for row in measured]
+                ),
+                "outlier_policy": "retain every attempt; no latency value is deleted",
+            }
+            data["status"] = "measured" if len(measured) >= repeats else "partial"
+    except Exception as exc:
+        data["error_type"] = type(exc).__name__
+        data["error"] = str(exc)
+    finally:
+        if volume_guard is not None:
+            data["volume_restore_error"] = volume_guard.restore_error
+    return write_benchmark(config, "playback_path", data, started_at=started)
 
 
 def _tts_attempt(
@@ -918,6 +1301,164 @@ def _measure_tts_latency_matrix(config: dict[str, Any], engine: Qwen3TTSEngine, 
     }
 
 
+def _trim_prefix_missed(reference: str, hypothesis: str) -> bool:
+    from .normalize import normalize_text
+
+    expected = normalize_text(reference)
+    observed = normalize_text(hypothesis)
+    prefix_length = min(2, len(expected))
+    return bool(prefix_length and not observed.startswith(expected[:prefix_length]))
+
+
+def _measure_trim_quality(config: dict[str, Any], engine: Qwen3TTSEngine) -> dict[str, Any]:
+    """Generate five representative short responses and compare safe trims."""
+    evaluation_id = _measurement_id("tts_trim")
+    asr_device = "cuda" if _cuda_available() else "cpu"
+    asr = WhisperASR(
+        model=nested(config, "asr", "model", default="large-v3-turbo"),
+        device=asr_device,
+        compute_type=str(nested(config, "asr", "gpu_default_compute_type", default="int8_float16")) if asr_device == "cuda" else "int8",
+        language=nested(config, "asr", "language", default="ja"),
+        beam_size=int(nested(config, "asr", "beam_size", default=5)),
+    )
+    responses: list[dict[str, Any]] = []
+    try:
+        for response_name, text in TRIM_EVALUATION_RESPONSES.items():
+            original_path = artifact_dir(config) / f"{evaluation_id}_{response_name}_original.wav"
+            tts_row = _tts_attempt(
+                engine,
+                text=text,
+                output_path=original_path,
+                chunk=response_name,
+                phase="trim_evaluation",
+                run_number=0,
+            )
+            if tts_row.get("status") != "measured":
+                responses.append({"name": response_name, "text": text, "status": "error", "tts": tts_row})
+                continue
+            waveform, sample_rate = sf.read(str(original_path), always_2d=False)
+            analysis = measure_generated_audio_leading_silence(np.asarray(waveform), int(sample_rate))
+            variants: list[dict[str, Any]] = []
+            baseline_cer: float | None = None
+            baseline_prefix_missed: bool | None = None
+            for pre_roll_s in TRIM_PRE_ROLL_CANDIDATES:
+                if pre_roll_s == 0.0:
+                    variant_path = original_path
+                    trim_metadata = {
+                        "trimmed": False,
+                        "pre_roll_s": 0.0,
+                        "start_sample": 0,
+                        "start_s": 0.0,
+                        "removed_duration_s": 0.0,
+                        "output_duration_s": len(waveform) / int(sample_rate),
+                        "input_duration_s": len(waveform) / int(sample_rate),
+                        "detected_onset_s": analysis.get("stable_speech_onset_s"),
+                    }
+                else:
+                    trimmed, trim_metadata = trim_leading_silence(
+                        np.asarray(waveform),
+                        int(sample_rate),
+                        analysis,
+                        pre_roll_s=pre_roll_s,
+                    )
+                    variant_path = artifact_dir(config) / f"{evaluation_id}_{response_name}_trim_{int(pre_roll_s * 1000)}ms.wav"
+                    sf.write(str(variant_path), trimmed, int(sample_rate))
+                try:
+                    transcription = asr.transcribe(variant_path)
+                    transcript = transcription.text
+                    cer = _cer(text, transcript)
+                    if baseline_cer is None:
+                        baseline_cer = cer
+                        baseline_prefix_missed = _trim_prefix_missed(text, transcript)
+                    quality_degraded = bool(
+                        baseline_cer is not None and cer is not None and cer > baseline_cer + 1e-9
+                    )
+                    prefix_missed = _trim_prefix_missed(text, transcript)
+                    prefix_regressed = bool(
+                        pre_roll_s > 0.0 and baseline_prefix_missed is False and prefix_missed
+                    )
+                    variants.append(
+                        {
+                            "pre_roll_s": pre_roll_s,
+                            "path": str(variant_path),
+                            "status": "measured",
+                            "transcript": transcript,
+                            "cer": cer,
+                            "cer_delta_vs_no_trim": cer - baseline_cer if cer is not None and baseline_cer is not None else None,
+                            "duration_s": float(sf.info(str(variant_path)).duration),
+                            "trim": trim_metadata,
+                            "quality_degraded": quality_degraded,
+                            "prefix_missed": prefix_missed,
+                            "prefix_regressed": prefix_regressed,
+                            "quality_ok": not quality_degraded and not prefix_regressed,
+                        }
+                    )
+                except Exception as exc:
+                    variants.append(
+                        {
+                            "pre_roll_s": pre_roll_s,
+                            "path": str(variant_path),
+                            "status": "error",
+                            "error_type": type(exc).__name__,
+                            "error": str(exc),
+                            "quality_ok": False,
+                            "trim": trim_metadata,
+                        }
+                    )
+            responses.append(
+                {
+                    "name": response_name,
+                    "text": text,
+                    "text_chars": len(text),
+                    "status": "measured",
+                    "tts": tts_row,
+                    "generated_audio_analysis": analysis,
+                    "variants": variants,
+                }
+            )
+    finally:
+        asr.unload()
+    comparisons: dict[str, Any] = {}
+    for pre_roll_s in TRIM_PRE_ROLL_CANDIDATES:
+        variants = [
+            response["variants"][int(round(pre_roll_s / 0.05))]
+            for response in responses
+            if response.get("status") == "measured" and len(response.get("variants", [])) > int(round(pre_roll_s / 0.05))
+        ]
+        reductions = [float(variant["trim"]["removed_duration_s"]) for variant in variants if variant.get("status") == "measured"]
+        comparisons[str(pre_roll_s)] = {
+            "pre_roll_s": pre_roll_s,
+            "response_count": len(variants),
+            "quality_ok_count": sum(variant.get("quality_ok") is True for variant in variants),
+            "degraded_count": sum(variant.get("quality_degraded") is True for variant in variants),
+            "prefix_missed_count": sum(variant.get("prefix_missed") is True for variant in variants),
+            "prefix_regressed_count": sum(variant.get("prefix_regressed") is True for variant in variants),
+            "all_quality_ok": bool(variants) and all(variant.get("quality_ok") is True for variant in variants),
+            "removed_duration_distribution_s": _distribution(reductions),
+        }
+    valid_nonzero = [
+        pre_roll_s
+        for pre_roll_s in TRIM_PRE_ROLL_CANDIDATES
+        if pre_roll_s > 0 and comparisons[str(pre_roll_s)]["all_quality_ok"]
+    ]
+    recommended = min(valid_nonzero) if valid_nonzero else 0.0
+    leading = [
+        response["generated_audio_analysis"]["leading_silence_duration_s"]
+        for response in responses
+        if response.get("status") == "measured"
+        and isinstance(response.get("generated_audio_analysis", {}).get("leading_silence_duration_s"), (int, float))
+    ]
+    return {
+        "status": "measured" if len(responses) == len(TRIM_EVALUATION_RESPONSES) else "partial",
+        "responses": responses,
+        "pre_roll_candidates_s": TRIM_PRE_ROLL_CANDIDATES,
+        "pre_roll_comparison": comparisons,
+        "leading_silence_distribution_s": _distribution(leading),
+        "recommended_pre_roll_s": recommended,
+        "recommendation_definition": "smallest non-zero pre-roll with no CER increase and no two-character normalized reference-prefix miss across all representative responses; 0.0 means no safe candidate was measured",
+    }
+
+
 def run_tts_bench(config: dict[str, Any], *, skip_cpu: bool = False) -> dict[str, Any]:
     started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     text = TTS_BENCH_TEXT
@@ -930,9 +1471,18 @@ def run_tts_bench(config: dict[str, Any], *, skip_cpu: bool = False) -> dict[str
             language=nested(config, "tts", "language", default="Japanese"),
             device="cuda:0",
             max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
+        generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
         )
         try:
             matrix = _measure_tts_latency_matrix(config, gpu, label="gpu")
+            try:
+                trim_quality = _measure_trim_quality(config, gpu)
+            except Exception as exc:
+                trim_quality = {"status": "error", "error_type": type(exc).__name__, "error": str(exc)}
+            try:
+                generation_policy_comparison = _measure_tts_generation_policies(config, gpu)
+            except Exception as exc:
+                generation_policy_comparison = {"status": "error", "error_type": type(exc).__name__, "error": str(exc)}
             rows["gpu"] = {
                 "status": matrix["status"],
                 "model": gpu.model_name,
@@ -942,6 +1492,8 @@ def run_tts_bench(config: dict[str, Any], *, skip_cpu: bool = False) -> dict[str
                 "latency_matrix": matrix,
                 "cold_start": matrix["cold_start"],
                 "warm_start": matrix["warm_start"],
+                "trim_quality": trim_quality,
+                "generation_policy_comparison": generation_policy_comparison,
             }
         except Exception as exc:
             rows["gpu"] = {"status": "error", "error_type": type(exc).__name__, "error": str(exc)}
@@ -957,6 +1509,7 @@ def run_tts_bench(config: dict[str, Any], *, skip_cpu: bool = False) -> dict[str
             language=nested(config, "tts", "language", default="Japanese"),
             device="cpu",
             max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
+        generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
         )
         try:
             row = _tts_attempt(
@@ -985,6 +1538,9 @@ def run_tts_bench(config: dict[str, Any], *, skip_cpu: bool = False) -> dict[str
             "streaming_supported_by_official_python_api": False,
             "first_audio_metric_definition": "request start to complete waveform returned; this is first-audio-equivalent, not online packet streaming",
             "latency_matrix_definition": "GPU cold chars_8 first call followed by resident-model warm calls for six Japanese chunk lengths (5, 8, 12, 20, about 30, about 50 characters)",
+            "leading_silence_definition": "10 ms frame RMS; threshold is max(absolute floor 0.004, 2% of peak, 4x WAV noise-floor median, noise-floor plus 6x MAD); stable onset requires 3 consecutive active frames and trim retains configured pre-roll",
+            "safe_trim_candidates_s": TRIM_PRE_ROLL_CANDIDATES,
+            "generation_policy_definition": "same resident official Qwen3-TTS Python model; sampled baseline, sampled shorter cap, and deterministic shorter cap are measured without a serving or engine change",
             "runs": rows,
         },
         started_at=started,
@@ -1123,9 +1679,114 @@ def _distribution(values: list[float]) -> dict[str, Any]:
         "p95_equivalent": _percentile(numeric, 0.95),
         "min": min(numeric) if numeric else None,
         "max": max(numeric) if numeric else None,
+        "mean": statistics.mean(numeric) if numeric else None,
+        "stddev": statistics.stdev(numeric) if len(numeric) > 1 else (0.0 if numeric else None),
     }
 
 
+def _measure_tts_generation_policies(config: dict[str, Any], engine: Qwen3TTSEngine) -> dict[str, Any]:
+    repeats = max(3, int(nested(config, "bench", "tts_generation_policy_repeats", default=3)))
+    started = time.monotonic_ns()
+    base_kwargs = dict(getattr(engine, "generation_kwargs", {}))
+    rows: list[dict[str, Any]] = []
+    try:
+        for policy in TTS_GENERATION_POLICIES:
+            kwargs = dict(base_kwargs)
+            kwargs.update(policy["kwargs"])
+            engine.generation_kwargs = kwargs
+            attempts: list[dict[str, Any]] = []
+            for run_number in range(repeats):
+                try:
+                    attempt = _tts_attempt(
+                        engine,
+                        text="こんにちは。",
+                        output_path=artifact_dir(config) / f"{_measurement_id('tts_policy')}_{policy['label']}_{run_number}.wav",
+                        phase="generation_policy",
+                        chunk=policy["label"],
+                        run_number=run_number,
+                    )
+                except Exception as exc:
+                    attempt = {
+                        "status": "error",
+                        "error_type": type(exc).__name__,
+                        "error": str(exc),
+                        "run_number": run_number,
+                    }
+                attempts.append(attempt)
+            measured = [attempt for attempt in attempts if attempt.get("status") == "measured"]
+            rows.append(
+                {
+                    **policy,
+                    "repeat_target": repeats,
+                    "runs": attempts,
+                    "summary": {
+                        "elapsed_seconds": _distribution([float(x["elapsed_seconds"]) for x in measured]),
+                        "inference_elapsed_seconds": _distribution([float(x["inference_elapsed_seconds"]) for x in measured]),
+                        "audio_duration_seconds": _distribution([float(x["audio_seconds"]) for x in measured if x.get("audio_seconds") is not None]),
+                        "leading_silence_seconds": _distribution(
+                            [float(x["generated_audio_analysis"]["leading_silence_duration_s"]) for x in measured if x.get("generated_audio_analysis", {}).get("leading_silence_duration_s") is not None]
+                        ),
+                        "measured_count": len(measured),
+                        "nonempty_audio_count": sum(bool(x.get("audio_seconds")) for x in measured),
+                        "onset_detected_count": sum(bool(x.get("generated_audio_analysis", {}).get("detected")) for x in measured),
+                    },
+                }
+            )
+    finally:
+        engine.generation_kwargs = base_kwargs
+    measured_rows = [row for row in rows if row["summary"]["measured_count"] == row["repeat_target"]]
+    fastest = min(
+        measured_rows,
+        key=lambda row: float(row["summary"]["inference_elapsed_seconds"]["median"]),
+        default=None,
+    )
+    return {
+        "status": "measured" if len(measured_rows) == len(TTS_GENERATION_POLICIES) else "measured_with_limitations",
+        "text": "こんにちは。",
+        "repeat_target": repeats,
+        "policies": rows,
+        "fastest_measured_policy": fastest["label"] if fastest else None,
+        "elapsed_seconds": (time.monotonic_ns() - started) / 1e9,
+        "quality_scope": "nonempty waveform and generated-WAV onset only; no MOS claim",
+    }
+
+
+def _latency_budget(runs: list[dict[str, Any]], total_median_s: float | None) -> dict[str, Any]:
+    specs = [
+        ("asr", "asr_duration_s"),
+        ("llm_ttft", "llm_ttft_s"),
+        ("first_chunk_buffering", "sentence_buffering_s"),
+        ("tts_inference", "tts_inference_s"),
+        ("tts_file_postprocess", "tts_postprocess_s"),
+        ("tts_leading_silence_after_trim", "trimmed_leading_audio_s"),
+        ("wav_ready_to_pw_play", "wav_ready_to_pw_play_s"),
+        ("expected_speaker_onset_to_measured_microphone", "expected_speaker_onset_to_measured_mic_s"),
+    ]
+    components: dict[str, Any] = {}
+    for name, field in specs:
+        values = [
+            float(row.get(field))
+            for row in runs
+            if isinstance(row.get(field), (int, float)) and not isinstance(row.get(field), bool)
+        ]
+        median = statistics.median(values) if values else None
+        non_negative_median = max(0.0, median) if median is not None else None
+        components[name] = {
+            "source_field": field,
+            "median_s": median,
+            "budget_value_s": non_negative_median,
+            "share_of_total": (
+                non_negative_median / total_median_s
+                if non_negative_median is not None and total_median_s and total_median_s > 0
+                else None
+            ),
+            "distribution": _distribution(values),
+        }
+    return {
+        "total_median_s": total_median_s,
+        "components": components,
+        "definition": "Flat budget; tts_inference plus file_postprocess equals tts duration, and expected speaker onset plus physical path equals pw-play to measured onset. Negative physical residuals are retained as raw medians but clamped only for shares.",
+    }
 def summarize_aec_conditions(rows: list[dict[str, Any]]) -> dict[str, Any]:
     """Aggregate matrix rows without hiding skipped conditions or outliers."""
     measured = [row for row in rows if row.get("status") == "measured"]
@@ -1502,6 +2163,7 @@ def run_e2e_bench(config: dict[str, Any], *, force_audio: bool = False, skip_ope
             language=nested(config, "tts", "language", default="Japanese"),
             device="cuda:0" if _cuda_available() else "auto",
             max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
+        generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
         )
         try:
             warmup = _run_e2e_case(
@@ -2109,6 +2771,8 @@ def ensure_tts_reference(config: dict[str, Any], *, force: bool = False) -> tupl
         speaker=nested(config, "tts", "speaker", default="Ono_Anna"),
         language="Japanese",
         device="cuda:0" if _cuda_available() else "auto",
+        max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
+        generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
     )
     row = engine.synthesize(TTS_BENCH_TEXT, output_path=path)
     engine.unload()

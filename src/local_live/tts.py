@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 import soundfile as sf
 
+from .audio_metrics import measure_generated_audio_leading_silence
 from .telemetry import EventLog, ResourceMonitor
 
 
@@ -34,6 +35,8 @@ class TTSResult:
     gpu_memory_peak_mib: int | None = None
     gpu_memory_delta_peak_mib: int | None = None
     cpu_load_percent: float | None = None
+    generated_audio_analysis: dict[str, Any] | None = None
+    generation_parameters: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return self.__dict__.copy()
@@ -50,12 +53,14 @@ class Qwen3TTSEngine:
         language: str = "Japanese",
         device: str = "auto",
         max_new_tokens: int = 2048,
+        generation_kwargs: dict[str, Any] | None = None,
     ) -> None:
         self.model_name = model
         self.speaker = speaker
         self.language = language
         self.device = device
         self.max_new_tokens = max_new_tokens
+        self.generation_kwargs = dict(generation_kwargs or {})
         self.resolved_device: str | None = None
         self._model: Any = None
 
@@ -97,6 +102,11 @@ class Qwen3TTSEngine:
         except Exception:
             pass
 
+    def effective_generation_kwargs(self) -> dict[str, Any]:
+        kwargs = dict(self.generation_kwargs)
+        kwargs.setdefault("max_new_tokens", self.max_new_tokens)
+        return kwargs
+
     def synthesize(
         self,
         text: str,
@@ -129,7 +139,7 @@ class Qwen3TTSEngine:
                 text=text,
                 language=self.language,
                 speaker=self.speaker,
-                max_new_tokens=self.max_new_tokens,
+                **self.effective_generation_kwargs(),
             )
             try:
                 import torch
@@ -144,6 +154,7 @@ class Qwen3TTSEngine:
             if cancel_event is not None and cancel_event.is_set():
                 raise RuntimeError("TTS cancelled after generation")
             waveform = np.asarray(wavs[0])
+            generated_audio_analysis = measure_generated_audio_leading_silence(waveform, int(sample_rate))
             sf.write(str(path), waveform, int(sample_rate))
             audio_complete_ns = time.monotonic_ns()
             if event_log:
@@ -178,8 +189,11 @@ class Qwen3TTSEngine:
                 "model_load_start": load_started,
                 "model_loaded": model_loaded_ns,
                 "inference_start": inference_started,
+                "tts_inference_start": inference_started,
                 "generation_complete": generation_complete_ns,
+                "tts_waveform_ready": generation_complete_ns,
                 "audio_complete": audio_complete_ns,
+                "wav_ready": audio_complete_ns,
                 "playback_possible": playback_possible_ns,
                 "tts_end": ended_ns,
             },
@@ -190,4 +204,6 @@ class Qwen3TTSEngine:
             gpu_memory_peak_mib=monitor.gpu_memory_peak_mib,
             gpu_memory_delta_peak_mib=monitor.gpu_memory_delta_peak_mib,
             cpu_load_percent=monitor.cpu_load_percent,
+            generated_audio_analysis=generated_audio_analysis,
+            generation_parameters=self.effective_generation_kwargs(),
         ).to_dict()
