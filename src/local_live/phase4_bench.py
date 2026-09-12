@@ -543,6 +543,7 @@ def _run_stability_turn(
             "gpu_memory_free_min_mib": monitor.gpu_memory_free_min_mib,
             "gpu_memory_end_mib": current_gpu_memory(),
             "cpu_load_percent": monitor.cpu_load_percent,
+            "process_resources": monitor.process_resource_summary,
         }
         row["peak_vram_mib"] = monitor.gpu_memory_peak_mib
         row["gpu_memory_free_min_mib"] = monitor.gpu_memory_free_min_mib
@@ -582,6 +583,30 @@ def _window_summary(rows: list[dict[str, Any]], start: int, end: int) -> dict[st
         "vram_free_min_mib": percentile_summary(vals("gpu_memory_free_min_mib")),
         "ram_peak_mib": percentile_summary(vals("ram_mib")),
     }
+
+
+def _process_resource_series_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    keys = ("open_fds", "child_processes", "playback_processes", "active_http_connections")
+    summaries: dict[str, Any] = {"turn_count": 0, "max_sample_count": 0}
+    selected = [((row.get("memory") or {}).get("process_resources")) for row in rows]
+    selected = [item for item in selected if isinstance(item, dict)]
+    summaries["turn_count"] = len(selected)
+    for key in keys:
+        starts = [item["started"][key] for item in selected if isinstance(item.get("started"), dict) and isinstance(item["started"].get(key), (int, float))]
+        ends = [item["end"][key] for item in selected if isinstance(item.get("end"), dict) and isinstance(item["end"].get(key), (int, float))]
+        deltas = [item["deltas"][key] for item in selected if isinstance(item.get("deltas"), dict) and isinstance(item["deltas"].get(key), (int, float))]
+        monotonic = [bool(item.get("monotonic_growth", {}).get(key)) for item in selected if isinstance(item.get("monotonic_growth"), dict)]
+        summaries[key] = {
+            "start": percentile_summary([float(value) for value in starts]),
+            "end": percentile_summary([float(value) for value in ends]),
+            "delta": percentile_summary([float(value) for value in deltas]),
+            "monotonic_growth_turns": sum(monotonic),
+        }
+    summaries["max_sample_count"] = max((int(item.get("sample_count", 0)) for item in selected), default=0)
+    summaries["monotonic_growth_any"] = any(
+        summaries[key]["monotonic_growth_turns"] > 0 for key in keys
+    )
+    return summaries
 
 
 def _phase3b_outlier_reference(config: dict[str, Any]) -> dict[str, Any] | None:
@@ -771,6 +796,7 @@ def run_stability_bench(config: dict[str, Any]) -> dict[str, Any]:
                 default=None,
             ),
             "memory_leak": memory_leak,
+            "process_resources": _process_resource_series_summary(data["turns"]),
             "goals": {"median_lt_2s": bool(all_total and statistics.median(all_total) < 2.0), "p95_lt_2_5s": bool(percentile_summary(all_total).get("p95") is not None and percentile_summary(all_total)["p95"] < 2.5), "onset_success_ge_95pct": physical_detected / len(data["turns"]) >= 0.95 if data["turns"] else False},
         }
         data["memory"]["during_continuous"] = _server_memory_note()

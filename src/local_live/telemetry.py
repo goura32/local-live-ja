@@ -113,6 +113,43 @@ def current_gpu_memory_free() -> list[int]:
     return result
 
 
+def current_process_resources(http_ports: tuple[int, ...] = (8091, 11434)) -> dict[str, int | None]:
+    """Capture process resources used by per-turn leak diagnostics."""
+    result: dict[str, int | None] = {
+        "open_fds": None,
+        "child_processes": None,
+        "playback_processes": 0,
+        "active_http_connections": None,
+    }
+    if psutil is None:
+        return result
+    try:
+        process = psutil.Process()
+        result["open_fds"] = int(process.num_fds()) if hasattr(process, "num_fds") else None
+        result["child_processes"] = len(process.children(recursive=True))
+        playback_names = {"pw-cat", "pw-play", "pw-record"}
+        playback_count = 0
+        for item in psutil.process_iter(["name", "cmdline"]):
+            name = (item.info.get("name") or "").casefold()
+            command = " ".join(item.info.get("cmdline") or []).casefold()
+            if name in playback_names or any(token in command for token in playback_names):
+                playback_count += 1
+        result["playback_processes"] = playback_count
+        try:
+            connections = psutil.net_connections(kind="tcp")
+        except (psutil.Error, OSError):
+            connections = []
+        result["active_http_connections"] = sum(
+            1
+            for item in connections
+            if item.status in {"ESTABLISHED", "SYN_SENT", "SYN_RECV", "LISTEN"}
+            and ((item.laddr and item.laddr.port in http_ports) or (item.raddr and item.raddr.port in http_ports))
+        )
+    except (psutil.Error, OSError):
+        pass
+    return result
+
+
 @dataclass
 class ResourceMonitor:
     interval_s: float = 0.1
@@ -124,12 +161,16 @@ class ResourceMonitor:
     gpu_free_samples: list[list[int]] = field(default_factory=list, init=False)
     started_gpu: list[int] = field(default_factory=list, init=False)
     started_gpu_free: list[int] = field(default_factory=list, init=False)
+    started_process_resources: dict[str, int | None] = field(default_factory=dict, init=False)
+    process_resource_samples: list[dict[str, int | None]] = field(default_factory=list, init=False)
 
     def __enter__(self) -> "ResourceMonitor":
         if psutil:
             psutil.cpu_percent(interval=None)
         self.started_gpu = current_gpu_memory()
         self.started_gpu_free = current_gpu_memory_free()
+        self.started_process_resources = current_process_resources()
+        self.process_resource_samples.clear()
         self._thread = threading.Thread(target=self._sample, name="local-live-resource-monitor", daemon=True)
         self._thread.start()
         return self
@@ -138,6 +179,7 @@ class ResourceMonitor:
         self._stop.set()
         if self._thread:
             self._thread.join(timeout=2.0)
+        self.process_resource_samples.append(current_process_resources())
 
     def _sample(self) -> None:
         while not self._stop.is_set():
@@ -149,6 +191,7 @@ class ResourceMonitor:
                     pass
             self.gpu_samples.append(current_gpu_memory())
             self.gpu_free_samples.append(current_gpu_memory_free())
+            self.process_resource_samples.append(current_process_resources())
             self._stop.wait(self.interval_s)
 
     @property
@@ -176,6 +219,34 @@ class ResourceMonitor:
     def gpu_memory_free_min_mib(self) -> int | None:
         values = [value for sample in self.gpu_free_samples for value in sample]
         return min(values) if values else (min(self.started_gpu_free) if self.started_gpu_free else None)
+
+    @property
+    def process_resource_summary(self) -> dict[str, Any]:
+        keys = ("open_fds", "child_processes", "playback_processes", "active_http_connections")
+        samples = list(self.process_resource_samples)
+        end = samples[-1] if samples else dict(self.started_process_resources)
+        deltas: dict[str, float] = {}
+        monotonic_growth: dict[str, bool] = {}
+        for key in keys:
+            start_value = self.started_process_resources.get(key)
+            end_value = end.get(key)
+            if isinstance(start_value, (int, float)) and isinstance(end_value, (int, float)):
+                deltas[key] = float(end_value) - float(start_value)
+            values: list[float] = []
+            for item in samples:
+                value = item.get(key)
+                if isinstance(value, (int, float)):
+                    values.append(float(value))
+            increases = sum(right > left for left, right in zip(values, values[1:]))
+            monotonic_growth[key] = len(values) >= 3 and increases >= 2 and all(right >= left for left, right in zip(values, values[1:])) and values[-1] > values[0]
+        return {
+            "started": dict(self.started_process_resources),
+            "samples": samples,
+            "sample_count": len(samples),
+            "end": dict(end),
+            "deltas": deltas,
+            "monotonic_growth": monotonic_growth,
+        }
 
 
 @dataclass

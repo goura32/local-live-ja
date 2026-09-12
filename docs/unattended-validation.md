@@ -16,7 +16,7 @@ This phase is fully unattended. It does not ask a person to speak, read a script
 `local-live bench unattended` runs the bounded checks and writes:
 
 - `results/bench_echo_rejection.json`: 40 synthetic conditions, 20 assistant-only and 20 synthetic user-like, with offset, user/echo level, noise, lag, score distributions, signed threshold margins, and calibration/validation split.
-- `results/bench_stability.json`: 100-turn continuous fixture run when the fixed path is available. It retains every measured, blocked, and failed turn, component timings, outlier classification, warm-state windows, restart runs, and resource samples.
+- `results/bench_stability.json`: 100-turn continuous fixture run when the fixed path is available. It retains every measured, blocked, and failed turn, component timings, outlier classification, warm-state windows, restart runs, and 0.25-second per-turn process-resource samples (FDs, child/playback processes, live HTTP connections).
 - `results/bench_interruption.json`: first-PCM, middle-playback, and end-playback cancellation cases, five repeats per timing, queue cleanup, HTTP cancellation state, spoken-text commit state, and next-turn recovery.
 - `results/bench_unattended.json`: aggregate Phase 5 record including physical onset replay diagnosis, fault probes, resource lifecycle, VRAM margin, and `deferred_manual` items.
 - `results/summary.json`: compact aggregate; detailed turn rows remain in the benchmark JSON files.

@@ -9,6 +9,7 @@ from local_live.echo_rejection import (
     evaluate_echo_rejection,
     evaluate_echo_rejection_split,
 )
+from local_live.phase4_bench import _process_resource_series_summary
 from local_live.phase5_bench import (
     audio_state_matches,
     build_double_talk_fixture,
@@ -19,6 +20,7 @@ from local_live.phase5_bench import (
     run_fault_injection_matrix,
 )
 from local_live.telemetry import ResourceMonitor
+from local_live import telemetry
 from local_live.vllm_omni_tts import VLLMOmniTTSEngine
 
 
@@ -262,3 +264,100 @@ def test_http_cancel_precedes_playback_release() -> None:
     engine.cancel()
 
     assert events == ["http", "playback"]
+
+
+def test_resource_monitor_retains_per_turn_process_resource_series() -> None:
+    monitor = ResourceMonitor()
+    monitor.started_process_resources = {
+        "open_fds": 4,
+        "child_processes": 0,
+        "playback_processes": 0,
+        "active_http_connections": 0,
+    }
+    monitor.process_resource_samples = [
+        {"open_fds": 4, "child_processes": 0, "playback_processes": 0, "active_http_connections": 0},
+        {"open_fds": 5, "child_processes": 0, "playback_processes": 0, "active_http_connections": 0},
+        {"open_fds": 6, "child_processes": 0, "playback_processes": 0, "active_http_connections": 0},
+    ]
+
+    summary = monitor.process_resource_summary
+
+    assert summary["sample_count"] == 3
+    assert summary["end"]["open_fds"] == 6
+    assert summary["monotonic_growth"]["open_fds"] is True
+
+
+def test_resource_lifecycle_does_not_call_one_warm_cache_step_monotonic_leak() -> None:
+    result = summarize_resource_lifecycle(
+        {"open_fds": 4},
+        {"open_fds": 43},
+        samples=[{"open_fds": 4}, {"open_fds": 43}, {"open_fds": 43}, {"open_fds": 43}],
+    )
+
+    assert result["monotonic_growth"]["open_fds"] is False
+    assert result["fd_growth_requires_followup"] is True
+
+
+def test_stability_resource_summary_uses_started_snapshot() -> None:
+    rows = [
+        {
+            "memory": {
+                "process_resources": {
+                    "started": {"open_fds": 43, "child_processes": 4, "playback_processes": 0, "active_http_connections": 3},
+                    "end": {"open_fds": 43, "child_processes": 4, "playback_processes": 0, "active_http_connections": 3},
+                    "deltas": {"open_fds": 0, "child_processes": 0, "playback_processes": 0, "active_http_connections": 0},
+                    "monotonic_growth": {"open_fds": False, "child_processes": False, "playback_processes": False, "active_http_connections": False},
+                    "sample_count": 3,
+                }
+            }
+        }
+    ]
+    result = _process_resource_series_summary(rows)
+    assert result["turn_count"] == 1
+    assert result["open_fds"]["start"]["median"] == pytest.approx(43)
+    assert result["open_fds"]["end"]["median"] == pytest.approx(43)
+
+
+def test_live_http_counter_excludes_time_wait(monkeypatch) -> None:
+    class FakeError(Exception):
+        pass
+
+    class FakeProcess:
+        def num_fds(self) -> int:
+            return 9
+
+        def children(self, recursive: bool = False) -> list[object]:
+            return []
+
+    class FakeItem:
+        info = {"name": "python", "cmdline": ["python", "bench"]}
+
+    class Endpoint:
+        def __init__(self, port: int) -> None:
+            self.port = port
+
+    class Connection:
+        def __init__(self, status: str, port: int) -> None:
+            self.status = status
+            self.laddr = Endpoint(port)
+            self.raddr = None
+
+    class FakePsutil:
+        Error = FakeError
+
+        @staticmethod
+        def Process() -> FakeProcess:
+            return FakeProcess()
+
+        @staticmethod
+        def process_iter(fields: list[str]) -> list[FakeItem]:
+            return [FakeItem()]
+
+        @staticmethod
+        def net_connections(kind: str) -> list[Connection]:
+            return [Connection("TIME_WAIT", 8091), Connection("ESTABLISHED", 8091)]
+
+    monkeypatch.setattr(telemetry, "psutil", FakePsutil)
+    result = telemetry.current_process_resources(http_ports=(8091,))
+    assert result["open_fds"] == 9
+    assert result["active_http_connections"] == 1

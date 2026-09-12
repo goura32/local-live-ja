@@ -652,7 +652,8 @@ def summarize_resource_lifecycle(before: Mapping[str, Any], after: Mapping[str, 
     if samples:
         for key in keys:
             values = [float(item[key]) for item in samples if isinstance(item.get(key), (int, float))]
-            monotonic_growth[key] = len(values) >= 3 and all(right >= left for left, right in zip(values, values[1:])) and values[-1] > values[0]
+            increases = sum(right > left for left, right in zip(values, values[1:]))
+            monotonic_growth[key] = len(values) >= 3 and increases >= 2 and all(right >= left for left, right in zip(values, values[1:])) and values[-1] > values[0]
     leak_suspected = bool(
         any(monotonic_growth.values())
         or deltas.get("child_processes", 0.0) > 1
@@ -1068,6 +1069,11 @@ def run_unattended_bench(config: dict[str, Any]) -> dict[str, Any]:
     phase5_config["bench"]["stability_restart_turns"] = max(5, int(nested(config, "bench", "unattended_restart_turns", default=5)))
     phase5_config["bench"]["artifact_prefix"] = "phase5"
     stability_result = run_stability_bench(phase5_config)
+    stability_data = stability_result.get("data", {})
+    for row in stability_data.get("turns", []):
+        process_resources = (row.get("memory") or {}).get("process_resources")
+        if isinstance(process_resources, dict):
+            resource_samples.extend(item for item in process_resources.get("samples", []) if isinstance(item, Mapping))
     resource_samples.append(resource_snapshot())
     cancellation_result = run_cancellation_stress_bench(config, repeats_per_timing=max(5, int(nested(config, "bench", "cancellation_repeats_per_timing", default=5))))
     resource_samples.append(resource_snapshot())
@@ -1075,7 +1081,26 @@ def run_unattended_bench(config: dict[str, Any]) -> dict[str, Any]:
     after = resource_snapshot()
     resource_samples.append(after)
     audio_state_readback = read_audio_state(config)
-    stability_data = stability_result.get("data", {})
+    resource_lifecycle = summarize_resource_lifecycle(before, after, samples=resource_samples)
+    process_resource_summary = (stability_data.get("summary") or {}).get("process_resources")
+    if isinstance(process_resource_summary, dict):
+        open_fd_summary = process_resource_summary.get("open_fds") or {}
+        per_turn_growth = int(open_fd_summary.get("monotonic_growth_turns", 0) or 0)
+        resource_lifecycle.update(
+            {
+                "per_turn_process_resources": process_resource_summary,
+                "fd_series_samples": sum(
+                    int(((row.get("memory") or {}).get("process_resources") or {}).get("sample_count", 0))
+                    for row in stability_data.get("turns", [])
+                    if isinstance(row, dict)
+                ),
+                "fd_growth_requires_followup": per_turn_growth > 0,
+                "per_turn_resource_sampling": {"interval_s": 0.25, "scope": "each stability turn"},
+                "warm_cache_fd_step_observed": bool(
+                    resource_lifecycle.get("deltas", {}).get("open_fds", 0) > 0 and per_turn_growth == 0
+                ),
+            }
+        )
     data = {
         "status": "measured",
         "benchmark": "unattended",
@@ -1092,7 +1117,7 @@ def run_unattended_bench(config: dict[str, Any]) -> dict[str, Any]:
         "stability": stability_data,
         "cancellation": cancellation_result.get("data", {}),
         "fault_injection": faults,
-        "resource_lifecycle": summarize_resource_lifecycle(before, after, samples=resource_samples),
+        "resource_lifecycle": resource_lifecycle,
         "audio_state_readback": audio_state_readback,
         "audio_state_restore_verified": audio_state_matches(
             ((onset_result.get("audio_state") or {}).get("snapshot")),

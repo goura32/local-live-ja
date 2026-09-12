@@ -13,7 +13,7 @@
 | tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
 | E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
 | AEC | measured with limitations | stable targetで16条件matrixと3候補×3 repeatを測定。VAD false triggerは残る |
-| test reproducibility | pass | 単一process・直列pytest、exit code 0、89 tests pass |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、93 tests pass |
 
 総合判定は`measured_with_limitations`。phase-2でsynthetic user endからraw USB microphone acoustic onsetまでの物理latency、TTS length matrix、AEC volume/gain matrix、CPU ASR resident profileを追加した。live latencyは3.4000秒で2秒目標未達、AECは減衰改善を確認したがassistant-only VAD false triggerが残る。真のonline Qwen3-TTS streamingは前提にしていない。
 
@@ -582,10 +582,9 @@ The bounded synthetic detector suite at 3x/4x/5x noise multipliers produced 0 fa
 
 ### 100-turn stability, outliers, and resources
 
-The unattended stability run completed 100/100 measured turns, 0 blocked, and 0 failed turns. Physical first audio was median `1.799997737 s`, p95 `2.4804976766 s`, p99 `4.7790963299 s`, and max `28.449995525 s`. The 17 outliers were retained; dominant classification was `first_sentence_buffering` (11), with acoustic onset (2), first-PCM-to-actual (3), and LLM TTFT (1) also recorded. The 28.45 s maximum was not discarded or relabeled as a normal latency value.
+The complete unattended orchestrator run completed 100/100 measured turns, 0 blocked, and 0 failed. A follow-up resource-instrumented stability remeasurement completed 100 attempts, 99 measured, 1 blocked, and 0 failed; the blocked row was turn 57 with `physical_audio_not_detected`, not a resource-monitor failure. The remeasurement's physical first audio was median `1.739999006 s`, p95 `2.3839988367 s`, p99 `4.0799983973 s`, and max `5.059998266 s`. The 18 remeasurement outliers were retained; dominant classification was `first_sentence_buffering` (11), with acoustic onset (2), first-PCM-to-actual (4), and LLM TTFT (1) also recorded. The earlier 28.45 s maximum remains in the complete orchestrator artifact and was not discarded or relabeled as normal latency.
 
-VRAM during the continuous run was baseline `9,830 MiB`, peak `15,091 MiB`, free minimum `751 MiB`, and OOM count `0`; the <500 MiB warning did not trigger. First-vs-last-10-turn drift was `0 MiB` VRAM and `+1.869 MiB` RAM, with no clear continuous memory leak. End-of-run process snapshots had no child or playback process. The aggregate lifecycle snapshot showed end-of-run warm-cache growth (Ollama/Whisper/runtime state) and FD start/end growth `4 -> 43`; no monotonic FD series was captured, so FD cleanup is a follow-up rather than a claimed leak-free result. The completed run recorded HTTP connections with the legacy all-TCP-state counter; the current implementation counts only live `ESTABLISHED`/`SYN_*`/`LISTEN` states, so the stored connection delta is not treated as an active-connection leak.
-
+VRAM for the complete orchestrator was baseline `9,830 MiB`, peak `15,091 MiB`, free minimum `751 MiB`, and OOM count `0`. The resource-instrumented remeasurement was baseline `15,015 MiB`, peak `15,123 MiB`, free minimum `719 MiB`, and OOM count `0`; neither crossed the <500 MiB warning. First-vs-last-10-turn drift in the remeasurement was `0 MiB` VRAM and `+3.066 MiB` RAM. Across all 100 remeasurement rows, FD start/end was `43 -> 43`, per-turn delta max `0`, and clear monotonic-growth turns `0`; child-process and playback-process monotonic-growth turns were also `0`. The 1,990 process-resource samples therefore explain the earlier outer `4 -> 43` as a one-time warm-cache/runtime step, not a continuing descriptor leak. The active-HTTP counter in the new series excludes TIME_WAIT and records a stable per-turn value. No GC or cache clear was forced per turn.
 Server lifecycle completed start/readiness, 100 turns, clean stop, restart, 5 post-restart turns, and clean stop. Restart readiness was HTTP 200; completed restart runs were `5/5`. The vLLM FlashInfer fallback environment remained `VLLM_USE_FLASHINFER_SAMPLER=0`.
 
 ### Fault and cancellation resilience
@@ -596,7 +595,7 @@ Cancellation stress ran first-PCM, playback-middle, and playback-end queue bound
 
 ### Phase 5 judgement and artifacts
 
-Phase 5 is `measured_with_limitations`, not a production-readiness claim. The numeric stability, echo validation, cancellation, fault, server-restart, audio-state restore, and VRAM-margin candidates passed. The remaining measured limitations are the physical onset timing/reference-alignment candidates and the end-of-run FD increase without a per-turn FD series. Human speech, physical double-talk/barge-in, MOS/listening, manual gain tuning, and production approval are `deferred_manual` by design and are not blockers for this unattended phase.
+Phase 5 remains `measured_with_limitations`, not a production-readiness claim. The numeric stability, echo validation, cancellation, fault, server-restart, audio-state restore, VRAM-margin, and per-turn resource candidates passed. The remaining measured limitation is physical onset timing/reference alignment, including one blocked row in the resource-instrumented 100-attempt rerun; the earlier complete orchestrator run had 100 measured rows. The per-turn series found no continuing FD, child-process, or playback-process growth. Human speech, physical double-talk/barge-in, MOS/listening, manual gain tuning, and production approval are `deferred_manual` by design and are not blockers for this unattended phase.
 
 - `results/bench_unattended.json`: complete Phase 5 orchestration, all 100 turn rows, 30 onset rows, resources, VRAM, fault and cancellation links
 - `results/bench_echo_rejection.json`: 40 fixture rows, fixed-threshold first evaluation, calibration/validation split, distributions, margins, and calibrated comparison
