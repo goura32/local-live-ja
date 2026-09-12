@@ -1,0 +1,1356 @@
+{
+  "schema": "local-live-ja/bench-tts/v2",
+  "benchmark": "tts",
+  "started_at": "2026-09-11T19:47:02Z",
+  "finished_at": "2026-09-11T19:48:26Z",
+  "environment": {
+    "captured_at": "2026-09-11T19:48:26.321879+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
+    "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+    "speaker": "Ono_Anna",
+    "language": "Japanese",
+    "streaming_supported_by_official_python_api": false,
+    "first_audio_metric_definition": "request start to complete waveform returned; this is first-audio-equivalent, not online packet streaming",
+    "latency_matrix_definition": "GPU cold first call followed by resident-model warm calls for short/medium/long Japanese chunks",
+    "runs": {
+      "gpu": {
+        "status": "measured",
+        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+        "speaker": "Ono_Anna",
+        "language": "Japanese",
+        "device": "cuda:0",
+        "latency_matrix": {
+          "status": "measured",
+          "device": "cuda:0",
+          "cold_start": {
+            "text": "はい、元気です。",
+            "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_cold_short.wav",
+            "sample_rate": 24000,
+            "audio_seconds": 2.96,
+            "elapsed_seconds": 12.587898238,
+            "model_load_seconds": 9.582481919,
+            "inference_elapsed_seconds": 2.996149864,
+            "first_audio_equivalent_seconds": 12.578633841,
+            "warm_first_audio_equivalent_seconds": 2.996149864,
+            "audio_complete_seconds": 12.587713765,
+            "playback_possible_seconds": 12.587713984,
+            "timing_ns": {
+              "request_start": 220985087996026,
+              "model_load_start": 220985087996240,
+              "model_loaded": 220994670478159,
+              "inference_start": 220994670480003,
+              "generation_complete": 220997666629867,
+              "audio_complete": 220997675709791,
+              "playback_possible": 220997675710010,
+              "tts_end": 220997675894264
+            },
+            "rtf": 1.012212791891892,
+            "device": "cuda:0",
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+            "speaker": "Ono_Anna",
+            "streaming_supported": false,
+            "gpu_memory_peak_mib": 9145,
+            "gpu_memory_delta_peak_mib": 2490,
+            "cpu_load_percent": 4.074193548387097,
+            "status": "measured",
+            "chunk": "short",
+            "phase": "cold_start",
+            "run_number": 0,
+            "text_chars": 8
+          },
+          "warm_start": {
+            "short": {
+              "text": "はい、元気です。",
+              "text_chars": 8,
+              "model_resident_for_all_runs": true,
+              "runs": [
+                {
+                  "text": "はい、元気です。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_short_1.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 4.72,
+                  "elapsed_seconds": 3.068117544,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 3.043527478,
+                  "first_audio_equivalent_seconds": 3.058956229,
+                  "warm_first_audio_equivalent_seconds": 3.043527478,
+                  "audio_complete_seconds": 3.067862415,
+                  "playback_possible_seconds": 3.067862689,
+                  "timing_ns": {
+                    "request_start": 220997676067635,
+                    "model_load_start": 220997676067799,
+                    "model_loaded": 220997691495099,
+                    "inference_start": 220997691496386,
+                    "generation_complete": 221000735023864,
+                    "audio_complete": 221000743930050,
+                    "playback_possible": 221000743930324,
+                    "tts_end": 221000744185179
+                  },
+                  "rtf": 0.6448151436440679,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9221,
+                  "gpu_memory_delta_peak_mib": 46,
+                  "cpu_load_percent": 4.848148148148148,
+                  "status": "measured",
+                  "chunk": "short",
+                  "phase": "warm_start",
+                  "run_number": 1,
+                  "text_chars": 8
+                },
+                {
+                  "text": "はい、元気です。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_short_2.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 2.88,
+                  "elapsed_seconds": 1.903235208,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 1.878154257,
+                  "first_audio_equivalent_seconds": 1.89298591,
+                  "warm_first_audio_equivalent_seconds": 1.878154257,
+                  "audio_complete_seconds": 1.902061616,
+                  "playback_possible_seconds": 1.902061824,
+                  "timing_ns": {
+                    "request_start": 221000744288623,
+                    "model_load_start": 221000744288697,
+                    "model_loaded": 221000759119682,
+                    "inference_start": 221000759120276,
+                    "generation_complete": 221002637274533,
+                    "audio_complete": 221002646350239,
+                    "playback_possible": 221002646350447,
+                    "tts_end": 221002647523831
+                  },
+                  "rtf": 0.6521368947916667,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9221,
+                  "gpu_memory_delta_peak_mib": 0,
+                  "cpu_load_percent": 4.776470588235294,
+                  "status": "measured",
+                  "chunk": "short",
+                  "phase": "warm_start",
+                  "run_number": 2,
+                  "text_chars": 8
+                },
+                {
+                  "text": "はい、元気です。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_short_3.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 2.48,
+                  "elapsed_seconds": 1.661144391,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 1.635148273,
+                  "first_audio_equivalent_seconds": 1.651885064,
+                  "warm_first_audio_equivalent_seconds": 1.635148273,
+                  "audio_complete_seconds": 1.660902926,
+                  "playback_possible_seconds": 1.660903188,
+                  "timing_ns": {
+                    "request_start": 221002647610470,
+                    "model_load_start": 221002647610545,
+                    "model_loaded": 221002664346518,
+                    "inference_start": 221002664347261,
+                    "generation_complete": 221004299495534,
+                    "audio_complete": 221004308513396,
+                    "playback_possible": 221004308513658,
+                    "tts_end": 221004308754861
+                  },
+                  "rtf": 0.6593339810483871,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9221,
+                  "gpu_memory_delta_peak_mib": 0,
+                  "cpu_load_percent": 4.792857142857143,
+                  "status": "measured",
+                  "chunk": "short",
+                  "phase": "warm_start",
+                  "run_number": 3,
+                  "text_chars": 8
+                }
+              ],
+              "median": {
+                "elapsed_seconds": {
+                  "values": [
+                    3.068117544,
+                    1.903235208,
+                    1.661144391
+                  ],
+                  "median": 1.903235208
+                },
+                "model_load_seconds": {
+                  "values": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "median": 0.0
+                },
+                "inference_elapsed_seconds": {
+                  "values": [
+                    3.043527478,
+                    1.878154257,
+                    1.635148273
+                  ],
+                  "median": 1.878154257
+                },
+                "first_audio_equivalent_seconds": {
+                  "values": [
+                    3.058956229,
+                    1.89298591,
+                    1.651885064
+                  ],
+                  "median": 1.89298591
+                },
+                "warm_first_audio_equivalent_seconds": {
+                  "values": [
+                    3.043527478,
+                    1.878154257,
+                    1.635148273
+                  ],
+                  "median": 1.878154257
+                },
+                "audio_complete_seconds": {
+                  "values": [
+                    3.067862415,
+                    1.902061616,
+                    1.660902926
+                  ],
+                  "median": 1.902061616
+                },
+                "playback_possible_seconds": {
+                  "values": [
+                    3.067862689,
+                    1.902061824,
+                    1.660903188
+                  ],
+                  "median": 1.902061824
+                },
+                "rtf": {
+                  "values": [
+                    0.6448151436440679,
+                    0.6521368947916667,
+                    0.6593339810483871
+                  ],
+                  "median": 0.6521368947916667
+                },
+                "gpu_memory_peak_mib": {
+                  "values": [
+                    9221,
+                    9221,
+                    9221
+                  ],
+                  "median": 9221
+                },
+                "gpu_memory_delta_peak_mib": {
+                  "values": [
+                    46,
+                    0,
+                    0
+                  ],
+                  "median": 0
+                }
+              }
+            },
+            "medium": {
+              "text": "今日は日本語の音声応答を確認しています。",
+              "text_chars": 20,
+              "model_resident_for_all_runs": true,
+              "runs": [
+                {
+                  "text": "今日は日本語の音声応答を確認しています。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_medium_1.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 4.24,
+                  "elapsed_seconds": 2.790157132,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 2.761425149,
+                  "first_audio_equivalent_seconds": 2.780705591,
+                  "warm_first_audio_equivalent_seconds": 2.761425149,
+                  "audio_complete_seconds": 2.790019592,
+                  "playback_possible_seconds": 2.790019789,
+                  "timing_ns": {
+                    "request_start": 221004308854843,
+                    "model_load_start": 221004308854986,
+                    "model_loaded": 221004328134277,
+                    "inference_start": 221004328135285,
+                    "generation_complete": 221007089560434,
+                    "audio_complete": 221007098874435,
+                    "playback_possible": 221007098874632,
+                    "tts_end": 221007099011975
+                  },
+                  "rtf": 0.6512795162735848,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9221,
+                  "gpu_memory_delta_peak_mib": 0,
+                  "cpu_load_percent": 5.2375,
+                  "status": "measured",
+                  "chunk": "medium",
+                  "phase": "warm_start",
+                  "run_number": 1,
+                  "text_chars": 20
+                },
+                {
+                  "text": "今日は日本語の音声応答を確認しています。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_medium_2.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 4.32,
+                  "elapsed_seconds": 2.842931274,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 2.809253464,
+                  "first_audio_equivalent_seconds": 2.826438542,
+                  "warm_first_audio_equivalent_seconds": 2.809253464,
+                  "audio_complete_seconds": 2.835326695,
+                  "playback_possible_seconds": 2.835326891,
+                  "timing_ns": {
+                    "request_start": 221007099114220,
+                    "model_load_start": 221007099114360,
+                    "model_loaded": 221007116298556,
+                    "inference_start": 221007116299298,
+                    "generation_complete": 221009925552762,
+                    "audio_complete": 221009934440915,
+                    "playback_possible": 221009934441111,
+                    "tts_end": 221009942045494
+                  },
+                  "rtf": 0.6502901537037037,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9221,
+                  "gpu_memory_delta_peak_mib": 0,
+                  "cpu_load_percent": 4.772,
+                  "status": "measured",
+                  "chunk": "medium",
+                  "phase": "warm_start",
+                  "run_number": 2,
+                  "text_chars": 20
+                },
+                {
+                  "text": "今日は日本語の音声応答を確認しています。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_medium_3.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 4.24,
+                  "elapsed_seconds": 2.786937548,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 2.757529482,
+                  "first_audio_equivalent_seconds": 2.777493813,
+                  "warm_first_audio_equivalent_seconds": 2.757529482,
+                  "audio_complete_seconds": 2.786778055,
+                  "playback_possible_seconds": 2.786778259,
+                  "timing_ns": {
+                    "request_start": 221009942142183,
+                    "model_load_start": 221009942142248,
+                    "model_loaded": 221009962104001,
+                    "inference_start": 221009962106514,
+                    "generation_complete": 221012719635996,
+                    "audio_complete": 221012728920238,
+                    "playback_possible": 221012728920442,
+                    "tts_end": 221012729079731
+                  },
+                  "rtf": 0.6503607268867924,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9221,
+                  "gpu_memory_delta_peak_mib": 0,
+                  "cpu_load_percent": 4.983333333333333,
+                  "status": "measured",
+                  "chunk": "medium",
+                  "phase": "warm_start",
+                  "run_number": 3,
+                  "text_chars": 20
+                }
+              ],
+              "median": {
+                "elapsed_seconds": {
+                  "values": [
+                    2.790157132,
+                    2.842931274,
+                    2.786937548
+                  ],
+                  "median": 2.790157132
+                },
+                "model_load_seconds": {
+                  "values": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "median": 0.0
+                },
+                "inference_elapsed_seconds": {
+                  "values": [
+                    2.761425149,
+                    2.809253464,
+                    2.757529482
+                  ],
+                  "median": 2.761425149
+                },
+                "first_audio_equivalent_seconds": {
+                  "values": [
+                    2.780705591,
+                    2.826438542,
+                    2.777493813
+                  ],
+                  "median": 2.780705591
+                },
+                "warm_first_audio_equivalent_seconds": {
+                  "values": [
+                    2.761425149,
+                    2.809253464,
+                    2.757529482
+                  ],
+                  "median": 2.761425149
+                },
+                "audio_complete_seconds": {
+                  "values": [
+                    2.790019592,
+                    2.835326695,
+                    2.786778055
+                  ],
+                  "median": 2.790019592
+                },
+                "playback_possible_seconds": {
+                  "values": [
+                    2.790019789,
+                    2.835326891,
+                    2.786778259
+                  ],
+                  "median": 2.790019789
+                },
+                "rtf": {
+                  "values": [
+                    0.6512795162735848,
+                    0.6502901537037037,
+                    0.6503607268867924
+                  ],
+                  "median": 0.6503607268867924
+                },
+                "gpu_memory_peak_mib": {
+                  "values": [
+                    9221,
+                    9221,
+                    9221
+                  ],
+                  "median": 9221
+                },
+                "gpu_memory_delta_peak_mib": {
+                  "values": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "median": 0
+                }
+              }
+            },
+            "long": {
+              "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+              "text_chars": 57,
+              "model_resident_for_all_runs": true,
+              "runs": [
+                {
+                  "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_long_1.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 10.72,
+                  "elapsed_seconds": 6.930759581,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 6.897586934,
+                  "first_audio_equivalent_seconds": 6.916640013,
+                  "warm_first_audio_equivalent_seconds": 6.897586934,
+                  "audio_complete_seconds": 6.926266201,
+                  "playback_possible_seconds": 6.926266525,
+                  "timing_ns": {
+                    "request_start": 221012729194678,
+                    "model_load_start": 221012729194812,
+                    "model_loaded": 221012748246537,
+                    "inference_start": 221012748247757,
+                    "generation_complete": 221019645834691,
+                    "audio_complete": 221019655460879,
+                    "playback_possible": 221019655461203,
+                    "tts_end": 221019659954259
+                  },
+                  "rtf": 0.6434316169776119,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9581,
+                  "gpu_memory_delta_peak_mib": 360,
+                  "cpu_load_percent": 4.819999999999999,
+                  "status": "measured",
+                  "chunk": "long",
+                  "phase": "warm_start",
+                  "run_number": 1,
+                  "text_chars": 57
+                },
+                {
+                  "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_long_2.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 10.0,
+                  "elapsed_seconds": 6.504082007,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 6.477102793,
+                  "first_audio_equivalent_seconds": 6.494321514,
+                  "warm_first_audio_equivalent_seconds": 6.477102793,
+                  "audio_complete_seconds": 6.503962851,
+                  "playback_possible_seconds": 6.503963036,
+                  "timing_ns": {
+                    "request_start": 221019660122561,
+                    "model_load_start": 221019660122654,
+                    "model_loaded": 221019677336512,
+                    "inference_start": 221019677341282,
+                    "generation_complete": 221026154444075,
+                    "audio_complete": 221026164085412,
+                    "playback_possible": 221026164085597,
+                    "tts_end": 221026164204568
+                  },
+                  "rtf": 0.6477102793,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9581,
+                  "gpu_memory_delta_peak_mib": 0,
+                  "cpu_load_percent": 4.951785714285714,
+                  "status": "measured",
+                  "chunk": "long",
+                  "phase": "warm_start",
+                  "run_number": 2,
+                  "text_chars": 57
+                },
+                {
+                  "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+                  "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_long_3.wav",
+                  "sample_rate": 24000,
+                  "audio_seconds": 10.64,
+                  "elapsed_seconds": 6.868915307,
+                  "model_load_seconds": 0.0,
+                  "inference_elapsed_seconds": 6.840832131,
+                  "first_audio_equivalent_seconds": 6.859495881,
+                  "warm_first_audio_equivalent_seconds": 6.840832131,
+                  "audio_complete_seconds": 6.868866734,
+                  "playback_possible_seconds": 6.868866997,
+                  "timing_ns": {
+                    "request_start": 221026164301350,
+                    "model_load_start": 221026164301424,
+                    "model_loaded": 221026182963805,
+                    "inference_start": 221026182965100,
+                    "generation_complete": 221033023797231,
+                    "audio_complete": 221033033168084,
+                    "playback_possible": 221033033168347,
+                    "tts_end": 221033033216657
+                  },
+                  "rtf": 0.6429353506578948,
+                  "device": "cuda:0",
+                  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                  "speaker": "Ono_Anna",
+                  "streaming_supported": false,
+                  "gpu_memory_peak_mib": 9581,
+                  "gpu_memory_delta_peak_mib": 0,
+                  "cpu_load_percent": 5.013559322033898,
+                  "status": "measured",
+                  "chunk": "long",
+                  "phase": "warm_start",
+                  "run_number": 3,
+                  "text_chars": 57
+                }
+              ],
+              "median": {
+                "elapsed_seconds": {
+                  "values": [
+                    6.930759581,
+                    6.504082007,
+                    6.868915307
+                  ],
+                  "median": 6.868915307
+                },
+                "model_load_seconds": {
+                  "values": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "median": 0.0
+                },
+                "inference_elapsed_seconds": {
+                  "values": [
+                    6.897586934,
+                    6.477102793,
+                    6.840832131
+                  ],
+                  "median": 6.840832131
+                },
+                "first_audio_equivalent_seconds": {
+                  "values": [
+                    6.916640013,
+                    6.494321514,
+                    6.859495881
+                  ],
+                  "median": 6.859495881
+                },
+                "warm_first_audio_equivalent_seconds": {
+                  "values": [
+                    6.897586934,
+                    6.477102793,
+                    6.840832131
+                  ],
+                  "median": 6.840832131
+                },
+                "audio_complete_seconds": {
+                  "values": [
+                    6.926266201,
+                    6.503962851,
+                    6.868866734
+                  ],
+                  "median": 6.868866734
+                },
+                "playback_possible_seconds": {
+                  "values": [
+                    6.926266525,
+                    6.503963036,
+                    6.868866997
+                  ],
+                  "median": 6.868866997
+                },
+                "rtf": {
+                  "values": [
+                    0.6434316169776119,
+                    0.6477102793,
+                    0.6429353506578948
+                  ],
+                  "median": 0.6434316169776119
+                },
+                "gpu_memory_peak_mib": {
+                  "values": [
+                    9581,
+                    9581,
+                    9581
+                  ],
+                  "median": 9581
+                },
+                "gpu_memory_delta_peak_mib": {
+                  "values": [
+                    360,
+                    0,
+                    0
+                  ],
+                  "median": 0
+                }
+              }
+            }
+          },
+          "warm_repeat_target": 3,
+          "cold_definition": "first synthesize on a newly constructed engine; model load is included",
+          "warm_definition": "subsequent synthesize calls on the same resident engine; model_load_seconds should be zero"
+        },
+        "cold_start": {
+          "text": "はい、元気です。",
+          "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_cold_short.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 2.96,
+          "elapsed_seconds": 12.587898238,
+          "model_load_seconds": 9.582481919,
+          "inference_elapsed_seconds": 2.996149864,
+          "first_audio_equivalent_seconds": 12.578633841,
+          "warm_first_audio_equivalent_seconds": 2.996149864,
+          "audio_complete_seconds": 12.587713765,
+          "playback_possible_seconds": 12.587713984,
+          "timing_ns": {
+            "request_start": 220985087996026,
+            "model_load_start": 220985087996240,
+            "model_loaded": 220994670478159,
+            "inference_start": 220994670480003,
+            "generation_complete": 220997666629867,
+            "audio_complete": 220997675709791,
+            "playback_possible": 220997675710010,
+            "tts_end": 220997675894264
+          },
+          "rtf": 1.012212791891892,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 9145,
+          "gpu_memory_delta_peak_mib": 2490,
+          "cpu_load_percent": 4.074193548387097,
+          "status": "measured",
+          "chunk": "short",
+          "phase": "cold_start",
+          "run_number": 0,
+          "text_chars": 8
+        },
+        "warm_start": {
+          "short": {
+            "text": "はい、元気です。",
+            "text_chars": 8,
+            "model_resident_for_all_runs": true,
+            "runs": [
+              {
+                "text": "はい、元気です。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_short_1.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 4.72,
+                "elapsed_seconds": 3.068117544,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 3.043527478,
+                "first_audio_equivalent_seconds": 3.058956229,
+                "warm_first_audio_equivalent_seconds": 3.043527478,
+                "audio_complete_seconds": 3.067862415,
+                "playback_possible_seconds": 3.067862689,
+                "timing_ns": {
+                  "request_start": 220997676067635,
+                  "model_load_start": 220997676067799,
+                  "model_loaded": 220997691495099,
+                  "inference_start": 220997691496386,
+                  "generation_complete": 221000735023864,
+                  "audio_complete": 221000743930050,
+                  "playback_possible": 221000743930324,
+                  "tts_end": 221000744185179
+                },
+                "rtf": 0.6448151436440679,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9221,
+                "gpu_memory_delta_peak_mib": 46,
+                "cpu_load_percent": 4.848148148148148,
+                "status": "measured",
+                "chunk": "short",
+                "phase": "warm_start",
+                "run_number": 1,
+                "text_chars": 8
+              },
+              {
+                "text": "はい、元気です。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_short_2.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 2.88,
+                "elapsed_seconds": 1.903235208,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 1.878154257,
+                "first_audio_equivalent_seconds": 1.89298591,
+                "warm_first_audio_equivalent_seconds": 1.878154257,
+                "audio_complete_seconds": 1.902061616,
+                "playback_possible_seconds": 1.902061824,
+                "timing_ns": {
+                  "request_start": 221000744288623,
+                  "model_load_start": 221000744288697,
+                  "model_loaded": 221000759119682,
+                  "inference_start": 221000759120276,
+                  "generation_complete": 221002637274533,
+                  "audio_complete": 221002646350239,
+                  "playback_possible": 221002646350447,
+                  "tts_end": 221002647523831
+                },
+                "rtf": 0.6521368947916667,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9221,
+                "gpu_memory_delta_peak_mib": 0,
+                "cpu_load_percent": 4.776470588235294,
+                "status": "measured",
+                "chunk": "short",
+                "phase": "warm_start",
+                "run_number": 2,
+                "text_chars": 8
+              },
+              {
+                "text": "はい、元気です。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_short_3.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 2.48,
+                "elapsed_seconds": 1.661144391,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 1.635148273,
+                "first_audio_equivalent_seconds": 1.651885064,
+                "warm_first_audio_equivalent_seconds": 1.635148273,
+                "audio_complete_seconds": 1.660902926,
+                "playback_possible_seconds": 1.660903188,
+                "timing_ns": {
+                  "request_start": 221002647610470,
+                  "model_load_start": 221002647610545,
+                  "model_loaded": 221002664346518,
+                  "inference_start": 221002664347261,
+                  "generation_complete": 221004299495534,
+                  "audio_complete": 221004308513396,
+                  "playback_possible": 221004308513658,
+                  "tts_end": 221004308754861
+                },
+                "rtf": 0.6593339810483871,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9221,
+                "gpu_memory_delta_peak_mib": 0,
+                "cpu_load_percent": 4.792857142857143,
+                "status": "measured",
+                "chunk": "short",
+                "phase": "warm_start",
+                "run_number": 3,
+                "text_chars": 8
+              }
+            ],
+            "median": {
+              "elapsed_seconds": {
+                "values": [
+                  3.068117544,
+                  1.903235208,
+                  1.661144391
+                ],
+                "median": 1.903235208
+              },
+              "model_load_seconds": {
+                "values": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "median": 0.0
+              },
+              "inference_elapsed_seconds": {
+                "values": [
+                  3.043527478,
+                  1.878154257,
+                  1.635148273
+                ],
+                "median": 1.878154257
+              },
+              "first_audio_equivalent_seconds": {
+                "values": [
+                  3.058956229,
+                  1.89298591,
+                  1.651885064
+                ],
+                "median": 1.89298591
+              },
+              "warm_first_audio_equivalent_seconds": {
+                "values": [
+                  3.043527478,
+                  1.878154257,
+                  1.635148273
+                ],
+                "median": 1.878154257
+              },
+              "audio_complete_seconds": {
+                "values": [
+                  3.067862415,
+                  1.902061616,
+                  1.660902926
+                ],
+                "median": 1.902061616
+              },
+              "playback_possible_seconds": {
+                "values": [
+                  3.067862689,
+                  1.902061824,
+                  1.660903188
+                ],
+                "median": 1.902061824
+              },
+              "rtf": {
+                "values": [
+                  0.6448151436440679,
+                  0.6521368947916667,
+                  0.6593339810483871
+                ],
+                "median": 0.6521368947916667
+              },
+              "gpu_memory_peak_mib": {
+                "values": [
+                  9221,
+                  9221,
+                  9221
+                ],
+                "median": 9221
+              },
+              "gpu_memory_delta_peak_mib": {
+                "values": [
+                  46,
+                  0,
+                  0
+                ],
+                "median": 0
+              }
+            }
+          },
+          "medium": {
+            "text": "今日は日本語の音声応答を確認しています。",
+            "text_chars": 20,
+            "model_resident_for_all_runs": true,
+            "runs": [
+              {
+                "text": "今日は日本語の音声応答を確認しています。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_medium_1.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 4.24,
+                "elapsed_seconds": 2.790157132,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 2.761425149,
+                "first_audio_equivalent_seconds": 2.780705591,
+                "warm_first_audio_equivalent_seconds": 2.761425149,
+                "audio_complete_seconds": 2.790019592,
+                "playback_possible_seconds": 2.790019789,
+                "timing_ns": {
+                  "request_start": 221004308854843,
+                  "model_load_start": 221004308854986,
+                  "model_loaded": 221004328134277,
+                  "inference_start": 221004328135285,
+                  "generation_complete": 221007089560434,
+                  "audio_complete": 221007098874435,
+                  "playback_possible": 221007098874632,
+                  "tts_end": 221007099011975
+                },
+                "rtf": 0.6512795162735848,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9221,
+                "gpu_memory_delta_peak_mib": 0,
+                "cpu_load_percent": 5.2375,
+                "status": "measured",
+                "chunk": "medium",
+                "phase": "warm_start",
+                "run_number": 1,
+                "text_chars": 20
+              },
+              {
+                "text": "今日は日本語の音声応答を確認しています。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_medium_2.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 4.32,
+                "elapsed_seconds": 2.842931274,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 2.809253464,
+                "first_audio_equivalent_seconds": 2.826438542,
+                "warm_first_audio_equivalent_seconds": 2.809253464,
+                "audio_complete_seconds": 2.835326695,
+                "playback_possible_seconds": 2.835326891,
+                "timing_ns": {
+                  "request_start": 221007099114220,
+                  "model_load_start": 221007099114360,
+                  "model_loaded": 221007116298556,
+                  "inference_start": 221007116299298,
+                  "generation_complete": 221009925552762,
+                  "audio_complete": 221009934440915,
+                  "playback_possible": 221009934441111,
+                  "tts_end": 221009942045494
+                },
+                "rtf": 0.6502901537037037,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9221,
+                "gpu_memory_delta_peak_mib": 0,
+                "cpu_load_percent": 4.772,
+                "status": "measured",
+                "chunk": "medium",
+                "phase": "warm_start",
+                "run_number": 2,
+                "text_chars": 20
+              },
+              {
+                "text": "今日は日本語の音声応答を確認しています。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_medium_3.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 4.24,
+                "elapsed_seconds": 2.786937548,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 2.757529482,
+                "first_audio_equivalent_seconds": 2.777493813,
+                "warm_first_audio_equivalent_seconds": 2.757529482,
+                "audio_complete_seconds": 2.786778055,
+                "playback_possible_seconds": 2.786778259,
+                "timing_ns": {
+                  "request_start": 221009942142183,
+                  "model_load_start": 221009942142248,
+                  "model_loaded": 221009962104001,
+                  "inference_start": 221009962106514,
+                  "generation_complete": 221012719635996,
+                  "audio_complete": 221012728920238,
+                  "playback_possible": 221012728920442,
+                  "tts_end": 221012729079731
+                },
+                "rtf": 0.6503607268867924,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9221,
+                "gpu_memory_delta_peak_mib": 0,
+                "cpu_load_percent": 4.983333333333333,
+                "status": "measured",
+                "chunk": "medium",
+                "phase": "warm_start",
+                "run_number": 3,
+                "text_chars": 20
+              }
+            ],
+            "median": {
+              "elapsed_seconds": {
+                "values": [
+                  2.790157132,
+                  2.842931274,
+                  2.786937548
+                ],
+                "median": 2.790157132
+              },
+              "model_load_seconds": {
+                "values": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "median": 0.0
+              },
+              "inference_elapsed_seconds": {
+                "values": [
+                  2.761425149,
+                  2.809253464,
+                  2.757529482
+                ],
+                "median": 2.761425149
+              },
+              "first_audio_equivalent_seconds": {
+                "values": [
+                  2.780705591,
+                  2.826438542,
+                  2.777493813
+                ],
+                "median": 2.780705591
+              },
+              "warm_first_audio_equivalent_seconds": {
+                "values": [
+                  2.761425149,
+                  2.809253464,
+                  2.757529482
+                ],
+                "median": 2.761425149
+              },
+              "audio_complete_seconds": {
+                "values": [
+                  2.790019592,
+                  2.835326695,
+                  2.786778055
+                ],
+                "median": 2.790019592
+              },
+              "playback_possible_seconds": {
+                "values": [
+                  2.790019789,
+                  2.835326891,
+                  2.786778259
+                ],
+                "median": 2.790019789
+              },
+              "rtf": {
+                "values": [
+                  0.6512795162735848,
+                  0.6502901537037037,
+                  0.6503607268867924
+                ],
+                "median": 0.6503607268867924
+              },
+              "gpu_memory_peak_mib": {
+                "values": [
+                  9221,
+                  9221,
+                  9221
+                ],
+                "median": 9221
+              },
+              "gpu_memory_delta_peak_mib": {
+                "values": [
+                  0,
+                  0,
+                  0
+                ],
+                "median": 0
+              }
+            }
+          },
+          "long": {
+            "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+            "text_chars": 57,
+            "model_resident_for_all_runs": true,
+            "runs": [
+              {
+                "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_long_1.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 10.72,
+                "elapsed_seconds": 6.930759581,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 6.897586934,
+                "first_audio_equivalent_seconds": 6.916640013,
+                "warm_first_audio_equivalent_seconds": 6.897586934,
+                "audio_complete_seconds": 6.926266201,
+                "playback_possible_seconds": 6.926266525,
+                "timing_ns": {
+                  "request_start": 221012729194678,
+                  "model_load_start": 221012729194812,
+                  "model_loaded": 221012748246537,
+                  "inference_start": 221012748247757,
+                  "generation_complete": 221019645834691,
+                  "audio_complete": 221019655460879,
+                  "playback_possible": 221019655461203,
+                  "tts_end": 221019659954259
+                },
+                "rtf": 0.6434316169776119,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9581,
+                "gpu_memory_delta_peak_mib": 360,
+                "cpu_load_percent": 4.819999999999999,
+                "status": "measured",
+                "chunk": "long",
+                "phase": "warm_start",
+                "run_number": 1,
+                "text_chars": 57
+              },
+              {
+                "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_long_2.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 10.0,
+                "elapsed_seconds": 6.504082007,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 6.477102793,
+                "first_audio_equivalent_seconds": 6.494321514,
+                "warm_first_audio_equivalent_seconds": 6.477102793,
+                "audio_complete_seconds": 6.503962851,
+                "playback_possible_seconds": 6.503963036,
+                "timing_ns": {
+                  "request_start": 221019660122561,
+                  "model_load_start": 221019660122654,
+                  "model_loaded": 221019677336512,
+                  "inference_start": 221019677341282,
+                  "generation_complete": 221026154444075,
+                  "audio_complete": 221026164085412,
+                  "playback_possible": 221026164085597,
+                  "tts_end": 221026164204568
+                },
+                "rtf": 0.6477102793,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9581,
+                "gpu_memory_delta_peak_mib": 0,
+                "cpu_load_percent": 4.951785714285714,
+                "status": "measured",
+                "chunk": "long",
+                "phase": "warm_start",
+                "run_number": 2,
+                "text_chars": 57
+              },
+              {
+                "text": "これは日本語のLive音声対話における文単位chunkの初動時間と再生準備時間を測定するための長めのテスト文です。",
+                "path": "results/artifacts/tts_gpu_20260911T194704Z_220985087914498_warm_long_3.wav",
+                "sample_rate": 24000,
+                "audio_seconds": 10.64,
+                "elapsed_seconds": 6.868915307,
+                "model_load_seconds": 0.0,
+                "inference_elapsed_seconds": 6.840832131,
+                "first_audio_equivalent_seconds": 6.859495881,
+                "warm_first_audio_equivalent_seconds": 6.840832131,
+                "audio_complete_seconds": 6.868866734,
+                "playback_possible_seconds": 6.868866997,
+                "timing_ns": {
+                  "request_start": 221026164301350,
+                  "model_load_start": 221026164301424,
+                  "model_loaded": 221026182963805,
+                  "inference_start": 221026182965100,
+                  "generation_complete": 221033023797231,
+                  "audio_complete": 221033033168084,
+                  "playback_possible": 221033033168347,
+                  "tts_end": 221033033216657
+                },
+                "rtf": 0.6429353506578948,
+                "device": "cuda:0",
+                "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+                "speaker": "Ono_Anna",
+                "streaming_supported": false,
+                "gpu_memory_peak_mib": 9581,
+                "gpu_memory_delta_peak_mib": 0,
+                "cpu_load_percent": 5.013559322033898,
+                "status": "measured",
+                "chunk": "long",
+                "phase": "warm_start",
+                "run_number": 3,
+                "text_chars": 57
+              }
+            ],
+            "median": {
+              "elapsed_seconds": {
+                "values": [
+                  6.930759581,
+                  6.504082007,
+                  6.868915307
+                ],
+                "median": 6.868915307
+              },
+              "model_load_seconds": {
+                "values": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "median": 0.0
+              },
+              "inference_elapsed_seconds": {
+                "values": [
+                  6.897586934,
+                  6.477102793,
+                  6.840832131
+                ],
+                "median": 6.840832131
+              },
+              "first_audio_equivalent_seconds": {
+                "values": [
+                  6.916640013,
+                  6.494321514,
+                  6.859495881
+                ],
+                "median": 6.859495881
+              },
+              "warm_first_audio_equivalent_seconds": {
+                "values": [
+                  6.897586934,
+                  6.477102793,
+                  6.840832131
+                ],
+                "median": 6.840832131
+              },
+              "audio_complete_seconds": {
+                "values": [
+                  6.926266201,
+                  6.503962851,
+                  6.868866734
+                ],
+                "median": 6.868866734
+              },
+              "playback_possible_seconds": {
+                "values": [
+                  6.926266525,
+                  6.503963036,
+                  6.868866997
+                ],
+                "median": 6.868866997
+              },
+              "rtf": {
+                "values": [
+                  0.6434316169776119,
+                  0.6477102793,
+                  0.6429353506578948
+                ],
+                "median": 0.6434316169776119
+              },
+              "gpu_memory_peak_mib": {
+                "values": [
+                  9581,
+                  9581,
+                  9581
+                ],
+                "median": 9581
+              },
+              "gpu_memory_delta_peak_mib": {
+                "values": [
+                  360,
+                  0,
+                  0
+                ],
+                "median": 0
+              }
+            }
+          }
+        }
+      },
+      "cpu_reference": {
+        "text": "こんにちは。Live音声の応答速度を測定しています。短い日本語で返します。",
+        "path": "results/artifacts/tts_cpu_20260911T194752Z_221033154662132.wav",
+        "sample_rate": 24000,
+        "audio_seconds": 7.92,
+        "elapsed_seconds": 33.947495021,
+        "model_load_seconds": 4.753696054,
+        "inference_elapsed_seconds": 29.191664921,
+        "first_audio_equivalent_seconds": 33.945362765,
+        "warm_first_audio_equivalent_seconds": 29.191664921,
+        "audio_complete_seconds": 33.947384671,
+        "playback_possible_seconds": 33.947384797,
+        "timing_ns": {
+          "request_start": 221033154685751,
+          "model_load_start": 221033154685821,
+          "model_loaded": 221037908381875,
+          "inference_start": 221037908383595,
+          "generation_complete": 221067100048516,
+          "audio_complete": 221067102070422,
+          "playback_possible": 221067102070548,
+          "tts_end": 221067102180772
+        },
+        "rtf": 3.6858162779040406,
+        "device": "cpu",
+        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+        "speaker": "Ono_Anna",
+        "streaming_supported": false,
+        "gpu_memory_peak_mib": 7275,
+        "gpu_memory_delta_peak_mib": 0,
+        "cpu_load_percent": 4.847080291970802,
+        "status": "measured",
+        "chunk": "reference",
+        "phase": "cold_reference",
+        "run_number": 0,
+        "text_chars": 37
+      }
+    }
+  }
+}

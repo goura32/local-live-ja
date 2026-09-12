@@ -1,0 +1,2460 @@
+{
+  "schema": "local-live-ja/bench-live_latency/v2",
+  "benchmark": "live_latency",
+  "started_at": "2026-09-12T05:10:42Z",
+  "finished_at": "2026-09-12T05:12:05Z",
+  "environment": {
+    "captured_at": "2026-09-12T05:12:05.333206+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "status": "measured",
+    "run_id": "live_latency_20260912T051042Z_254803196003235",
+    "metric_name": "synthetic_user_end_to_first_physical_assistant_audio",
+    "metric_definition": "Direct synthetic input WAV handoff to first sustained above-noise-floor sample in a raw USB microphone recording of the assistant USB speaker output; not a human speech latency measurement.",
+    "event_definition": "synthetic_user_end is the monotonic handoff immediately before direct WAV ASR; physical_audio_detected is derived from raw microphone acoustic onset, not a sleep.",
+    "user_audio": {
+      "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+      "path": "results/artifacts/synthetic_asr_regression.wav",
+      "source": "reused_existing_generated_audio",
+      "sample_rate": 24000,
+      "duration_s": 27.84
+    },
+    "raw_microphone_side_channel": true,
+    "raw_microphone_not_aec_source": true,
+    "speaker_target_is_stable_name": true,
+    "microphone_target_is_stable_name": true,
+    "volume_snapshot": {
+      "speaker": {
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+        "volume_percent": 40.0,
+        "muted": false
+      },
+      "microphone": {
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+        "volume_percent": 100.0,
+        "muted": false
+      },
+      "default_sink": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo",
+      "default_source": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+    },
+    "volume_restore_error": null,
+    "warmup": {
+      "status": "measured",
+      "user_asr": {
+        "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+        "model": "large-v3-turbo",
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 27.84,
+        "elapsed_seconds": 2.713300288,
+        "rtf": 0.09746049885057471,
+        "gpu_memory_peak_mib": 1345,
+        "gpu_memory_delta_peak_mib": 1327,
+        "cpu_load_percent": 4.01304347826087,
+        "segments": [
+          {
+            "start": 0.88,
+            "end": 5.16,
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+          },
+          {
+            "start": 5.66,
+            "end": 8.8,
+            "text": "数字は1、2、3と134像5です。"
+          },
+          {
+            "start": 9.34,
+            "end": 14.6,
+            "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+          },
+          {
+            "start": 14.92,
+            "end": 20.46,
+            "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+          },
+          {
+            "start": 21.34,
+            "end": 26.94,
+            "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+          }
+        ]
+      },
+      "llm": {
+        "text": "こんにちは。音声認識テストの準備が整いましたね。",
+        "events": [
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "text_delta",
+          "completion"
+        ],
+        "tool_calls": [],
+        "completion": {
+          "reason": "stop",
+          "requested_model": "qwen3.5:9b-q4_K_M",
+          "actual_model": "qwen3.5:9b-q4_K_M",
+          "usage": {
+            "total_duration": 5451559628,
+            "load_duration": 5232053101,
+            "prompt_eval_count": 127,
+            "prompt_eval_duration": 108409000,
+            "eval_count": 13,
+            "eval_duration": 108239000
+          }
+        },
+        "error": null,
+        "cancelled": false,
+        "ttft_s": 5.383493286,
+        "elapsed_s": 5.491385543,
+        "timing_ns": {
+          "llm_start": 254806705843076,
+          "llm_first_token": 254812089336362,
+          "llm_end": 254812197228619
+        }
+      },
+      "representative_text": "こんにちは。音声認識テストの準備が整いましたね。",
+      "chunks": [
+        "こんにちは。",
+        "音声認識テストの準備が整いましたね。"
+      ],
+      "tts": {
+        "text": "こんにちは。",
+        "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_warmup.wav",
+        "sample_rate": 24000,
+        "audio_seconds": 2.48,
+        "elapsed_seconds": 8.212509231,
+        "model_load_seconds": 5.916070598,
+        "inference_elapsed_seconds": 2.287130425,
+        "first_audio_equivalent_seconds": 8.203203702,
+        "warm_first_audio_equivalent_seconds": 2.287130425,
+        "audio_complete_seconds": 8.212374307,
+        "playback_possible_seconds": 8.212374515,
+        "timing_ns": {
+          "request_start": 254812197352330,
+          "model_load_start": 254812197352525,
+          "model_loaded": 254818113423123,
+          "inference_start": 254818113425607,
+          "generation_complete": 254820400556032,
+          "audio_complete": 254820409726637,
+          "playback_possible": 254820409726845,
+          "tts_end": 254820409861561
+        },
+        "rtf": 0.9222300100806452,
+        "device": "cuda:0",
+        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+        "speaker": "Ono_Anna",
+        "streaming_supported": false,
+        "gpu_memory_peak_mib": 10209,
+        "gpu_memory_delta_peak_mib": 2258,
+        "cpu_load_percent": 3.825
+      }
+    },
+    "runs": [
+      {
+        "status": "measured",
+        "run_number": 1,
+        "warmup": false,
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.84,
+          "elapsed_seconds": 0.380223747,
+          "rtf": 0.013657462176724137,
+          "gpu_memory_peak_mib": 10241,
+          "gpu_memory_delta_peak_mib": 32,
+          "cpu_load_percent": 4.533333333333333,
+          "segments": [
+            {
+              "start": 0.88,
+              "end": 5.16,
+              "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+            },
+            {
+              "start": 5.66,
+              "end": 8.8,
+              "text": "数字は1、2、3と134像5です。"
+            },
+            {
+              "start": 9.34,
+              "end": 14.6,
+              "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 14.92,
+              "end": 20.46,
+              "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.34,
+              "end": 26.94,
+              "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text_until_first_chunk": "こんにちは。",
+          "first_chunk": "こんにちは。",
+          "ttft_s": 0.074434678,
+          "until_first_chunk_s": 0.083539569,
+          "actual_model": "qwen3.5:9b-q4_K_M",
+          "events": [
+            "text_delta",
+            "text_delta"
+          ],
+          "error": null
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_assistant_first.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 2.4,
+          "elapsed_seconds": 1.581900533,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 1.553748479,
+          "first_audio_equivalent_seconds": 1.573068717,
+          "warm_first_audio_equivalent_seconds": 1.553748479,
+          "audio_complete_seconds": 1.581805503,
+          "playback_possible_seconds": 1.581809151,
+          "timing_ns": {
+            "request_start": 254820874144874,
+            "model_load_start": 254820874145013,
+            "model_loaded": 254820893463527,
+            "inference_start": 254820893465112,
+            "generation_complete": 254822447213591,
+            "audio_complete": 254822455950377,
+            "playback_possible": 254822455954025,
+            "tts_end": 254822456045407
+          },
+          "rtf": 0.6473951995833334,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10209,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 5.021428571428571
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_raw_mic.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_assistant_first.wav",
+          "duration_s": 3.3,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254822456523350,
+            "pw_play_start": 254822858187947,
+            "playback_end": 254826397801027,
+            "record_end": 254826400685646,
+            "physical_audio_detected": 254824036523350
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_raw_mic.wav",
+            "sample_rate": 16000,
+            "frames": 57656,
+            "duration_s": 3.6035,
+            "rms": 0.012406274676322937,
+            "peak": 0.7987060546875,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 1.58,
+            "onset_frame": 158,
+            "noise_floor_rms": 0.0018711632583290339,
+            "threshold_rms": 0.007623123470693827,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.6384793519973755,
+              "lag_samples": -30312,
+              "lag_seconds": -1.263
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "stages": {
+          "asr_duration_s": 0.380223747,
+          "llm_ttft_s": 0.074434678,
+          "llm_until_first_chunk_s": 0.083539569,
+          "sentence_buffering_s": 0.009104891,
+          "tts_duration_s": 1.581900533,
+          "wav_ready_to_pw_play_s": 0.402233922,
+          "pw_play_to_acoustic_onset_s": 1.178335403,
+          "playback_duration_s": 3.53961308,
+          "speech_end_to_first_physical_audio_s": 3.626572685
+        },
+        "speech_end_to_first_physical_audio_s": 3.626572685,
+        "dominant_stage": "tts_duration_s",
+        "timing_ns": {
+          "synthetic_user_end": 254820409950665,
+          "asr_start": 254820410059132,
+          "asr_final": 254820790293007,
+          "llm_start": 254820790353508,
+          "llm_first_token": 254820864792527,
+          "first_sentence_chunk_ready": 254820873897418,
+          "tts_start": 254820874040014,
+          "tts_audio_ready": 254822455954025,
+          "pw_play_start": 254822858187947,
+          "physical_audio_detected": 254824036523350,
+          "playback_end": 254826397801027
+        },
+        "events": [
+          {
+            "event": "synthetic_user_end",
+            "monotonic_ns": 254820409950665,
+            "source": "direct_input_wav_handoff"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 254820410059132,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "int8_float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 254820790293007,
+            "text_chars": 137,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 254820790353508
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 254820864792527,
+            "ttft_s": 0.074434678
+          },
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254820873897418,
+            "text_chars": 6
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 254820874022649,
+            "first_chunk": true,
+            "actual_model": "qwen3.5:9b-q4_K_M"
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254820874040014,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254820874142937,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254820893457556,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254820893464288,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254820893465426
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254822447214928
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254822455952283,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_assistant_first.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254822455954333,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_assistant_first.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254822456049220,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_assistant_first.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254822455954025,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_assistant_first.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254822858187947,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254824036523350,
+            "onset_s": 1.58
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 254826397801027,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run1_assistant_first.wav"
+          }
+        ]
+      },
+      {
+        "status": "measured",
+        "run_number": 2,
+        "warmup": false,
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.84,
+          "elapsed_seconds": 0.370330303,
+          "rtf": 0.013302094216954025,
+          "gpu_memory_peak_mib": 10241,
+          "gpu_memory_delta_peak_mib": 32,
+          "cpu_load_percent": 3.233333333333333,
+          "segments": [
+            {
+              "start": 0.88,
+              "end": 5.16,
+              "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+            },
+            {
+              "start": 5.66,
+              "end": 8.8,
+              "text": "数字は1、2、3と134像5です。"
+            },
+            {
+              "start": 9.34,
+              "end": 14.6,
+              "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 14.92,
+              "end": 20.46,
+              "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.34,
+              "end": 26.94,
+              "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text_until_first_chunk": "こんにちは。",
+          "first_chunk": "こんにちは。",
+          "ttft_s": 0.087223783,
+          "until_first_chunk_s": 0.096458742,
+          "actual_model": "qwen3.5:9b-q4_K_M",
+          "events": [
+            "text_delta",
+            "text_delta"
+          ],
+          "error": null
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_assistant_first.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 1.68,
+          "elapsed_seconds": 1.118748112,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 1.091546536,
+          "first_audio_equivalent_seconds": 1.110047632,
+          "warm_first_audio_equivalent_seconds": 1.091546536,
+          "audio_complete_seconds": 1.118705566,
+          "playback_possible_seconds": 1.11870922,
+          "timing_ns": {
+            "request_start": 254826969716463,
+            "model_load_start": 254826969716543,
+            "model_loaded": 254826988216678,
+            "inference_start": 254826988217559,
+            "generation_complete": 254828079764095,
+            "audio_complete": 254828088422029,
+            "playback_possible": 254828088425683,
+            "tts_end": 254828088464575
+          },
+          "rtf": 0.649730080952381,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10209,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 5.2
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_raw_mic.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_assistant_first.wav",
+          "duration_s": 2.58,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254828089062114,
+            "pw_play_start": 254828490858107,
+            "playback_end": 254830323485191,
+            "record_end": 254830675283115,
+            "physical_audio_detected": 254829169062114
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_raw_mic.wav",
+            "sample_rate": 16000,
+            "frames": 41272,
+            "duration_s": 2.5795,
+            "rms": 0.005250123329460621,
+            "peak": 0.049224853515625,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 1.08,
+            "onset_frame": 108,
+            "noise_floor_rms": 0.0012425389140844345,
+            "threshold_rms": 0.004970155656337738,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.6436811685562134,
+              "lag_samples": -14784,
+              "lag_seconds": -0.616
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "stages": {
+          "asr_duration_s": 0.370330303,
+          "llm_ttft_s": 0.087223783,
+          "llm_until_first_chunk_s": 0.096458742,
+          "sentence_buffering_s": 0.009234959,
+          "tts_duration_s": 1.118748112,
+          "wav_ready_to_pw_play_s": 0.402432424,
+          "pw_play_to_acoustic_onset_s": 0.678204007,
+          "playback_duration_s": 1.832627084,
+          "speech_end_to_first_physical_audio_s": 2.666519242
+        },
+        "speech_end_to_first_physical_audio_s": 2.666519242,
+        "dominant_stage": "tts_duration_s",
+        "timing_ns": {
+          "synthetic_user_end": 254826502542872,
+          "asr_start": 254826502629010,
+          "asr_final": 254826872970370,
+          "llm_start": 254826873031050,
+          "llm_first_token": 254826960258800,
+          "first_sentence_chunk_ready": 254826969493759,
+          "tts_start": 254826969619020,
+          "tts_audio_ready": 254828088425683,
+          "pw_play_start": 254828490858107,
+          "physical_audio_detected": 254829169062114,
+          "playback_end": 254830323485191
+        },
+        "events": [
+          {
+            "event": "synthetic_user_end",
+            "monotonic_ns": 254826502542872,
+            "source": "direct_input_wav_handoff"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 254826502629010,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "int8_float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 254826872970370,
+            "text_chars": 137,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 254826873031050
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 254826960258800,
+            "ttft_s": 0.087223783
+          },
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254826969493759,
+            "text_chars": 6
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 254826969601925,
+            "first_chunk": true,
+            "actual_model": "qwen3.5:9b-q4_K_M"
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254826969619020,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254826969714771,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254826988213455,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254826988217063,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254826988217829
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254828079765923
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254828088423965,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_assistant_first.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254828088425963,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_assistant_first.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254828088468573,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_assistant_first.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254828088425683,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_assistant_first.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254828490858107,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254829169062114,
+            "onset_s": 1.08
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 254830323485191,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run2_assistant_first.wav"
+          }
+        ]
+      },
+      {
+        "status": "measured",
+        "run_number": 3,
+        "warmup": false,
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.84,
+          "elapsed_seconds": 0.370327195,
+          "rtf": 0.013301982579022988,
+          "gpu_memory_peak_mib": 10241,
+          "gpu_memory_delta_peak_mib": 32,
+          "cpu_load_percent": 3.4,
+          "segments": [
+            {
+              "start": 0.88,
+              "end": 5.16,
+              "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+            },
+            {
+              "start": 5.66,
+              "end": 8.8,
+              "text": "数字は1、2、3と134像5です。"
+            },
+            {
+              "start": 9.34,
+              "end": 14.6,
+              "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 14.92,
+              "end": 20.46,
+              "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.34,
+              "end": 26.94,
+              "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text_until_first_chunk": "こんにちは。",
+          "first_chunk": "こんにちは。",
+          "ttft_s": 0.073090772,
+          "until_first_chunk_s": 0.082281142,
+          "actual_model": "qwen3.5:9b-q4_K_M",
+          "events": [
+            "text_delta",
+            "text_delta"
+          ],
+          "error": null
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_assistant_first.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 1.68,
+          "elapsed_seconds": 1.116789308,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 1.089261274,
+          "first_audio_equivalent_seconds": 1.108100735,
+          "warm_first_audio_equivalent_seconds": 1.089261274,
+          "audio_complete_seconds": 1.116749418,
+          "playback_possible_seconds": 1.116752916,
+          "timing_ns": {
+            "request_start": 254831228967036,
+            "model_load_start": 254831228967120,
+            "model_loaded": 254831247805202,
+            "inference_start": 254831247806497,
+            "generation_complete": 254832337067771,
+            "audio_complete": 254832345716454,
+            "playback_possible": 254832345719952,
+            "tts_end": 254832345756344
+          },
+          "rtf": 0.648369805952381,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10209,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 5.24
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_raw_mic.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_assistant_first.wav",
+          "duration_s": 2.58,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254832346378530,
+            "pw_play_start": 254832748045089,
+            "playback_end": 254834590580172,
+            "record_end": 254834932072351,
+            "physical_audio_detected": 254833446378530
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_raw_mic.wav",
+            "sample_rate": 16000,
+            "frames": 41272,
+            "duration_s": 2.5795,
+            "rms": 0.015584220178425312,
+            "peak": 0.10797119140625,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 1.1,
+            "onset_frame": 110,
+            "noise_floor_rms": 0.0011456864885985851,
+            "threshold_rms": 0.0045827459543943405,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.7824180722236633,
+              "lag_samples": -14904,
+              "lag_seconds": -0.621
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "stages": {
+          "asr_duration_s": 0.370327195,
+          "llm_ttft_s": 0.073090772,
+          "llm_until_first_chunk_s": 0.082281142,
+          "sentence_buffering_s": 0.00919037,
+          "tts_duration_s": 1.116789308,
+          "wav_ready_to_pw_play_s": 0.402325137,
+          "pw_play_to_acoustic_onset_s": 0.698333441,
+          "playback_duration_s": 1.842535083,
+          "speech_end_to_first_physical_audio_s": 2.67037387
+        },
+        "speech_end_to_first_physical_audio_s": 2.67037387,
+        "dominant_stage": "tts_duration_s",
+        "timing_ns": {
+          "synthetic_user_end": 254830776004660,
+          "asr_start": 254830776107147,
+          "asr_final": 254831146443881,
+          "llm_start": 254831146470805,
+          "llm_first_token": 254831219563620,
+          "first_sentence_chunk_ready": 254831228753990,
+          "tts_start": 254831228869041,
+          "tts_audio_ready": 254832345719952,
+          "pw_play_start": 254832748045089,
+          "physical_audio_detected": 254833446378530,
+          "playback_end": 254834590580172
+        },
+        "events": [
+          {
+            "event": "synthetic_user_end",
+            "monotonic_ns": 254830776004660,
+            "source": "direct_input_wav_handoff"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 254830776107147,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "int8_float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 254831146443881,
+            "text_chars": 137,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 254831146470805
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 254831219563620,
+            "ttft_s": 0.073090772
+          },
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254831228753990,
+            "text_chars": 6
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 254831228854165,
+            "first_chunk": true,
+            "actual_model": "qwen3.5:9b-q4_K_M"
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254831228869041,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254831228965295,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254831247801179,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254831247805820,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254831247806810
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254832337068667
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254832345718163,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_assistant_first.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254832345720189,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_assistant_first.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254832345760221,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_assistant_first.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254832345719952,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_assistant_first.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254832748045089,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254833446378530,
+            "onset_s": 1.1
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 254834590580172,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run3_assistant_first.wav"
+          }
+        ]
+      },
+      {
+        "status": "measured",
+        "run_number": 4,
+        "warmup": false,
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.84,
+          "elapsed_seconds": 0.379936329,
+          "rtf": 0.013647138254310345,
+          "gpu_memory_peak_mib": 10241,
+          "gpu_memory_delta_peak_mib": 32,
+          "cpu_load_percent": 3.1999999999999997,
+          "segments": [
+            {
+              "start": 0.88,
+              "end": 5.16,
+              "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+            },
+            {
+              "start": 5.66,
+              "end": 8.8,
+              "text": "数字は1、2、3と134像5です。"
+            },
+            {
+              "start": 9.34,
+              "end": 14.6,
+              "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 14.92,
+              "end": 20.46,
+              "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.34,
+              "end": 26.94,
+              "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text_until_first_chunk": "承知いたしました。",
+          "first_chunk": "承知いたしました。",
+          "ttft_s": 0.071063633,
+          "until_first_chunk_s": 0.098799174,
+          "actual_model": "qwen3.5:9b-q4_K_M",
+          "events": [
+            "text_delta",
+            "text_delta",
+            "text_delta",
+            "text_delta"
+          ],
+          "error": null
+        },
+        "tts": {
+          "text": "承知いたしました。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_assistant_first.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 2.08,
+          "elapsed_seconds": 1.373534785,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 1.346709134,
+          "first_audio_equivalent_seconds": 1.364654236,
+          "warm_first_audio_equivalent_seconds": 1.346709134,
+          "audio_complete_seconds": 1.373419726,
+          "playback_possible_seconds": 1.373423559,
+          "timing_ns": {
+            "request_start": 254835508799113,
+            "model_load_start": 254835508799198,
+            "model_loaded": 254835526743550,
+            "inference_start": 254835526744215,
+            "generation_complete": 254836873453349,
+            "audio_complete": 254836882218839,
+            "playback_possible": 254836882222672,
+            "tts_end": 254836882333898
+          },
+          "rtf": 0.6474563144230768,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10209,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 5.2
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_raw_mic.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_assistant_first.wav",
+          "duration_s": 2.98,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254836883014733,
+            "pw_play_start": 254837284856340,
+            "playback_end": 254839497471932,
+            "record_end": 254839869113381,
+            "physical_audio_detected": 254837763014733
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_raw_mic.wav",
+            "sample_rate": 16000,
+            "frames": 47416,
+            "duration_s": 2.9635,
+            "rms": 0.0227676909416914,
+            "peak": 0.1962890625,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 0.88,
+            "onset_frame": 88,
+            "noise_floor_rms": 0.0013422179035842419,
+            "threshold_rms": 0.0053688716143369675,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.6349160075187683,
+              "lag_samples": -14352,
+              "lag_seconds": -0.598
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "stages": {
+          "asr_duration_s": 0.379936329,
+          "llm_ttft_s": 0.071063633,
+          "llm_until_first_chunk_s": 0.098799174,
+          "sentence_buffering_s": 0.027735541,
+          "tts_duration_s": 1.373534785,
+          "wav_ready_to_pw_play_s": 0.402633668,
+          "pw_play_to_acoustic_onset_s": 0.478158393,
+          "playback_duration_s": 2.212615592,
+          "speech_end_to_first_physical_audio_s": 2.733284288
+        },
+        "speech_end_to_first_physical_audio_s": 2.733284288,
+        "dominant_stage": "tts_duration_s",
+        "timing_ns": {
+          "synthetic_user_end": 254835029730445,
+          "asr_start": 254835029814602,
+          "asr_final": 254835409759731,
+          "llm_start": 254835409784532,
+          "llm_first_token": 254835480850512,
+          "first_sentence_chunk_ready": 254835508586053,
+          "tts_start": 254835508703664,
+          "tts_audio_ready": 254836882222672,
+          "pw_play_start": 254837284856340,
+          "physical_audio_detected": 254837763014733,
+          "playback_end": 254839497471932
+        },
+        "events": [
+          {
+            "event": "synthetic_user_end",
+            "monotonic_ns": 254835029730445,
+            "source": "direct_input_wav_handoff"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 254835029814602,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "int8_float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 254835409759731,
+            "text_chars": 137,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 254835409784532
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 254835480850512,
+            "ttft_s": 0.071063633
+          },
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254835508586053,
+            "text_chars": 9
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 254835508688432,
+            "first_chunk": true,
+            "actual_model": "qwen3.5:9b-q4_K_M"
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254835508703664,
+            "text_chars": 9
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254835508796731,
+            "text_chars": 9,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254835526740648,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254835526743826,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254835526744441
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254836873454475
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254836882220557,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_assistant_first.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254836882222897,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_assistant_first.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254836882338004,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_assistant_first.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254836882222672,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_assistant_first.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254837284856340,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254837763014733,
+            "onset_s": 0.88
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 254839497471932,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run4_assistant_first.wav"
+          }
+        ]
+      },
+      {
+        "status": "measured",
+        "run_number": 5,
+        "warmup": false,
+        "user_audio": "results/artifacts/synthetic_asr_regression.wav",
+        "user_asr": {
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 27.84,
+          "elapsed_seconds": 0.380100287,
+          "rtf": 0.013653027550287355,
+          "gpu_memory_peak_mib": 10241,
+          "gpu_memory_delta_peak_mib": 32,
+          "cpu_load_percent": 3.3333333333333335,
+          "segments": [
+            {
+              "start": 0.88,
+              "end": 5.16,
+              "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+            },
+            {
+              "start": 5.66,
+              "end": 8.8,
+              "text": "数字は1、2、3と134像5です。"
+            },
+            {
+              "start": 9.34,
+              "end": 14.6,
+              "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 14.92,
+              "end": 20.46,
+              "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 21.34,
+              "end": 26.94,
+              "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "llm": {
+          "text_until_first_chunk": "こんにちは。",
+          "first_chunk": "こんにちは。",
+          "ttft_s": 0.071707705,
+          "until_first_chunk_s": 0.080927081,
+          "actual_model": "qwen3.5:9b-q4_K_M",
+          "events": [
+            "text_delta",
+            "text_delta"
+          ],
+          "error": null
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_assistant_first.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 10.16,
+          "elapsed_seconds": 6.486266951,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 6.457857468,
+          "first_audio_equivalent_seconds": 6.476525678,
+          "warm_first_audio_equivalent_seconds": 6.457857468,
+          "audio_complete_seconds": 6.486158739,
+          "playback_possible_seconds": 6.486164366,
+          "timing_ns": {
+            "request_start": 254840436595468,
+            "model_load_start": 254840436595545,
+            "model_loaded": 254840455262422,
+            "inference_start": 254840455263678,
+            "generation_complete": 254846913121146,
+            "audio_complete": 254846922754207,
+            "playback_possible": 254846922759834,
+            "tts_end": 254846922862419
+          },
+          "rtf": 0.6356158925196851,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10643,
+          "gpu_memory_delta_peak_mib": 434,
+          "cpu_load_percent": 4.630357142857143
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_raw_mic.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_assistant_first.wav",
+          "duration_s": 11.06,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254846923447128,
+            "pw_play_start": 254847325090094,
+            "playback_end": 254858633877499,
+            "record_end": 254858638161717,
+            "physical_audio_detected": 254850453447128
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_raw_mic.wav",
+            "sample_rate": 16000,
+            "frames": 181902,
+            "duration_s": 11.368875,
+            "rms": 0.011670383624732494,
+            "peak": 0.83587646484375,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 3.53,
+            "onset_frame": 353,
+            "noise_floor_rms": 0.0025045406073331833,
+            "threshold_rms": 0.010018162429332733,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.7268403768539429,
+              "lag_samples": -30384,
+              "lag_seconds": -1.266
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "stages": {
+          "asr_duration_s": 0.380100287,
+          "llm_ttft_s": 0.071707705,
+          "llm_until_first_chunk_s": 0.080927081,
+          "sentence_buffering_s": 0.009219376,
+          "tts_duration_s": 6.486266951,
+          "wav_ready_to_pw_play_s": 0.40233026,
+          "pw_play_to_acoustic_onset_s": 3.128357034,
+          "playback_duration_s": 11.308787405,
+          "speech_end_to_first_physical_audio_s": 10.47825798
+        },
+        "speech_end_to_first_physical_audio_s": 10.47825798,
+        "dominant_stage": "tts_duration_s",
+        "timing_ns": {
+          "synthetic_user_end": 254839975189148,
+          "asr_start": 254839975289617,
+          "asr_final": 254840355398294,
+          "llm_start": 254840355451304,
+          "llm_first_token": 254840427161601,
+          "first_sentence_chunk_ready": 254840436380977,
+          "tts_start": 254840436500826,
+          "tts_audio_ready": 254846922759834,
+          "pw_play_start": 254847325090094,
+          "physical_audio_detected": 254850453447128,
+          "playback_end": 254858633877499
+        },
+        "events": [
+          {
+            "event": "synthetic_user_end",
+            "monotonic_ns": 254839975189148,
+            "source": "direct_input_wav_handoff"
+          },
+          {
+            "event": "asr_start",
+            "monotonic_ns": 254839975289617,
+            "model": "large-v3-turbo",
+            "device": "cuda",
+            "compute_type": "int8_float16"
+          },
+          {
+            "event": "asr_final",
+            "monotonic_ns": 254840355398294,
+            "text_chars": 137,
+            "detected_language": "ja"
+          },
+          {
+            "event": "llm_start",
+            "monotonic_ns": 254840355451304
+          },
+          {
+            "event": "llm_first_token",
+            "monotonic_ns": 254840427161601,
+            "ttft_s": 0.071707705
+          },
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254840436380977,
+            "text_chars": 6
+          },
+          {
+            "event": "llm_end",
+            "monotonic_ns": 254840436486805,
+            "first_chunk": true,
+            "actual_model": "qwen3.5:9b-q4_K_M"
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254840436500826,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254840436593728,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254840455258697,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254840455262711,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254840455264011
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254846913124249
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254846922757452,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_assistant_first.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254846922760078,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_assistant_first.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254846922865917,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_assistant_first.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254846922759834,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_assistant_first.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254847325090094,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254850453447128,
+            "onset_s": 3.53
+          },
+          {
+            "event": "playback_end",
+            "monotonic_ns": 254858633877499,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_run5_assistant_first.wav"
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "attempt_count": 5,
+      "measured_run_count": 5,
+      "repeat_target": 5,
+      "max_attempts": 8,
+      "speech_end_to_first_physical_audio_s": {
+        "values": [
+          3.626572685,
+          2.666519242,
+          2.67037387,
+          2.733284288,
+          10.47825798
+        ],
+        "count": 5,
+        "median": 2.733284288,
+        "p95_equivalent": 9.107920920999998,
+        "min": 2.666519242,
+        "max": 10.47825798
+      },
+      "stage_distributions": {
+        "asr_duration_s": {
+          "values": [
+            0.380223747,
+            0.370330303,
+            0.370327195,
+            0.379936329,
+            0.380100287
+          ],
+          "count": 5,
+          "median": 0.379936329,
+          "p95_equivalent": 0.380199055,
+          "min": 0.370327195,
+          "max": 0.380223747
+        },
+        "llm_ttft_s": {
+          "values": [
+            0.074434678,
+            0.087223783,
+            0.073090772,
+            0.071063633,
+            0.071707705
+          ],
+          "count": 5,
+          "median": 0.073090772,
+          "p95_equivalent": 0.084665962,
+          "min": 0.071063633,
+          "max": 0.087223783
+        },
+        "sentence_buffering_s": {
+          "values": [
+            0.009104891,
+            0.009234959,
+            0.00919037,
+            0.027735541,
+            0.009219376
+          ],
+          "count": 5,
+          "median": 0.009219376,
+          "p95_equivalent": 0.024035424599999997,
+          "min": 0.009104891,
+          "max": 0.027735541
+        },
+        "tts_duration_s": {
+          "values": [
+            1.581900533,
+            1.118748112,
+            1.116789308,
+            1.373534785,
+            6.486266951
+          ],
+          "count": 5,
+          "median": 1.373534785,
+          "p95_equivalent": 5.505393667399999,
+          "min": 1.116789308,
+          "max": 6.486266951
+        },
+        "wav_ready_to_pw_play_s": {
+          "values": [
+            0.402233922,
+            0.402432424,
+            0.402325137,
+            0.402633668,
+            0.40233026
+          ],
+          "count": 5,
+          "median": 0.40233026,
+          "p95_equivalent": 0.4025934192,
+          "min": 0.402233922,
+          "max": 0.402633668
+        },
+        "pw_play_to_acoustic_onset_s": {
+          "values": [
+            1.178335403,
+            0.678204007,
+            0.698333441,
+            0.478158393,
+            3.128357034
+          ],
+          "count": 5,
+          "median": 0.698333441,
+          "p95_equivalent": 2.7383527078,
+          "min": 0.478158393,
+          "max": 3.128357034
+        }
+      },
+      "stage_medians": {
+        "asr_duration_s": {
+          "values": [
+            0.380223747,
+            0.370330303,
+            0.370327195,
+            0.379936329,
+            0.380100287
+          ],
+          "median": 0.379936329
+        },
+        "llm_ttft_s": {
+          "values": [
+            0.074434678,
+            0.087223783,
+            0.073090772,
+            0.071063633,
+            0.071707705
+          ],
+          "median": 0.073090772
+        },
+        "sentence_buffering_s": {
+          "values": [
+            0.009104891,
+            0.009234959,
+            0.00919037,
+            0.027735541,
+            0.009219376
+          ],
+          "median": 0.009219376
+        },
+        "tts_duration_s": {
+          "values": [
+            1.581900533,
+            1.118748112,
+            1.116789308,
+            1.373534785,
+            6.486266951
+          ],
+          "median": 1.373534785
+        },
+        "wav_ready_to_pw_play_s": {
+          "values": [
+            0.402233922,
+            0.402432424,
+            0.402325137,
+            0.402633668,
+            0.40233026
+          ],
+          "median": 0.40233026
+        },
+        "pw_play_to_acoustic_onset_s": {
+          "values": [
+            1.178335403,
+            0.678204007,
+            0.698333441,
+            0.478158393,
+            3.128357034
+          ],
+          "median": 0.698333441
+        }
+      },
+      "dominant_stage": "tts_duration_s",
+      "outlier_policy": "retain every attempt; no latency value is deleted"
+    },
+    "chunking_comparison": [
+      {
+        "max_chars": 48,
+        "timeout_s": 0.8,
+        "label": "baseline_48_0.8",
+        "status": "measured",
+        "representative_text": "こんにちは。音声認識テストの準備が整いましたね。",
+        "chunks": [
+          "こんにちは。",
+          "音声認識テストの準備が整いましたね。"
+        ],
+        "chunk_count": 2,
+        "first_chunk": "こんにちは。",
+        "first_chunk_chars": 6,
+        "fragmentation_proxy": {
+          "short_chunk_count_lt_8": 1,
+          "classification": "no_obvious_overfragmentation"
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_assistant.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 4.48,
+          "elapsed_seconds": 2.883286226,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 2.858258346,
+          "first_audio_equivalent_seconds": 2.873795505,
+          "warm_first_audio_equivalent_seconds": 2.858258346,
+          "audio_complete_seconds": 2.883111675,
+          "playback_possible_seconds": 2.883115056,
+          "timing_ns": {
+            "request_start": 254858881735484,
+            "model_load_start": 254858881735547,
+            "model_loaded": 254858897271680,
+            "inference_start": 254858897272643,
+            "generation_complete": 254861755530989,
+            "audio_complete": 254861764847159,
+            "playback_possible": 254861764850540,
+            "tts_end": 254861765021710
+          },
+          "rtf": 0.6380040950892857,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10643,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 4.496
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_raw.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_assistant.wav",
+          "duration_s": 5.380000000000001,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254861765669398,
+            "pw_play_start": 254862167473588,
+            "playback_end": 254866783415812,
+            "record_end": 254867151487414,
+            "physical_audio_detected": 254863145669398
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_raw.wav",
+            "sample_rate": 16000,
+            "frames": 85987,
+            "duration_s": 5.3741875,
+            "rms": 0.011879059486091137,
+            "peak": 0.177734375,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 1.38,
+            "onset_frame": 138,
+            "noise_floor_rms": 0.001421428518369794,
+            "threshold_rms": 0.005685714073479176,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.701916515827179,
+              "lag_samples": -14940,
+              "lag_seconds": -0.6225
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "first_chunk_ready_s": 1.2546e-05,
+        "tts_ready_s": 2.883185096,
+        "physical_onset_s": 4.264003954,
+        "wav_ready_to_pw_play_s": 0.402623048,
+        "pw_play_to_acoustic_onset_s": 0.97819581,
+        "events": [
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254858881677990,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254858881679970,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254858881734055,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254858897268362,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254858897272025,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254858897273034
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254861755531748
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254861764848774,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_assistant.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254861764850768,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_assistant.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254861765026286,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_assistant.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254861764850540,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_baseline_48_0.8_assistant.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254862167473588,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254863145669398,
+            "onset_s": 1.38
+          }
+        ]
+      },
+      {
+        "max_chars": 32,
+        "timeout_s": 0.5,
+        "label": "bounded_32_0.5",
+        "status": "measured",
+        "representative_text": "こんにちは。音声認識テストの準備が整いましたね。",
+        "chunks": [
+          "こんにちは。",
+          "音声認識テストの準備が整いましたね。"
+        ],
+        "chunk_count": 2,
+        "first_chunk": "こんにちは。",
+        "first_chunk_chars": 6,
+        "fragmentation_proxy": {
+          "short_chunk_count_lt_8": 1,
+          "classification": "no_obvious_overfragmentation"
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_assistant.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 4.56,
+          "elapsed_seconds": 2.918828813,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 2.894564811,
+          "first_audio_equivalent_seconds": 2.909944866,
+          "warm_first_audio_equivalent_seconds": 2.894564811,
+          "audio_complete_seconds": 2.918749534,
+          "playback_possible_seconds": 2.918752976,
+          "timing_ns": {
+            "request_start": 254867288030024,
+            "model_load_start": 254867288030072,
+            "model_loaded": 254867303409127,
+            "inference_start": 254867303410079,
+            "generation_complete": 254870197974890,
+            "audio_complete": 254870206779558,
+            "playback_possible": 254870206783000,
+            "tts_end": 254870206858837
+          },
+          "rtf": 0.6347729848684212,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10643,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 4.968
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_raw.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_assistant.wav",
+          "duration_s": 5.46,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254870207560858,
+            "pw_play_start": 254870609124048,
+            "playback_end": 254875317049886,
+            "record_end": 254875672674761,
+            "physical_audio_detected": 254872167560858
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_raw.wav",
+            "sample_rate": 16000,
+            "frames": 87011,
+            "duration_s": 5.4381875,
+            "rms": 0.006311721168458462,
+            "peak": 0.05364990234375,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 1.96,
+            "onset_frame": 196,
+            "noise_floor_rms": 0.00181102124042809,
+            "threshold_rms": 0.00724408496171236,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.6949768662452698,
+              "lag_samples": -14976,
+              "lag_seconds": -0.624
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "first_chunk_ready_s": 1.1317e-05,
+        "tts_ready_s": 2.918815288,
+        "physical_onset_s": 4.879593146,
+        "wav_ready_to_pw_play_s": 0.402341048,
+        "pw_play_to_acoustic_onset_s": 1.55843681,
+        "events": [
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254867287979029,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254867287980304,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254867288029150,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254867303405994,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254867303409435,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254867303410741
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254870197975657
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254870206781314,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_assistant.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254870206783256,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_assistant.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254870206861869,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_assistant.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254870206783000,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_32_0.5_assistant.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254870609124048,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254872167560858,
+            "onset_s": 1.96
+          }
+        ]
+      },
+      {
+        "max_chars": 24,
+        "timeout_s": 0.5,
+        "label": "bounded_24_0.5",
+        "status": "measured",
+        "representative_text": "こんにちは。音声認識テストの準備が整いましたね。",
+        "chunks": [
+          "こんにちは。",
+          "音声認識テストの準備が整いましたね。"
+        ],
+        "chunk_count": 2,
+        "first_chunk": "こんにちは。",
+        "first_chunk_chars": 6,
+        "fragmentation_proxy": {
+          "short_chunk_count_lt_8": 1,
+          "classification": "no_obvious_overfragmentation"
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_assistant.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 3.28,
+          "elapsed_seconds": 2.101164318,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 2.083691253,
+          "first_audio_equivalent_seconds": 2.099249803,
+          "warm_first_audio_equivalent_seconds": 2.083691253,
+          "audio_complete_seconds": 2.100978863,
+          "playback_possible_seconds": 2.10098196,
+          "timing_ns": {
+            "request_start": 254875825982398,
+            "model_load_start": 254875825982466,
+            "model_loaded": 254875841540141,
+            "inference_start": 254875841540948,
+            "generation_complete": 254877925232201,
+            "audio_complete": 254877926961261,
+            "playback_possible": 254877926964358,
+            "tts_end": 254877927146716
+          },
+          "rtf": 0.6352717234756098,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10643,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 4.561111111111112
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_raw.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_assistant.wav",
+          "duration_s": 4.18,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254877927807742,
+            "pw_play_start": 254878329586342,
+            "playback_end": 254881759506097,
+            "record_end": 254882114622029,
+            "physical_audio_detected": 254879717807742
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_raw.wav",
+            "sample_rate": 16000,
+            "frames": 66531,
+            "duration_s": 4.1581875,
+            "rms": 0.01561032049357891,
+            "peak": 0.140777587890625,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 1.79,
+            "onset_frame": 179,
+            "noise_floor_rms": 0.002433659043163061,
+            "threshold_rms": 0.009734636172652245,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.7889596819877625,
+              "lag_samples": -15060,
+              "lag_seconds": -0.6275
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "first_chunk_ready_s": 1.0626e-05,
+        "tts_ready_s": 2.101047172,
+        "physical_onset_s": 3.891890556,
+        "wav_ready_to_pw_play_s": 0.402621984,
+        "pw_play_to_acoustic_onset_s": 1.3882214,
+        "events": [
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254875825927812,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254875825929208,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254875825981440,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254875841538115,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254875841540422,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254875841541176
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254877925233742
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254877926962695,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_assistant.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254877926964604,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_assistant.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254877927150662,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_assistant.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254877926964358,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_bounded_24_0.5_assistant.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254878329586342,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254879717807742,
+            "onset_s": 1.79
+          }
+        ]
+      },
+      {
+        "max_chars": 16,
+        "timeout_s": 0.3,
+        "label": "aggressive_16_0.3",
+        "status": "measured",
+        "representative_text": "こんにちは。音声認識テストの準備が整いましたね。",
+        "chunks": [
+          "こんにちは。",
+          "音声認識テストの準備が整いましたね。"
+        ],
+        "chunk_count": 2,
+        "first_chunk": "こんにちは。",
+        "first_chunk_chars": 6,
+        "fragmentation_proxy": {
+          "short_chunk_count_lt_8": 1,
+          "classification": "no_obvious_overfragmentation"
+        },
+        "tts": {
+          "text": "こんにちは。",
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_assistant.wav",
+          "sample_rate": 24000,
+          "audio_seconds": 1.68,
+          "elapsed_seconds": 1.102985433,
+          "model_load_seconds": 0.0,
+          "inference_elapsed_seconds": 1.079103075,
+          "first_audio_equivalent_seconds": 1.094394588,
+          "warm_first_audio_equivalent_seconds": 1.079103075,
+          "audio_complete_seconds": 1.102881312,
+          "playback_possible_seconds": 1.102885663,
+          "timing_ns": {
+            "request_start": 254882243494045,
+            "model_load_start": 254882243494114,
+            "model_loaded": 254882258784777,
+            "inference_start": 254882258785558,
+            "generation_complete": 254883337888633,
+            "audio_complete": 254883346375357,
+            "playback_possible": 254883346379708,
+            "tts_end": 254883346479478
+          },
+          "rtf": 0.6423232589285714,
+          "device": "cuda:0",
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "streaming_supported": false,
+          "gpu_memory_peak_mib": 10643,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 4.29
+        },
+        "playback": {
+          "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_raw.wav",
+          "reference": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_assistant.wav",
+          "duration_s": 2.58,
+          "playback_target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "capture_target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "playback_stdout": "",
+          "playback_stderr": "",
+          "timing_ns": {
+            "record_start": 254883347010030,
+            "pw_play_start": 254883748654352,
+            "playback_end": 254885599962344,
+            "record_end": 254885934043342,
+            "physical_audio_detected": 254884547010030
+          },
+          "recording_stats": {
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_raw.wav",
+            "sample_rate": 16000,
+            "frames": 40931,
+            "duration_s": 2.5581875,
+            "rms": 0.010445588268339634,
+            "peak": 0.0626220703125,
+            "clipping_ratio": 0.0
+          },
+          "acoustic_onset": {
+            "detected": true,
+            "onset_s": 1.2,
+            "onset_frame": 120,
+            "noise_floor_rms": 0.0014542636927217245,
+            "threshold_rms": 0.005817054770886898,
+            "sample_rate": 16000,
+            "frame_ms": 10,
+            "search_start_s": 0.27999999999999997,
+            "noise_window_s": 0.2,
+            "min_consecutive_frames": 2,
+            "reference_alignment": {
+              "correlation": 0.7945719361305237,
+              "lag_samples": -15120,
+              "lag_seconds": -0.63
+            }
+          },
+          "physical_audio_detected": true
+        },
+        "first_chunk_ready_s": 1.0991e-05,
+        "tts_ready_s": 1.102949257,
+        "physical_onset_s": 2.303579579,
+        "wav_ready_to_pw_play_s": 0.402274644,
+        "pw_play_to_acoustic_onset_s": 0.798355678,
+        "events": [
+          {
+            "event": "first_sentence_chunk_ready",
+            "monotonic_ns": 254882243441442,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_start",
+            "monotonic_ns": 254882243442808,
+            "text_chars": 6
+          },
+          {
+            "event": "tts_request",
+            "monotonic_ns": 254882243493227,
+            "text_chars": 6,
+            "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+          },
+          {
+            "event": "tts_model_load_start",
+            "monotonic_ns": 254882258782150,
+            "cold": false
+          },
+          {
+            "event": "tts_model_loaded",
+            "monotonic_ns": 254882258785089,
+            "cold": false
+          },
+          {
+            "event": "tts_inference_start",
+            "monotonic_ns": 254882258785796
+          },
+          {
+            "event": "tts_generation_complete",
+            "monotonic_ns": 254883337890088
+          },
+          {
+            "event": "tts_audio_complete",
+            "monotonic_ns": 254883346377914,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_assistant.wav"
+          },
+          {
+            "event": "tts_playback_possible",
+            "monotonic_ns": 254883346379946,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_assistant.wav"
+          },
+          {
+            "event": "tts_end",
+            "monotonic_ns": 254883346482373,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_assistant.wav",
+            "sample_rate": 24000
+          },
+          {
+            "event": "tts_audio_ready",
+            "monotonic_ns": 254883346379708,
+            "path": "results/artifacts/live_latency_20260912T051042Z_254803196003235_aggressive_16_0.3_assistant.wav"
+          },
+          {
+            "event": "pw_play_start",
+            "monotonic_ns": 254883748654352,
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          {
+            "event": "physical_audio_detected",
+            "monotonic_ns": 254884547010030,
+            "onset_s": 1.2
+          }
+        ]
+      }
+    ],
+    "inventory": {
+      "sinks": [
+        {
+          "node_id": 54,
+          "name": "GoStream アナログステレオ",
+          "kind": "sink",
+          "target": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+        },
+        {
+          "node_id": 120,
+          "name": "Built-in Audio デジタルステレオ (IEC958)",
+          "kind": "sink",
+          "target": "alsa_output.pci-0000_00_1f.3.iec958-stereo"
+        },
+        {
+          "node_id": 131,
+          "name": "USB Audio アナログステレオ",
+          "kind": "sink",
+          "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        }
+      ],
+      "sources": [
+        {
+          "node_id": 55,
+          "name": "GoStream アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+        },
+        {
+          "node_id": 121,
+          "name": "Built-in Audio アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.pci-0000_00_1f.3.analog-stereo.9"
+        },
+        {
+          "node_id": 132,
+          "name": "USB Audio アナログステレオ",
+          "kind": "source",
+          "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+        }
+      ],
+      "devices": [
+        "Built-in Audio",
+        "GoStream",
+        "HDA NVidia",
+        "USB Audio",
+        "card 1: GoStream [GoStream], device 0: USB Audio [USB Audio]",
+        "card 3: Audio [USB Audio], device 0: USB Audio [USB Audio]"
+      ],
+      "usb_microphone": {
+        "node_id": 132,
+        "name": "USB Audio アナログステレオ",
+        "kind": "source",
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      },
+      "usb_speaker": {
+        "node_id": 131,
+        "name": "USB Audio アナログステレオ",
+        "kind": "sink",
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      }
+    },
+    "targets": {
+      "speaker": {
+        "node_id": 131,
+        "name": "USB Audio アナログステレオ",
+        "kind": "sink",
+        "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      },
+      "microphone": {
+        "node_id": 132,
+        "name": "USB Audio アナログステレオ",
+        "kind": "source",
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+      }
+    },
+    "representative_output": "こんにちは。音声認識テストの準備が整いましたね。",
+    "measurement_parameters": {
+      "baseline_max_chars": 48,
+      "baseline_timeout_s": 0.8,
+      "lead_s": 0.4,
+      "tail_s": 0.5,
+      "onset_gate": "10 ms RMS frames, leading noise-floor median/MAD, threshold max(4x floor, floor+6x MAD, 0.004), 2 consecutive frames"
+    }
+  }
+}

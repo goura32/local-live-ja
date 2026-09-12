@@ -7,15 +7,15 @@
 | component | state | 根拠 |
 |---|---|---|
 | ASR | measured | `large-v3-turbo`、GPU 2 mode + CPU、同一synthetic WAVで完走 |
-| TTS | measured | GPU cold 1回、短/中/長のwarm各3回、CPU cold reference |
+| TTS | measured | GPU cold 1回、6長さ×warm各5回、CPU cold reference |
 | local LLM | measured | Ollama `qwen3.5:9b-q4_K_M` normal stream完了 |
 | OpenRouter LLM | measured with variability | requested `openrouter/free`、actual modelはrequestごとに変動 |
 | tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
 | E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
-| AEC | measured | stable `node.name` targetへ修正後、物理USB speaker→room→microphoneでOFF/ONを測定。効果は弱い |
-| test reproducibility | pass | 単一process・直列pytest、exit code 0、33 tests pass |
+| AEC | measured with limitations | stable targetで16条件matrixと3候補×3 repeatを測定。VAD false triggerは残る |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、41 tests pass |
 
-総合判定は`measured`。ソフトウェア縦切りに加え、物理USB speaker→room→microphoneのAEC OFF/ON経路まで実測できた。ただしAEC抑圧効果は今回の単一runでは弱く、Live用途の主要制約はGPU TTS warm短文median 1.9032秒とlocal GPU E2E A median 6.2533秒である。真のonline Qwen3-TTS streamingは前提にしていない。
+総合判定は`measured_with_limitations`。phase-2でsynthetic user endからraw USB microphone acoustic onsetまでの物理latency、TTS length matrix、AEC volume/gain matrix、CPU ASR resident profileを追加した。live latencyは3.4000秒で2秒目標未達、AECは減衰改善を確認したがassistant-only VAD false triggerが残る。真のonline Qwen3-TTS streamingは前提にしていない。
 
 ## 実行環境
 
@@ -32,7 +32,7 @@
 - PipeWire 1.0.5、Ollama API 0.33.3
 - `flash-attn`未導入、SoX executable未検出。ただしmanual PyTorch TTSとE2Eは完走した。
 
-## ASR: synthetic regression
+## Phase-1 baseline: ASR synthetic regression
 
 Qwen3-TTSで生成した同一28.0秒WAVを、`language=ja`の`large-v3-turbo`へ戻す回帰試験である。実マイク音声の精度、話者差、部屋音響、MOSではない。CERはUnicode正規化後に算出した。
 
@@ -44,7 +44,7 @@ Qwen3-TTSで生成した同一28.0秒WAVを、`language=ja`の`large-v3-turbo`�
 
 3 modeのCERは同一だった。GPU既定は、認識結果同等で増分VRAMが少ない`int8_float16`とする。CPU行のnvidia-smi peakは別プロセスの既存GPU使用量を含むため、CPU比較には増分0 MiBを使う。
 
-## TTS cold/warm latency
+## Phase-1 baseline: TTS cold/warm latency
 
 Modelは`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、speaker=`Ono_Anna`、language=`Japanese`。GPU測定は新しいengineを未loadで開始し、short cold 1回の後、同じmodel instanceをresidentにしたまま各chunkを3回生成した。warm rowsの`model_load_seconds`は全て0.0である。
 
@@ -66,7 +66,7 @@ Modelは`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、speaker=`Ono_Anna`、language=`
 
 CPU referenceはcold 1回で、model load 4.7537秒、inference開始からaudio相当まで29.1917秒、audio complete 33.9474秒、total 33.9475秒、RTF 3.6858だった。したがって実用的な初動時間はGPU warm shortの約1.9秒を基準にし、長いLLM出力はsentence chunkingで分割する。Qwen3-TTS独自online engineは作っていない。
 
-## LLM
+## Phase-1 baseline: LLM
 
 | provider | requested model | normal TTFT (s) | normal total (s) | actual model | tool chain |
 |---|---|---:|---:|---|---|
@@ -87,7 +87,7 @@ OpenRouterの`actual_model`はfree routerがrequestごとに選ぶため、上�
 
 修正前の完全なベンチJSONは`results/history/bench_llm_baseline_869809d.json`、本文要約と公式形式との差分は`results/history/ollama_tool_format_diagnostic.json`に残した。credentialやraw response body全体は保存していない。
 
-## E2E A/B/C/D
+## Phase-1 baseline: E2E A/B/C/D
 
 同一synthetic user WAVに対して、各構成はfull warm-up後に成功run 3本を目標にした。C/Dのvisible textなしrunは失敗として保持し、medianからは成功runだけを使った。outlierは削除していない。GPU ASRはPoC既定の`int8_float16`、CPU ASRは`int8`、TTSはGPUである。
 
@@ -124,7 +124,7 @@ assistant CERは全runで、実際のTTS rowの`text`を`spoken_text`として�
 
 基準JSONのD=`4.8333`は、old runで実際にspokenだった`了解です、テスト開始します。`と、その生成WAVをASRした長い誤認識列を比較した値だった。比較対象の取り違えではないが、old schemaではTTS rowとassistant-ASR rowの対応path/timingが弱く、今回index対応の`assistant_roundtrip`へ修正した。最新Dの高CER/402秒runは、actual free modelがthinking processを発話textとして返したことと、長文TTS/ASRの品質・時間変動が原因であり、CERロジックの期待回答混入ではない。
 
-## AEC
+## Phase-1 baseline: AEC single-run
 
 最新run IDは`aec_20260911T232048Z_233809883876679`。従来の`wpctl` runtime node ID指定ではraw captureが無音になるrunがあったため、`pactl`から得た安定した`node.name`をtargetとして保持するよう修正した。
 
@@ -141,13 +141,13 @@ AEC経路とWebRTC echo-cancel moduleの動作は確認できた。一方、今�
 
 今回の診断ではUSB microphone自体は有効信号を取得でき、無音の主因は一時的な数値node IDを`pw-record`/`pw-play` targetとして使用していた点だった。物理nodeは`pactl`のstable nameで指定し、数値IDは診断情報としてのみ記録する。旧blocked結果はGit履歴と`results/history/bench_aec_baseline_869809d.json`に残している。
 
-## テストと成果物
+## Phase-1 baseline: テストと成果物
 
 - pytest command: `.venv/bin/python -m pytest -q`（環境変数でbytecode/BLAS threadを抑制）
 - working tree: `/home/ws1/projects/local-live-ja`
 - execution: single process, serial
 - exit code: 0
-- passed: 33（基準の28 tests + 測定回帰5 tests）
+- passed: 33（phase-1 baseline。current phase-2 finalは41 tests）
 - 過去のSIGTERM/SIGKILL実行はpassに算入していない。
 - `uv build`: baseline commitで成功済み。今回のsource変更後も下記最終検証で再実行する。
 - JSON: `results/doctor.json`, `bench_asr.json`, `bench_tts.json`, `bench_llm.json`, `bench_e2e.json`, `bench_aec.json`, `run_latest.json`, `summary.json`
@@ -182,6 +182,123 @@ UV_LINK_MODE=copy uv sync --extra dev --extra voice
 .venv/bin/local-live bench llm
 .venv/bin/local-live bench e2e
 .venv/bin/local-live bench aec
+.venv/bin/local-live bench live-latency
+.venv/bin/local-live bench aec-matrix
 .venv/bin/python -m pytest -q
 .venv/bin/python bench/summarize_results.py
 ```
+
+## 次フェーズ検証（基準commit `39610a58e1cf16dc49ffa08b3f22f3cb34cb6c0e`）
+
+今回の追加結果は `results/bench_live_latency.json`、`results/bench_aec_matrix.json`、
+`results/bench_tts.json`、`results/bench_asr.json` に保存した。生成WAVは従来どおりGit管理外である。
+
+### P0: speech-end → first physical audio
+
+指標名は `synthetic_user_end_to_first_physical_assistant_audio`。人間の発話終了ではなく、
+synthetic user WAVをASRへ直接handoffした時刻から、USB speakerの音をraw USB microphoneで検出した
+acoustic onsetまでを測った値である。raw recorderはsynthetic_user_end直前に開始し、WAV ready後の
+`pw-play`はmeasurement leadを挿入せず起動した。AEC sourceは使用していない。
+
+5回すべてphysical onsetを検出した。
+
+- 個別値: 3.0500 / 3.7500 / 3.5700 / 3.4000 / 2.3500 秒
+- median: 3.4000 秒
+- p95相当（inclusive、5点）: 3.7140 秒
+- min/max: 2.3500 / 3.7500 秒
+- ASR median: 0.3750 秒
+- local Ollama TTFT median: 0.0755 秒
+- sentence buffering median: 0.0091 秒
+- TTS median: 1.6754 秒
+- WAV ready → pw-play median: 0.0008 秒
+- pw-play → acoustic onset median: 1.2598 秒
+- 支配stage: TTS（次点は物理再生経路）
+
+第一目標の2.0秒、良好目標の1.5秒はいずれも未達である。outlierは削除していない。
+以前のcapture開始後に0.4秒leadを挿入した測定は、比較用に
+`results/history/bench_live_latency_lead_included_pre_active_capture.json` として残した。
+
+chunking候補のphysical比較も同じ代表LLM出力で実施した。`48/0.8`、`32/0.5`、`24/0.5`、
+`16/0.3`を総当たりせず比較し、各候補のchunk数、TTS ready、physical onset、細切れproxyを
+JSONへ保存した。これは1回ずつの候補比較であり、候補の絶対最適性やMOSを意味しない。
+
+### P0: Qwen3-TTS warm latency
+
+GPU coldはchars_8で、model loadとwarm inferenceを混在させていない。
+
+- cold chars_8 total: 9.9575秒
+- cold model load: 6.1666秒
+- cold inference start → first-audio-equivalent: 3.7818秒
+- cold WAV/playback-ready: 9.9574秒
+
+resident modelで各5回測ったwarm medianは以下のとおりである。全warm runの
+`model_load_seconds`は0.0秒である。
+
+| chunk | 実文字数 | total | inference start → first audio-equivalent | RTF |
+|---|---:|---:|---:|---:|
+| chars_5 | 5 | 1.4283 s | 1.3998 s | 0.6482 |
+| chars_8 | 8 | 2.3944 s | 2.3673 s | 0.6419 |
+| chars_12 | 12 | 1.8237 s | 1.7989 s | 0.6425 |
+| chars_20 | 20 | 2.8286 s | 2.8012 s | 0.6380 |
+| chars_30 | 29 | 3.7079 s | 3.6827 s | 0.6394 |
+| chars_50 | 61 | 6.8982 s | 6.8687 s | 0.6381 |
+
+今回の最短条件はchars_5の1.4283秒。Qwen3-TTS公式Python APIのtrue online streamingは
+仮定せず、既存のsentence chunking方式を維持する。ただし実LLMの最初のchunk（今回6文字）では
+TTS medianが1.6754秒であり、physical latencyも3.4000秒だった。2秒未満を狙う次フェーズでは、
+Qwen3-TTSのserving方式または別TTSの比較が必要である。
+
+### P1: microphone volume × speaker volume echo-only matrix
+
+同一 `results/artifacts/aec_reference.wav` を再利用し、各条件を
+`raw capture → AEC OFF → AEC ON` の順に直列測定した。Pulse/PipeWireのstable nameを使い、
+speaker/source volumeは25/50/75/100%の範囲だけを設定した（boostなし）。16/16条件がmeasuredで、
+75% gateによるsafety skipはなかった。
+
+- residual echo attenuation: median 5.9927 dB、range 2.4633–8.1968 dB
+- reference correlation: OFF median 0.6002、ON median 0.2500
+- assistant-only VAD false-trigger duration ratio: OFF median 0.6640、ON median 0.4123
+- assistant-only VAD false-trigger run rate: OFF 15/16 (0.9375)、ON 13/16 (0.8125)
+- peak/clipping: 全条件のclipping ratioは0.0。最大peakもraw 0.5896、OFF 0.4438、ON 0.3272で、100%条件をskipしなかった
+
+これはRMSだけで選んだ値ではない。VAD false trigger低減、Whisper自己再認識、attenuation、
+correlation、clipの順に候補を選び、単発採用を避けるため3候補を各3回再測定した。
+
+repeat測定で今回のecho-only operating envelopeとして観測された範囲は、speaker 75–100%、
+microphone 25–50%である。これは人間音声の最適gainでも絶対最適条件でもない。
+
+| 条件 | attenuation median (min–max) | AEC ON VAD ratio median | ON false-trigger rate | ON Whisper self-rerecognition rate | ON CER median | clipping |
+|---|---:|---:|---:|---:|---:|---|
+| speaker 75 / mic 25 | 7.1227 (6.7235–9.0895) dB | 0.2630 | 3/3 | 3/3 | 0.1765 | none |
+| speaker 100 / mic 25 | 6.8942 (5.9480–8.4676) dB | 0.4058 | 3/3 | 3/3 | 0.1765 | none |
+| speaker 75 / mic 50 | 6.9825 (6.3684–7.6316) dB | 0.3442 | 3/3 | 3/3 | 0.3235 | none |
+
+現行baseline約1.6591 dBに対して、repeat-tested候補のattenuation medianは明確に上回った。
+一方、VAD false triggerは理想のゼロではなく、Whisper ON transcriptも毎回空になるわけではない。
+従ってAECは改善を確認したが、assistant自己音声による反応を解消したとは判定しない。
+
+### P2: CPU ASR 11秒問題
+
+同一 `synthetic_asr_regression.wav` をresidentの同一CPU `large-v3-turbo` modelで処理し、
+cold 1回とwarm 5回を分離した。
+
+- model load: 1.9547秒
+- 音声全体: 27.84秒、VAD後: 25.94秒
+- warm inference median: 10.8950秒
+- warm total median: 10.9033秒
+- warm file decode/resample median: 0.0052秒
+- warm VAD median: 0.0003秒
+- warm RTF（VAD後音声基準）: 0.4200
+- E2E Bの既存CPU ASR stage median: 11.1497秒
+
+従って約11秒の原因はfile decode/resampleやVADではなく、25.94秒のVAD後utteranceに対する
+faster-whisper/CTranslate2 inferenceである。E2Eとの差は約0.25秒で、同一modelのwarm profileと
+整合する。thread tuning sweepは行っていない。CPU ASRは品質確認用fallbackとしては採用可能だが、
+現在のLive latencyの主経路には遅すぎる。
+
+### 状態と履歴
+
+今回の状態は `results/summary.json` の `component_judgement` に記録した。
+live latencyはphysical測定として成立したが2秒目標未達、AEC matrixは測定成立したがfalse trigger
+残存のため、総合判定は `measured_with_limitations` とする。基準時点のAEC/E2E/TTS/ASR結果と
+過去outlierは `results/history/` から削除していない。

@@ -1,0 +1,223 @@
+{
+  "schema": "local-live-ja/bench-asr/v2",
+  "benchmark": "asr",
+  "started_at": "2026-09-11T19:48:49Z",
+  "finished_at": "2026-09-11T19:49:35Z",
+  "environment": {
+    "captured_at": "2026-09-11T19:49:35.194133+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "metric_name": "synthetic ASR regression",
+    "input_audio": "results/artifacts/synthetic_asr_regression.wav",
+    "same_wav_for_all_modes": true,
+    "reference_text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+    "synthetic_generation": {
+      "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+      "path": "results/artifacts/synthetic_asr_regression.wav",
+      "source": "qwen3_tts",
+      "tts": {
+        "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
+        "path": "results/artifacts/synthetic_asr_regression.wav",
+        "sample_rate": 24000,
+        "audio_seconds": 27.84,
+        "elapsed_seconds": 29.247680644,
+        "model_load_seconds": 11.285067037,
+        "inference_elapsed_seconds": 17.95186803,
+        "first_audio_equivalent_seconds": 29.236937568,
+        "warm_first_audio_equivalent_seconds": 17.95186803,
+        "audio_complete_seconds": 29.247565611,
+        "playback_possible_seconds": 29.24756581,
+        "timing_ns": {
+          "request_start": 221089958923541,
+          "model_load_start": 221089958923663,
+          "model_loaded": 221101243990700,
+          "inference_start": 221101243993079,
+          "generation_complete": 221119195861109,
+          "audio_complete": 221119206489152,
+          "playback_possible": 221119206489351,
+          "tts_end": 221119206604185
+        },
+        "rtf": 0.6448228459051725,
+        "device": "cuda:0",
+        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+        "speaker": "Ono_Anna",
+        "streaming_supported": false,
+        "gpu_memory_peak_mib": 10337,
+        "gpu_memory_delta_peak_mib": 3682,
+        "cpu_load_percent": 4.728326180257511
+      }
+    },
+    "modes": {
+      "gpu_float16": {
+        "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+        "model": "large-v3-turbo",
+        "device": "cuda",
+        "compute_type": "float16",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 27.84,
+        "elapsed_seconds": 1.600918937,
+        "rtf": 0.057504272162356325,
+        "gpu_memory_peak_mib": 9365,
+        "gpu_memory_delta_peak_mib": 2090,
+        "cpu_load_percent": 4.3,
+        "segments": [
+          {
+            "start": 0.88,
+            "end": 5.16,
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+          },
+          {
+            "start": 5.66,
+            "end": 8.8,
+            "text": "数字は1、2、3と134像5です。"
+          },
+          {
+            "start": 9.34,
+            "end": 14.6,
+            "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+          },
+          {
+            "start": 14.92,
+            "end": 20.46,
+            "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+          },
+          {
+            "start": 21.34,
+            "end": 26.94,
+            "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+          }
+        ],
+        "status": "measured",
+        "cer": 0.203125
+      },
+      "gpu_int8_float16": {
+        "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+        "model": "large-v3-turbo",
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 27.84,
+        "elapsed_seconds": 1.996194658,
+        "rtf": 0.07170239432471265,
+        "gpu_memory_peak_mib": 8373,
+        "gpu_memory_delta_peak_mib": 1096,
+        "cpu_load_percent": 3.770588235294117,
+        "segments": [
+          {
+            "start": 0.88,
+            "end": 5.16,
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+          },
+          {
+            "start": 5.66,
+            "end": 8.8,
+            "text": "数字は1、2、3と134像5です。"
+          },
+          {
+            "start": 9.34,
+            "end": 14.6,
+            "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+          },
+          {
+            "start": 14.92,
+            "end": 20.46,
+            "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+          },
+          {
+            "start": 21.34,
+            "end": 26.94,
+            "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+          }
+        ],
+        "status": "measured",
+        "cer": 0.203125
+      },
+      "cpu_int8": {
+        "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134像5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+        "model": "large-v3-turbo",
+        "device": "cpu",
+        "compute_type": "int8",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 27.84,
+        "elapsed_seconds": 12.815242293,
+        "rtf": 0.46031761109913794,
+        "gpu_memory_peak_mib": 7277,
+        "gpu_memory_delta_peak_mib": 0,
+        "cpu_load_percent": 4.9527777777777775,
+        "segments": [
+          {
+            "start": 0.9,
+            "end": 5.16,
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+          },
+          {
+            "start": 5.66,
+            "end": 8.8,
+            "text": "数字は1、2、3と134像5です。"
+          },
+          {
+            "start": 9.34,
+            "end": 14.6,
+            "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+          },
+          {
+            "start": 14.92,
+            "end": 20.46,
+            "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+          },
+          {
+            "start": 21.34,
+            "end": 26.94,
+            "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+          }
+        ],
+        "status": "measured",
+        "cer": 0.203125
+      }
+    },
+    "comparison": {
+      "gpu_compute_types": [
+        "float16",
+        "int8_float16"
+      ],
+      "cpu_compute_type": "int8"
+    },
+    "limitations": [
+      "This is TTS-generated audio, not a human-speech accuracy evaluation."
+    ]
+  }
+}

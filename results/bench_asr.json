@@ -1,10 +1,10 @@
 {
   "schema": "local-live-ja/bench-asr/v2",
   "benchmark": "asr",
-  "started_at": "2026-09-11T19:48:49Z",
-  "finished_at": "2026-09-11T19:49:35Z",
+  "started_at": "2026-09-12T05:29:43Z",
+  "finished_at": "2026-09-12T05:31:08Z",
   "environment": {
-    "captured_at": "2026-09-11T19:49:35.194133+00:00",
+    "captured_at": "2026-09-12T05:31:08.779904+00:00",
     "hostname": "ws1",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
@@ -42,38 +42,9 @@
     "synthetic_generation": {
       "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
       "path": "results/artifacts/synthetic_asr_regression.wav",
-      "source": "qwen3_tts",
-      "tts": {
-        "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は一、二、三と12345です。GPU、CUDA、Docker、Ollama、Python 3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTX 5070 TiとUSB microphoneの状態も確認します。",
-        "path": "results/artifacts/synthetic_asr_regression.wav",
-        "sample_rate": 24000,
-        "audio_seconds": 27.84,
-        "elapsed_seconds": 29.247680644,
-        "model_load_seconds": 11.285067037,
-        "inference_elapsed_seconds": 17.95186803,
-        "first_audio_equivalent_seconds": 29.236937568,
-        "warm_first_audio_equivalent_seconds": 17.95186803,
-        "audio_complete_seconds": 29.247565611,
-        "playback_possible_seconds": 29.24756581,
-        "timing_ns": {
-          "request_start": 221089958923541,
-          "model_load_start": 221089958923663,
-          "model_loaded": 221101243990700,
-          "inference_start": 221101243993079,
-          "generation_complete": 221119195861109,
-          "audio_complete": 221119206489152,
-          "playback_possible": 221119206489351,
-          "tts_end": 221119206604185
-        },
-        "rtf": 0.6448228459051725,
-        "device": "cuda:0",
-        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
-        "speaker": "Ono_Anna",
-        "streaming_supported": false,
-        "gpu_memory_peak_mib": 10337,
-        "gpu_memory_delta_peak_mib": 3682,
-        "cpu_load_percent": 4.728326180257511
-      }
+      "source": "reused_existing_generated_audio",
+      "sample_rate": 24000,
+      "duration_s": 27.84
     },
     "modes": {
       "gpu_float16": {
@@ -85,11 +56,11 @@
         "detected_language": "ja",
         "language_probability": 1.0,
         "audio_seconds": 27.84,
-        "elapsed_seconds": 1.600918937,
-        "rtf": 0.057504272162356325,
-        "gpu_memory_peak_mib": 9365,
-        "gpu_memory_delta_peak_mib": 2090,
-        "cpu_load_percent": 4.3,
+        "elapsed_seconds": 1.776217025,
+        "rtf": 0.06380089888649425,
+        "gpu_memory_peak_mib": 8975,
+        "gpu_memory_delta_peak_mib": 2320,
+        "cpu_load_percent": 3.6785714285714284,
         "segments": [
           {
             "start": 0.88,
@@ -129,11 +100,11 @@
         "detected_language": "ja",
         "language_probability": 1.0,
         "audio_seconds": 27.84,
-        "elapsed_seconds": 1.996194658,
-        "rtf": 0.07170239432471265,
-        "gpu_memory_peak_mib": 8373,
-        "gpu_memory_delta_peak_mib": 1096,
-        "cpu_load_percent": 3.770588235294117,
+        "elapsed_seconds": 2.149028714,
+        "rtf": 0.07719212334770115,
+        "gpu_memory_peak_mib": 7983,
+        "gpu_memory_delta_peak_mib": 1098,
+        "cpu_load_percent": 3.8333333333333335,
         "segments": [
           {
             "start": 0.88,
@@ -173,11 +144,11 @@
         "detected_language": "ja",
         "language_probability": 1.0,
         "audio_seconds": 27.84,
-        "elapsed_seconds": 12.815242293,
-        "rtf": 0.46031761109913794,
-        "gpu_memory_peak_mib": 7277,
+        "elapsed_seconds": 12.818498204,
+        "rtf": 0.46043456192528737,
+        "gpu_memory_peak_mib": 6885,
         "gpu_memory_delta_peak_mib": 0,
-        "cpu_load_percent": 4.9527777777777775,
+        "cpu_load_percent": 4.608256880733945,
         "segments": [
           {
             "start": 0.9,
@@ -218,6 +189,1180 @@
     },
     "limitations": [
       "This is TTS-generated audio, not a human-speech accuracy evaluation."
-    ]
+    ],
+    "cpu_resident_profile": {
+      "status": "measured",
+      "device": "cpu",
+      "compute_type": "int8",
+      "model": "large-v3-turbo",
+      "resident_model_for_all_runs": true,
+      "cpu_thread_setting": "faster-whisper/CTranslate2 default; no sweep",
+      "model_load_s": 1.954738234,
+      "first_transcription": {
+        "status": "measured",
+        "phase": "first_transcription",
+        "run_number": 0,
+        "audio_path": "results/artifacts/synthetic_asr_regression.wav",
+        "source_sample_rate": 24000,
+        "audio_duration_s": 27.84,
+        "speech_audio_duration_s": 25.94,
+        "vad_intervals": [
+          [
+            0.94,
+            1.52
+          ],
+          [
+            2.06,
+            2.36
+          ],
+          [
+            2.52,
+            5.08
+          ],
+          [
+            5.7,
+            6.44
+          ],
+          [
+            6.7,
+            6.92
+          ],
+          [
+            7.2,
+            7.74
+          ],
+          [
+            7.86,
+            8.84
+          ],
+          [
+            9.36,
+            9.98
+          ],
+          [
+            10.3,
+            10.94
+          ],
+          [
+            11.06,
+            11.36
+          ],
+          [
+            11.74,
+            12.24
+          ],
+          [
+            12.58,
+            14.14
+          ],
+          [
+            14.34,
+            14.5
+          ],
+          [
+            14.9,
+            17.12
+          ],
+          [
+            17.4,
+            18.22
+          ],
+          [
+            18.48,
+            19.18
+          ],
+          [
+            19.32,
+            19.64
+          ],
+          [
+            19.8,
+            19.92
+          ],
+          [
+            20.04,
+            20.34
+          ],
+          [
+            21.34,
+            22.0
+          ],
+          [
+            22.12,
+            23.98
+          ],
+          [
+            24.18,
+            26.88
+          ]
+        ],
+        "file_decode_resample_s": 0.005042582,
+        "vad_s": 0.000304829,
+        "inference_s": 11.066365358,
+        "faster_whisper_elapsed_s": 11.066313349,
+        "total_s": 11.071713043,
+        "rtf_on_speech_audio": 0.42661192555898225,
+        "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+        "asr": {
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "model": "large-v3-turbo",
+          "device": "cpu",
+          "compute_type": "int8",
+          "language_requested": "ja",
+          "detected_language": "ja",
+          "language_probability": 1.0,
+          "audio_seconds": 25.94,
+          "elapsed_seconds": 11.066313349,
+          "rtf": 0.42661192555898225,
+          "gpu_memory_peak_mib": 6885,
+          "gpu_memory_delta_peak_mib": 0,
+          "cpu_load_percent": 4.938202247191011,
+          "segments": [
+            {
+              "start": 0.0,
+              "end": 4.22,
+              "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+            },
+            {
+              "start": 4.72,
+              "end": 7.86,
+              "text": "数字は1、2、3と134等5です。"
+            },
+            {
+              "start": 8.4,
+              "end": 13.64,
+              "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+            },
+            {
+              "start": 13.98,
+              "end": 19.52,
+              "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+            },
+            {
+              "start": 20.4,
+              "end": 25.98,
+              "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+            }
+          ]
+        },
+        "timing_ns": {
+          "attempt_start": 255963997754542,
+          "decode_start": 255963997754599,
+          "decode_end": 255964002797181,
+          "vad_start": 255964002797264,
+          "vad_end": 255964003102093,
+          "inference_start": 255964003102227,
+          "inference_end": 255975069467585
+        }
+      },
+      "warm_transcriptions": [
+        {
+          "status": "measured",
+          "phase": "warm_transcription",
+          "run_number": 1,
+          "audio_path": "results/artifacts/synthetic_asr_regression.wav",
+          "source_sample_rate": 24000,
+          "audio_duration_s": 27.84,
+          "speech_audio_duration_s": 25.94,
+          "vad_intervals": [
+            [
+              0.94,
+              1.52
+            ],
+            [
+              2.06,
+              2.36
+            ],
+            [
+              2.52,
+              5.08
+            ],
+            [
+              5.7,
+              6.44
+            ],
+            [
+              6.7,
+              6.92
+            ],
+            [
+              7.2,
+              7.74
+            ],
+            [
+              7.86,
+              8.84
+            ],
+            [
+              9.36,
+              9.98
+            ],
+            [
+              10.3,
+              10.94
+            ],
+            [
+              11.06,
+              11.36
+            ],
+            [
+              11.74,
+              12.24
+            ],
+            [
+              12.58,
+              14.14
+            ],
+            [
+              14.34,
+              14.5
+            ],
+            [
+              14.9,
+              17.12
+            ],
+            [
+              17.4,
+              18.22
+            ],
+            [
+              18.48,
+              19.18
+            ],
+            [
+              19.32,
+              19.64
+            ],
+            [
+              19.8,
+              19.92
+            ],
+            [
+              20.04,
+              20.34
+            ],
+            [
+              21.34,
+              22.0
+            ],
+            [
+              22.12,
+              23.98
+            ],
+            [
+              24.18,
+              26.88
+            ]
+          ],
+          "file_decode_resample_s": 0.005177946,
+          "vad_s": 0.000249446,
+          "inference_s": 10.875602948,
+          "faster_whisper_elapsed_s": 10.875549614,
+          "total_s": 10.881030612,
+          "rtf_on_speech_audio": 0.4192578879722436,
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "asr": {
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 25.94,
+            "elapsed_seconds": 10.875549614,
+            "rtf": 0.4192578879722436,
+            "gpu_memory_peak_mib": 6885,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 5.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 4.22,
+                "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+              },
+              {
+                "start": 4.72,
+                "end": 7.86,
+                "text": "数字は1、2、3と134等5です。"
+              },
+              {
+                "start": 8.4,
+                "end": 13.64,
+                "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+              },
+              {
+                "start": 13.98,
+                "end": 19.52,
+                "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+              },
+              {
+                "start": 20.4,
+                "end": 25.98,
+                "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+              }
+            ]
+          },
+          "timing_ns": {
+            "attempt_start": 255975069478698,
+            "decode_start": 255975069478802,
+            "decode_end": 255975074656748,
+            "vad_start": 255975074656827,
+            "vad_end": 255975074906273,
+            "inference_start": 255975074906362,
+            "inference_end": 255985950509310
+          }
+        },
+        {
+          "status": "measured",
+          "phase": "warm_transcription",
+          "run_number": 2,
+          "audio_path": "results/artifacts/synthetic_asr_regression.wav",
+          "source_sample_rate": 24000,
+          "audio_duration_s": 27.84,
+          "speech_audio_duration_s": 25.94,
+          "vad_intervals": [
+            [
+              0.94,
+              1.52
+            ],
+            [
+              2.06,
+              2.36
+            ],
+            [
+              2.52,
+              5.08
+            ],
+            [
+              5.7,
+              6.44
+            ],
+            [
+              6.7,
+              6.92
+            ],
+            [
+              7.2,
+              7.74
+            ],
+            [
+              7.86,
+              8.84
+            ],
+            [
+              9.36,
+              9.98
+            ],
+            [
+              10.3,
+              10.94
+            ],
+            [
+              11.06,
+              11.36
+            ],
+            [
+              11.74,
+              12.24
+            ],
+            [
+              12.58,
+              14.14
+            ],
+            [
+              14.34,
+              14.5
+            ],
+            [
+              14.9,
+              17.12
+            ],
+            [
+              17.4,
+              18.22
+            ],
+            [
+              18.48,
+              19.18
+            ],
+            [
+              19.32,
+              19.64
+            ],
+            [
+              19.8,
+              19.92
+            ],
+            [
+              20.04,
+              20.34
+            ],
+            [
+              21.34,
+              22.0
+            ],
+            [
+              22.12,
+              23.98
+            ],
+            [
+              24.18,
+              26.88
+            ]
+          ],
+          "file_decode_resample_s": 0.005330177,
+          "vad_s": 0.000280218,
+          "inference_s": 10.872994904,
+          "faster_whisper_elapsed_s": 10.87291512,
+          "total_s": 10.878605538,
+          "rtf_on_speech_audio": 0.4191563269082498,
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "asr": {
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 25.94,
+            "elapsed_seconds": 10.87291512,
+            "rtf": 0.4191563269082498,
+            "gpu_memory_peak_mib": 6885,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 5.013953488372093,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 4.22,
+                "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+              },
+              {
+                "start": 4.72,
+                "end": 7.86,
+                "text": "数字は1、2、3と134等5です。"
+              },
+              {
+                "start": 8.4,
+                "end": 13.64,
+                "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+              },
+              {
+                "start": 13.98,
+                "end": 19.52,
+                "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+              },
+              {
+                "start": 20.4,
+                "end": 25.98,
+                "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+              }
+            ]
+          },
+          "timing_ns": {
+            "attempt_start": 255985950523872,
+            "decode_start": 255985950523947,
+            "decode_end": 255985955854124,
+            "vad_start": 255985955854200,
+            "vad_end": 255985956134418,
+            "inference_start": 255985956134506,
+            "inference_end": 255996829129410
+          }
+        },
+        {
+          "status": "measured",
+          "phase": "warm_transcription",
+          "run_number": 3,
+          "audio_path": "results/artifacts/synthetic_asr_regression.wav",
+          "source_sample_rate": 24000,
+          "audio_duration_s": 27.84,
+          "speech_audio_duration_s": 25.94,
+          "vad_intervals": [
+            [
+              0.94,
+              1.52
+            ],
+            [
+              2.06,
+              2.36
+            ],
+            [
+              2.52,
+              5.08
+            ],
+            [
+              5.7,
+              6.44
+            ],
+            [
+              6.7,
+              6.92
+            ],
+            [
+              7.2,
+              7.74
+            ],
+            [
+              7.86,
+              8.84
+            ],
+            [
+              9.36,
+              9.98
+            ],
+            [
+              10.3,
+              10.94
+            ],
+            [
+              11.06,
+              11.36
+            ],
+            [
+              11.74,
+              12.24
+            ],
+            [
+              12.58,
+              14.14
+            ],
+            [
+              14.34,
+              14.5
+            ],
+            [
+              14.9,
+              17.12
+            ],
+            [
+              17.4,
+              18.22
+            ],
+            [
+              18.48,
+              19.18
+            ],
+            [
+              19.32,
+              19.64
+            ],
+            [
+              19.8,
+              19.92
+            ],
+            [
+              20.04,
+              20.34
+            ],
+            [
+              21.34,
+              22.0
+            ],
+            [
+              22.12,
+              23.98
+            ],
+            [
+              24.18,
+              26.88
+            ]
+          ],
+          "file_decode_resample_s": 0.007997005,
+          "vad_s": 0.000316713,
+          "inference_s": 10.895009533,
+          "faster_whisper_elapsed_s": 10.894963909,
+          "total_s": 10.903323441,
+          "rtf_on_speech_audio": 0.420006318774094,
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "asr": {
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 25.94,
+            "elapsed_seconds": 10.894963909,
+            "rtf": 0.420006318774094,
+            "gpu_memory_peak_mib": 6885,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 5.033720930232558,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 4.22,
+                "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+              },
+              {
+                "start": 4.72,
+                "end": 7.86,
+                "text": "数字は1、2、3と134等5です。"
+              },
+              {
+                "start": 8.4,
+                "end": 13.64,
+                "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+              },
+              {
+                "start": 13.98,
+                "end": 19.52,
+                "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+              },
+              {
+                "start": 20.4,
+                "end": 25.98,
+                "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+              }
+            ]
+          },
+          "timing_ns": {
+            "attempt_start": 255996829143231,
+            "decode_start": 255996829143297,
+            "decode_end": 255996837140302,
+            "vad_start": 255996837140366,
+            "vad_end": 255996837457079,
+            "inference_start": 255996837457139,
+            "inference_end": 256007732466672
+          }
+        },
+        {
+          "status": "measured",
+          "phase": "warm_transcription",
+          "run_number": 4,
+          "audio_path": "results/artifacts/synthetic_asr_regression.wav",
+          "source_sample_rate": 24000,
+          "audio_duration_s": 27.84,
+          "speech_audio_duration_s": 25.94,
+          "vad_intervals": [
+            [
+              0.94,
+              1.52
+            ],
+            [
+              2.06,
+              2.36
+            ],
+            [
+              2.52,
+              5.08
+            ],
+            [
+              5.7,
+              6.44
+            ],
+            [
+              6.7,
+              6.92
+            ],
+            [
+              7.2,
+              7.74
+            ],
+            [
+              7.86,
+              8.84
+            ],
+            [
+              9.36,
+              9.98
+            ],
+            [
+              10.3,
+              10.94
+            ],
+            [
+              11.06,
+              11.36
+            ],
+            [
+              11.74,
+              12.24
+            ],
+            [
+              12.58,
+              14.14
+            ],
+            [
+              14.34,
+              14.5
+            ],
+            [
+              14.9,
+              17.12
+            ],
+            [
+              17.4,
+              18.22
+            ],
+            [
+              18.48,
+              19.18
+            ],
+            [
+              19.32,
+              19.64
+            ],
+            [
+              19.8,
+              19.92
+            ],
+            [
+              20.04,
+              20.34
+            ],
+            [
+              21.34,
+              22.0
+            ],
+            [
+              22.12,
+              23.98
+            ],
+            [
+              24.18,
+              26.88
+            ]
+          ],
+          "file_decode_resample_s": 0.005103284,
+          "vad_s": 0.000251963,
+          "inference_s": 10.973851562,
+          "faster_whisper_elapsed_s": 10.973804082,
+          "total_s": 10.979206994,
+          "rtf_on_speech_audio": 0.42304564695451036,
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "asr": {
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 25.94,
+            "elapsed_seconds": 10.973804082,
+            "rtf": 0.42304564695451036,
+            "gpu_memory_peak_mib": 6885,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 5.002298850574713,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 4.22,
+                "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+              },
+              {
+                "start": 4.72,
+                "end": 7.86,
+                "text": "数字は1、2、3と134等5です。"
+              },
+              {
+                "start": 8.4,
+                "end": 13.64,
+                "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+              },
+              {
+                "start": 13.98,
+                "end": 19.52,
+                "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+              },
+              {
+                "start": 20.4,
+                "end": 25.98,
+                "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+              }
+            ]
+          },
+          "timing_ns": {
+            "attempt_start": 256007732476452,
+            "decode_start": 256007732476509,
+            "decode_end": 256007737579793,
+            "vad_start": 256007737579850,
+            "vad_end": 256007737831813,
+            "inference_start": 256007737831884,
+            "inference_end": 256018711683446
+          }
+        },
+        {
+          "status": "measured",
+          "phase": "warm_transcription",
+          "run_number": 5,
+          "audio_path": "results/artifacts/synthetic_asr_regression.wav",
+          "source_sample_rate": 24000,
+          "audio_duration_s": 27.84,
+          "speech_audio_duration_s": 25.94,
+          "vad_intervals": [
+            [
+              0.94,
+              1.52
+            ],
+            [
+              2.06,
+              2.36
+            ],
+            [
+              2.52,
+              5.08
+            ],
+            [
+              5.7,
+              6.44
+            ],
+            [
+              6.7,
+              6.92
+            ],
+            [
+              7.2,
+              7.74
+            ],
+            [
+              7.86,
+              8.84
+            ],
+            [
+              9.36,
+              9.98
+            ],
+            [
+              10.3,
+              10.94
+            ],
+            [
+              11.06,
+              11.36
+            ],
+            [
+              11.74,
+              12.24
+            ],
+            [
+              12.58,
+              14.14
+            ],
+            [
+              14.34,
+              14.5
+            ],
+            [
+              14.9,
+              17.12
+            ],
+            [
+              17.4,
+              18.22
+            ],
+            [
+              18.48,
+              19.18
+            ],
+            [
+              19.32,
+              19.64
+            ],
+            [
+              19.8,
+              19.92
+            ],
+            [
+              20.04,
+              20.34
+            ],
+            [
+              21.34,
+              22.0
+            ],
+            [
+              22.12,
+              23.98
+            ],
+            [
+              24.18,
+              26.88
+            ]
+          ],
+          "file_decode_resample_s": 0.0051658,
+          "vad_s": 0.000251357,
+          "inference_s": 10.921233171,
+          "faster_whisper_elapsed_s": 10.92115841,
+          "total_s": 10.926650496,
+          "rtf_on_speech_audio": 0.4210161299151889,
+          "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+          "asr": {
+            "text": "こんにちは。今日は通常会話の音声認識を確認します。数字は1、2、3と134等5です。GPU、Quita、Doka、Orama、Python3.12を使い、2026年9月12日土曜日の午後3時30分にテストします。RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。",
+            "model": "large-v3-turbo",
+            "device": "cpu",
+            "compute_type": "int8",
+            "language_requested": "ja",
+            "detected_language": "ja",
+            "language_probability": 1.0,
+            "audio_seconds": 25.94,
+            "elapsed_seconds": 10.92115841,
+            "rtf": 0.4210161299151889,
+            "gpu_memory_peak_mib": 6885,
+            "gpu_memory_delta_peak_mib": 0,
+            "cpu_load_percent": 5.008139534883721,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 4.22,
+                "text": "こんにちは。今日は通常会話の音声認識を確認します。"
+              },
+              {
+                "start": 4.72,
+                "end": 7.86,
+                "text": "数字は1、2、3と134等5です。"
+              },
+              {
+                "start": 8.4,
+                "end": 13.64,
+                "text": "GPU、Quita、Doka、Orama、Python3.12を使い、"
+              },
+              {
+                "start": 13.98,
+                "end": 19.52,
+                "text": "2026年9月12日土曜日の午後3時30分にテストします。"
+              },
+              {
+                "start": 20.4,
+                "end": 25.98,
+                "text": "RTXゴジタ70TiとUSBマイクロフォンの状態も確認します。"
+              }
+            ]
+          },
+          "timing_ns": {
+            "attempt_start": 256018711691934,
+            "decode_start": 256018711691970,
+            "decode_end": 256018716857770,
+            "vad_start": 256018716857847,
+            "vad_end": 256018717109204,
+            "inference_start": 256018717109259,
+            "inference_end": 256029638342430
+          }
+        }
+      ],
+      "warm_repeat_target": 5,
+      "phase_classification": {
+        "cold_phase": "first_transcription",
+        "warm_phase": "warm_transcription",
+        "cold_run_count": 1,
+        "warm_run_count": 5,
+        "cold_warm_separated": true
+      },
+      "warm_summary": {
+        "file_decode_resample_s": {
+          "values": [
+            0.005177946,
+            0.005330177,
+            0.007997005,
+            0.005103284,
+            0.0051658
+          ],
+          "median": 0.005177946
+        },
+        "vad_s": {
+          "values": [
+            0.000249446,
+            0.000280218,
+            0.000316713,
+            0.000251963,
+            0.000251357
+          ],
+          "median": 0.000251963
+        },
+        "inference_s": {
+          "values": [
+            10.875602948,
+            10.872994904,
+            10.895009533,
+            10.973851562,
+            10.921233171
+          ],
+          "median": 10.895009533
+        },
+        "faster_whisper_elapsed_s": {
+          "values": [
+            10.875549614,
+            10.87291512,
+            10.894963909,
+            10.973804082,
+            10.92115841
+          ],
+          "median": 10.894963909
+        },
+        "total_s": {
+          "values": [
+            10.881030612,
+            10.878605538,
+            10.903323441,
+            10.979206994,
+            10.926650496
+          ],
+          "median": 10.903323441
+        },
+        "rtf_on_speech_audio": {
+          "values": [
+            0.4192578879722436,
+            0.4191563269082498,
+            0.420006318774094,
+            0.42304564695451036,
+            0.4210161299151889
+          ],
+          "median": 0.420006318774094
+        }
+      },
+      "all_run_summary": {
+        "file_decode_resample_s": {
+          "values": [
+            0.005042582,
+            0.005177946,
+            0.005330177,
+            0.007997005,
+            0.005103284,
+            0.0051658
+          ],
+          "median": 0.0051718730000000004
+        },
+        "vad_s": {
+          "values": [
+            0.000304829,
+            0.000249446,
+            0.000280218,
+            0.000316713,
+            0.000251963,
+            0.000251357
+          ],
+          "median": 0.00026609050000000003
+        },
+        "inference_s": {
+          "values": [
+            11.066365358,
+            10.875602948,
+            10.872994904,
+            10.895009533,
+            10.973851562,
+            10.921233171
+          ],
+          "median": 10.908121352
+        },
+        "faster_whisper_elapsed_s": {
+          "values": [
+            11.066313349,
+            10.875549614,
+            10.87291512,
+            10.894963909,
+            10.973804082,
+            10.92115841
+          ],
+          "median": 10.9080611595
+        },
+        "total_s": {
+          "values": [
+            11.071713043,
+            10.881030612,
+            10.878605538,
+            10.903323441,
+            10.979206994,
+            10.926650496
+          ],
+          "median": 10.9149869685
+        },
+        "rtf_on_speech_audio": {
+          "values": [
+            0.42661192555898225,
+            0.4192578879722436,
+            0.4191563269082498,
+            0.420006318774094,
+            0.42304564695451036,
+            0.4210161299151889
+          ],
+          "median": 0.42051122434464144
+        }
+      },
+      "e2e_cpu_stage_reference": {
+        "source": "results/bench_e2e.json",
+        "case": "B_cpu_asr_local_gpu_tts",
+        "median": {
+          "asr_duration_s": {
+            "values": [
+              11.128768614,
+              11.208166871,
+              11.149734316
+            ],
+            "median": 11.149734316
+          },
+          "llm_ttft_s": {
+            "values": [
+              0.095479814,
+              0.090599474,
+              0.11115268
+            ],
+            "median": 0.095479814
+          },
+          "llm_total_duration_s": {
+            "values": [
+              0.159502287,
+              0.15451926,
+              0.219447582
+            ],
+            "median": 0.159502287
+          },
+          "tts_duration_s": {
+            "values": [
+              4.808686883,
+              6.181715197,
+              3.7303299059999997
+            ],
+            "median": 4.808686883
+          },
+          "playback_roundtrip_duration_s": {
+            "values": [],
+            "median": null
+          },
+          "total_e2e_duration_s": {
+            "values": [
+              34.637505436,
+              36.300268208,
+              33.633958298
+            ],
+            "median": 34.637505436
+          },
+          "peak_vram_mib": {
+            "values": [
+              9261,
+              9369,
+              9369
+            ],
+            "median": 9369
+          },
+          "input_read_s": {
+            "values": [
+              0.001283349,
+              0.001143435,
+              0.001237314
+            ],
+            "median": 0.001237314
+          },
+          "vad_duration_s": {
+            "values": [
+              0.011649557,
+              0.011563952,
+              0.011079441
+            ],
+            "median": 0.011563952
+          },
+          "assistant_asr_duration_s": {
+            "values": [
+              18.526693906,
+              18.74231717,
+              18.521413027999998
+            ],
+            "median": 18.526693906
+          }
+        },
+        "explanation": "E2E CPU ASR is dominated by transcription over the VAD-trimmed utterance; this profile separates that inference from file decode/resample and VAD."
+      }
+    }
   }
 }
