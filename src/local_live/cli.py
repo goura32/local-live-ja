@@ -23,10 +23,12 @@ from .bench import (
     run_tts_bench,
 )
 from .config import load_config, nested
+from .echo_rejection import echo_config_from_mapping
 from .doctor import run_doctor
 from .llm.ollama import OllamaLLM
 from .llm.openrouter import OpenRouterLLM
 from .pipeline import Cancellation, LivePipeline
+from .phase4_bench import run_echo_rejection_bench, run_interruption_bench, run_mic_readiness_bench, run_stability_bench
 from .telemetry import EventLog, write_json
 from .tts_backends import build_tts_backend
 from .vllm_bench import run_tts_serving_bench
@@ -63,6 +65,10 @@ def build_parser() -> argparse.ArgumentParser:
     bench_sub.add_parser("playback-path")
     aec_matrix = bench_sub.add_parser("aec-matrix")
     aec_matrix.add_argument("--force-audio", action="store_true")
+    bench_sub.add_parser("stability")
+    bench_sub.add_parser("echo-rejection")
+    bench_sub.add_parser("interruption")
+    bench_sub.add_parser("mic-readiness")
 
     run = subparsers.add_parser("run")
     run.add_argument("--input-wav")
@@ -124,6 +130,14 @@ def _run_bench(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, An
         return run_playback_path_bench(config)
     if args.bench_name == "aec-matrix":
         return run_aec_matrix_bench(config, force_audio=args.force_audio)
+    if args.bench_name == "stability":
+        return run_stability_bench(config)
+    if args.bench_name == "echo-rejection":
+        return run_echo_rejection_bench(config)
+    if args.bench_name == "mic-readiness":
+        return run_mic_readiness_bench(config)
+    if args.bench_name == "interruption":
+        return run_interruption_bench(config)
     raise ValueError(args.bench_name)
 
 
@@ -200,6 +214,7 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
             artifact_dir=artifact,
             sentence_max_chars=int(nested(config, "tts", "sentence_max_chars", default=48)),
             sentence_timeout_s=float(nested(config, "tts", "sentence_timeout_s", default=0.8)),
+            echo_rejection_config=echo_config_from_mapping(config.get("echo_rejection")),
         )
         cancellation = Cancellation()
         signal.signal(signal.SIGINT, lambda _signum, _frame: cancellation.request())
@@ -209,6 +224,9 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
             "input": str(input_path),
             "user_asr": user_asr.to_dict(),
             "assistant_text": result.assistant_text,
+            "generated_text": result.generated_text,
+            "spoken_text": result.spoken_text,
+            "state": result.state,
             "audio_paths": result.audio_paths,
             "error": result.error,
             "events": log.events + [event.__dict__ for event in result.events],

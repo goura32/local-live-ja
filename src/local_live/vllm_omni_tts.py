@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+import threading
 import wave
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -154,6 +155,33 @@ class VLLMOmniTTSEngine:
         self.initial_codec_chunk_frames = initial_codec_chunk_frames
         self.streaming = streaming
         self.client_factory = client_factory
+        self._cancel_requested = threading.Event()
+        self._active_client: Any = None
+        self._active_playback: Any = None
+        self._active_http_cancelled = False
+
+    def cancel(self) -> dict[str, Any]:
+        """Stop active playback and close the active HTTP stream if present."""
+        self._cancel_requested.set()
+        playback = self._active_playback
+        if playback is not None:
+            try:
+                playback.cancel()
+            except Exception:
+                pass
+        client = self._active_client
+        if client is not None:
+            self._active_http_cancelled = True
+            close = getattr(client, "close", None)
+            if callable(close):
+                try:
+                    close()
+                except Exception:
+                    pass
+        return {"cancel_requested": True}
+
+    def _is_cancelled(self, cancel_event: Any = None) -> bool:
+        return self._cancel_requested.is_set() or bool(cancel_event is not None and cancel_event.is_set())
 
     def _speech_url(self) -> str:
         return f"{self.base_url}/audio/speech"
@@ -249,7 +277,8 @@ class VLLMOmniTTSEngine:
         }
         if event_log:
             event_log.mark_at("vllm_request_start", started_ns, mode="non_streaming")
-        if cancel_event is not None and cancel_event.is_set():
+        if self._is_cancelled(cancel_event):
+            self._cancel_requested.clear()
             return {"status": "cancelled", "cancelled": True, "timing_ns": timing}
         payload = self.request_payload(text, stream=False, initial_codec_chunk_frames=initial_codec_chunk_frames)
         timing["first_text_sent"] = time.monotonic_ns()
@@ -257,6 +286,7 @@ class VLLMOmniTTSEngine:
             event_log.mark_at("vllm_first_text_sent", timing["first_text_sent"])
         try:
             with self.client_factory(timeout=self.timeout_s) as client:
+                self._active_client = client
                 response = client.post(self._speech_url(), json=payload)
                 response.raise_for_status()
                 response_headers_ns = time.monotonic_ns()
@@ -301,9 +331,10 @@ class VLLMOmniTTSEngine:
                     event_log.mark_at("vllm_audio_complete", last_audio_ns, mode="non_streaming")
             return result
         except Exception as exc:
+            cancelled = self._is_cancelled(cancel_event)
             return {
-                "status": "error",
-                "cancelled": False,
+                "status": "cancelled" if cancelled else "error",
+                "cancelled": cancelled,
                 "mode": "vllm_omni_non_streaming",
                 "text": text,
                 "timing_ns": timing,
@@ -311,6 +342,9 @@ class VLLMOmniTTSEngine:
                 "error": str(exc),
                 "request_payload": payload,
             }
+        finally:
+            self._active_client = None
+            self._cancel_requested.clear()
 
     def synthesize_stream(
         self,
@@ -344,26 +378,31 @@ class VLLMOmniTTSEngine:
         )
         if event_log:
             event_log.mark_at("vllm_request_start", started_ns, mode="streaming")
-        if cancel_event is not None and cancel_event.is_set():
+        if self._is_cancelled(cancel_event):
+            self._cancel_requested.clear()
             return {"status": "cancelled", "cancelled": True, "timing_ns": timing}
         pcm_parts: list[bytes] = []
         parser = PCMChunkParser()
         playback_started = False
+        self._active_http_cancelled = False
         try:
             timing["first_text_sent"] = time.monotonic_ns()
             if event_log:
                 event_log.mark_at("vllm_first_text_sent", timing["first_text_sent"])
             with self.client_factory(timeout=self.timeout_s) as client:
+                self._active_client = client
+                self._active_playback = playback
                 with client.stream("POST", self._speech_url(), json=payload) as response:
                     response.raise_for_status()
                     timing["server_response_headers"] = time.monotonic_ns()
                     for network_chunk in response.iter_bytes():
-                        if cancel_event is not None and cancel_event.is_set():
+                        if self._is_cancelled(cancel_event):
                             playback.cancel()
                             return {
                                 "status": "cancelled",
                                 "cancelled": True,
                                 "mode": "vllm_omni_streaming",
+                                "http_stream_cancelled": self._active_http_cancelled,
                                 "timing_ns": timing,
                                 "request_payload": payload,
                             }
@@ -410,6 +449,7 @@ class VLLMOmniTTSEngine:
                 "status": "measured" if raw_pcm else "error",
                 "cancelled": False,
                 "mode": "vllm_omni_streaming",
+                "http_stream_cancelled": self._active_http_cancelled,
                 "text": text,
                 "path": str(output),
                 "pcm_path": str(output.with_suffix(".pcm")),
@@ -436,13 +476,19 @@ class VLLMOmniTTSEngine:
         except Exception as exc:
             if playback_started:
                 playback.cancel()
+            cancelled = self._is_cancelled(cancel_event)
             return {
-                "status": "error",
-                "cancelled": False,
+                "status": "cancelled" if cancelled else "error",
+                "cancelled": cancelled,
                 "mode": "vllm_omni_streaming",
+                "http_stream_cancelled": self._active_http_cancelled,
                 "text": text,
                 "timing_ns": timing,
                 "error_type": type(exc).__name__,
                 "error": str(exc),
                 "request_payload": payload,
             }
+        finally:
+            self._active_client = None
+            self._active_playback = None
+            self._cancel_requested.clear()

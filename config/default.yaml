@@ -15,7 +15,7 @@ asr:
 
 llm:
   local_base_url: http://127.0.0.1:11434
-  local_model: auto
+  local_model: qwen3.5:9b-q4_K_M
   openrouter_base_url: https://openrouter.ai/api/v1
   openrouter_model: openrouter/free
   num_ctx: 8192
@@ -72,6 +72,20 @@ bench:
   aec_matrix_clipping_ratio_threshold: 0.001
   aec_matrix_peak_threshold: 0.98
   audio_signal_floor_rms: 0.000001
+  stability_minimum_turns: 20
+  stability_target_turns: 50
+  mic_readiness_duration_s: 1.0
+
+echo_rejection:
+  correlation_threshold: 0.9642105263
+  residual_energy_ratio_threshold: 0.9
+  max_lag_s: 0.066
+  energy_ratio_min: 0.1416587676
+  energy_ratio_max: 0.4389911740
+  window_s: 0.08
+  hop_s: 0.04
+  vad_threshold: 0.015
+  calibrated_from: results/bench_echo_rejection.json
 
 pipewire:
   microphone: auto

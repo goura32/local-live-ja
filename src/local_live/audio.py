@@ -467,6 +467,25 @@ class PipeWirePlayback:
             raise RuntimeError(f"pw-play failed: {stderr.strip() or 'unknown error'}")
         return {"path": str(audio_path), "cancelled": False, "stdout": stdout.strip()}
 
+    def cancel(self) -> dict[str, Any]:
+        process = self._process
+        if process is None:
+            return {"cancelled": True, "already_inactive": True}
+        try:
+            if process.poll() is None:
+                process.terminate()
+        except ProcessLookupError:
+            pass
+        try:
+            process.wait(timeout=2.0)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        except ProcessLookupError:
+            pass
+        self._process = None
+        return {"cancelled": True}
+
 
 class PipeWirePCMPlayback:
     """Persistent raw PCM playback stream for incremental TTS audio."""
@@ -609,6 +628,9 @@ def record_fixed(
     output.parent.mkdir(parents=True, exist_ok=True)
     if target is not None and (not isinstance(target, str) or target.isdecimal()):
         raise ValueError("numeric PipeWire node IDs are not stable record targets")
+    # Never let a truncated file from a previous recorder failure make a later
+    # readiness check look valid.
+    output.unlink(missing_ok=True)
     command = ["pw-record"]
     if target is not None:
         command += ["--target", str(target)]
@@ -633,7 +655,14 @@ def record_fixed(
         raise RuntimeError(
             f"pw-record produced an empty file (returncode={process.returncode}): {stderr.strip() or 'unknown error'}"
         )
-    return {"path": str(output), "duration_s": duration_s, "started_ns": started, "stdout": stdout.strip()}
+    return {
+        "path": str(output),
+        "duration_s": duration_s,
+        "started_ns": started,
+        "returncode": process.returncode,
+        "stdout": stdout.strip(),
+        "stderr": stderr.strip(),
+    }
 
 
 def audio_file_stats(audio_path: str | Path) -> dict[str, Any]:

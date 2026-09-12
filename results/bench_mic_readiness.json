@@ -1,0 +1,204 @@
+{
+  "schema": "local-live-ja/bench-mic_readiness/v2",
+  "benchmark": "mic_readiness",
+  "started_at": "2026-09-12T11:29:33Z",
+  "finished_at": "2026-09-12T11:29:38Z",
+  "environment": {
+    "captured_at": "2026-09-12T11:29:38.724644+00:00",
+    "hostname": "ws1",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "status": "measured",
+    "content_judgement": "not performed; no human speech required",
+    "raw_usb_microphone": {
+      "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+      "record": {
+        "path": "results/artifacts/phase4_mic_readiness_raw.wav",
+        "duration_s": 1.0,
+        "started_ns": 277534410443932,
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "stats": {
+        "path": "results/artifacts/phase4_mic_readiness_raw.wav",
+        "sample_rate": 16000,
+        "frames": 10211,
+        "duration_s": 0.6381875,
+        "rms": 0.0015787433367222548,
+        "peak": 0.007904052734375,
+        "clipping_ratio": 0.0
+      }
+    },
+    "aec_source": {
+      "target": "Local_Live_Echo_Cancellation_Source",
+      "sink_master": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo",
+      "loader": {
+        "module_id": "536870913",
+        "module_loader": "pactl module-echo-cancel",
+        "inventory": {
+          "sinks": [
+            {
+              "node_id": 54,
+              "name": "GoStream アナログステレオ",
+              "kind": "sink",
+              "target": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+            },
+            {
+              "node_id": 120,
+              "name": "Built-in Audio デジタルステレオ (IEC958)",
+              "kind": "sink",
+              "target": "alsa_output.pci-0000_00_1f.3.iec958-stereo"
+            },
+            {
+              "node_id": 131,
+              "name": "USB Audio アナログステレオ",
+              "kind": "sink",
+              "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+            },
+            {
+              "node_id": 8711,
+              "name": "Echo-Cancel Sink",
+              "kind": "sink",
+              "target": "Local_Live_Echo_Cancellation_Sink"
+            }
+          ],
+          "sources": [
+            {
+              "node_id": 55,
+              "name": "GoStream アナログステレオ",
+              "kind": "source",
+              "target": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
+            },
+            {
+              "node_id": 121,
+              "name": "Built-in Audio アナログステレオ",
+              "kind": "source",
+              "target": "alsa_input.pci-0000_00_1f.3.analog-stereo.9"
+            },
+            {
+              "node_id": 132,
+              "name": "USB Audio アナログステレオ",
+              "kind": "source",
+              "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+            },
+            {
+              "node_id": 8710,
+              "name": "Echo-Cancel Source",
+              "kind": "source",
+              "target": "Local_Live_Echo_Cancellation_Source"
+            }
+          ],
+          "devices": [
+            "Built-in Audio",
+            "GoStream",
+            "HDA NVidia",
+            "USB Audio",
+            "card 1: GoStream [GoStream], device 0: USB Audio [USB Audio]",
+            "card 3: Audio [USB Audio], device 0: USB Audio [USB Audio]"
+          ],
+          "usb_microphone": {
+            "node_id": 132,
+            "name": "USB Audio アナログステレオ",
+            "kind": "source",
+            "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          },
+          "usb_speaker": {
+            "node_id": 131,
+            "name": "USB Audio アナログステレオ",
+            "kind": "sink",
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
+          }
+        },
+        "args": "source_name=Local_Live_Echo_Cancellation_Source sink_name=Local_Live_Echo_Cancellation_Sink source_master=alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo sink_master=alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo aec_method=webrtc rate=16000 channels=1",
+        "sink": {
+          "node_id": 8711,
+          "name": "Echo-Cancel Sink",
+          "kind": "sink",
+          "target": "Local_Live_Echo_Cancellation_Sink"
+        },
+        "source": {
+          "node_id": 8710,
+          "name": "Echo-Cancel Source",
+          "kind": "source",
+          "target": "Local_Live_Echo_Cancellation_Source"
+        }
+      },
+      "record": {
+        "path": "results/artifacts/phase4_mic_readiness_aec.wav",
+        "duration_s": 1.0,
+        "started_ns": 277535553465212,
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "stats": {
+        "path": "results/artifacts/phase4_mic_readiness_aec.wav",
+        "sample_rate": 16000,
+        "frames": 15502,
+        "duration_s": 0.968875,
+        "rms": 0.0002316526952199638,
+        "peak": 0.001068115234375,
+        "clipping_ratio": 0.0
+      }
+    },
+    "vad": {
+      "raw": {
+        "intervals": [],
+        "speech_ratio": 0.0
+      },
+      "aec": {
+        "intervals": [],
+        "speech_ratio": 0.0
+      }
+    },
+    "asr": {
+      "status": "loaded_and_transcribed",
+      "result": {
+        "text": "",
+        "model": "large-v3-turbo",
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "language_requested": "ja",
+        "detected_language": "ja",
+        "language_probability": 1.0,
+        "audio_seconds": 0.968875,
+        "elapsed_seconds": 0.05781497,
+        "rtf": 0.059672269384595536,
+        "gpu_memory_peak_mib": 1237,
+        "gpu_memory_delta_peak_mib": 0,
+        "cpu_load_percent": 0.0,
+        "segments": []
+      },
+      "content_used": false
+    },
+    "volume_restore_error": null
+  }
+}

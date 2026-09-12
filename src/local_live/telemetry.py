@@ -109,6 +109,7 @@ class ResourceMonitor:
     _stop: threading.Event = field(default_factory=threading.Event, init=False)
     _thread: threading.Thread | None = field(default=None, init=False)
     cpu_samples: list[float] = field(default_factory=list, init=False)
+    ram_samples_mib: list[float] = field(default_factory=list, init=False)
     gpu_samples: list[list[int]] = field(default_factory=list, init=False)
     started_gpu: list[int] = field(default_factory=list, init=False)
 
@@ -129,6 +130,10 @@ class ResourceMonitor:
         while not self._stop.is_set():
             if psutil:
                 self.cpu_samples.append(float(psutil.cpu_percent(interval=None)))
+                try:
+                    self.ram_samples_mib.append(float(psutil.Process().memory_info().rss / (1024 * 1024)))
+                except (OSError, psutil.Error):
+                    pass
             self.gpu_samples.append(current_gpu_memory())
             self._stop.wait(self.interval_s)
 
@@ -148,6 +153,10 @@ class ResourceMonitor:
             return None
         baseline = max(self.started_gpu) if self.started_gpu else 0
         return max(0, peak - baseline)
+
+    @property
+    def ram_memory_peak_mib(self) -> float | None:
+        return max(self.ram_samples_mib) if self.ram_samples_mib else None
 
 
 @dataclass

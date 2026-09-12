@@ -1,8 +1,10 @@
 {
-  "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q",
+  "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q --junitxml=/tmp/local-live-ja-phase4-final3.xml",
   "exit_code": 0,
-  "passed": 66,
+  "passed": 77,
   "failed": 0,
   "errors": 0,
-  "output_tail": "..................................................................       [100%]\n"
+  "skipped": 0,
+  "output_tail": "........................................................................ [ 93%]\\n.....                                                                    [100%]\\n",
+  "junit_path": "/tmp/local-live-ja-phase4-final3.xml"
 }

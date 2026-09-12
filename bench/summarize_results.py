@@ -80,6 +80,54 @@ def compact_e2e_run(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def compact_phase4(
+    stability: dict[str, Any],
+    echo_rejection: dict[str, Any],
+    mic_readiness: dict[str, Any],
+    interruption: dict[str, Any],
+) -> dict[str, Any]:
+    """Keep aggregate Phase 4 facts here; detailed rows stay in result files."""
+    stability_server = stability.get("server") or {}
+    restart = stability.get("server_restart") or {}
+    interruption_data = interruption.get("interruption") or {}
+    mic_asr = (mic_readiness.get("asr") or {}).get("result") or {}
+    return {
+        "stability": {
+            "status": stability.get("status"),
+            "configuration": stability.get("configuration"),
+            "summary": stability.get("summary"),
+            "warm_state_windows": stability.get("warm_state_windows"),
+            "component_status": stability.get("component_status"),
+            "server": pick(stability_server, "model", "base_url", "host", "port", "python", "server_start_to_ready_s", "model_load_s", "health", "gpu_memory_at_ready_mib", "environment_overrides", "stop", "versions"),
+            "server_restart": pick(restart, "server_start_to_ready_s", "health", "gpu_memory_at_ready_mib", "restart_elapsed_s", "completed_runs", "stop"),
+            "memory": stability.get("memory"),
+            "interruption": {"status": interruption_data.get("status"), "software_playback_stop_s": interruption_data.get("software_playback_stop_s"), "physical_stop_s": interruption_data.get("physical_stop_s"), "persistent_pcm_active_after_interrupt": interruption_data.get("persistent_pcm_active_after_interrupt"), "vllm_http_stream_cancelled": interruption_data.get("vllm_http_stream_cancelled"), "pipeline": interruption_data.get("pipeline")},
+            "phase3b_outlier_reference": stability.get("phase3b_outlier_reference"),
+        },
+        "echo_rejection": {
+            "status": echo_rejection.get("status"),
+            "method": echo_rejection.get("method"),
+            "thresholds": echo_rejection.get("thresholds"),
+            "assistant_only": echo_rejection.get("assistant_only"),
+            "synthetic_user_like": echo_rejection.get("synthetic_user_like"),
+            "correlation_distribution": echo_rejection.get("correlation_distribution"),
+            "energy_ratio_distribution": echo_rejection.get("energy_ratio_distribution"),
+            "residual_energy_ratio_distribution": echo_rejection.get("residual_energy_ratio_distribution"),
+            "lag_seconds_distribution": echo_rejection.get("lag_seconds_distribution"),
+            "component_status": echo_rejection.get("component_status"),
+            "mute_reference": echo_rejection.get("mute_reference"),
+        },
+        "mic_readiness": {
+            "status": mic_readiness.get("status"),
+            "raw_usb_microphone": {"target": (mic_readiness.get("raw_usb_microphone") or {}).get("target"), "stats": (mic_readiness.get("raw_usb_microphone") or {}).get("stats")},
+            "aec_source": {"target": (mic_readiness.get("aec_source") or {}).get("target"), "sink_master": (mic_readiness.get("aec_source") or {}).get("sink_master"), "stats": (mic_readiness.get("aec_source") or {}).get("stats")},
+            "vad": mic_readiness.get("vad"),
+            "asr": {"status": (mic_readiness.get("asr") or {}).get("status"), "result": pick(mic_asr, "model", "device", "compute_type", "text", "elapsed_seconds", "gpu_memory_peak_mib")},
+        },
+        "interruption": {"status": interruption.get("status"), "server": pick(interruption.get("server") or {}, "server_start_to_ready_s", "health", "gpu_memory_at_ready_mib", "stop"), "interruption": interruption_data},
+    }
+
+
 def build_summary() -> dict[str, Any]:
     doctor = load("doctor.json")
     asr = load("bench_asr.json")
@@ -91,6 +139,10 @@ def build_summary() -> dict[str, Any]:
     aec_matrix = load("bench_aec_matrix.json")
     playback_path = load("bench_playback_path.json")
     tts_serving = load("bench_tts_serving.json")
+    stability = load("bench_stability.json")
+    echo_rejection = load("bench_echo_rejection.json")
+    mic_readiness = load("bench_mic_readiness.json")
+    interruption = load("bench_interruption.json")
     run = load("run_latest.json")
     pytest_final = load("pytest_final.json")
 
@@ -103,6 +155,10 @@ def build_summary() -> dict[str, Any]:
     aec_matrix_data = aec_matrix.get("data", {})
     playback_path_data = playback_path.get("data", {})
     tts_serving_data = tts_serving.get("data", {})
+    stability_data = stability.get("data", {})
+    echo_rejection_data = echo_rejection.get("data", {})
+    mic_readiness_data = mic_readiness.get("data", {})
+    interruption_data = interruption.get("data", {})
 
     return {
         "schema": "local-live-ja/summary/v2",
@@ -119,6 +175,10 @@ def build_summary() -> dict[str, Any]:
             "aec_matrix": "results/bench_aec_matrix.json",
             "playback_path": "results/bench_playback_path.json",
             "tts_serving": "results/bench_tts_serving.json",
+            "stability": "results/bench_stability.json",
+            "echo_rejection": "results/bench_echo_rejection.json",
+            "mic_readiness": "results/bench_mic_readiness.json",
+            "interruption": "results/bench_interruption.json",
             "live_latency_python_reference": "results/bench_live_latency_python.json",
             "run": "results/run_latest.json",
         },
@@ -259,15 +319,17 @@ def build_summary() -> dict[str, Any]:
             "targets": tts_serving_data.get("targets"),
             "volume_restore_error": tts_serving_data.get("volume_restore_error"),
         },
+        "phase4": compact_phase4(stability_data, echo_rejection_data, mic_readiness_data, interruption_data),
         "run": {
             "status": run.get("status"),
-            "assistant_text": run.get("assistant_text"),
+            "assistant_text": run.get("spoken_text", run.get("assistant_text")),
+            "spoken_text": run.get("spoken_text"),
             "audio_paths_count": len(run.get("audio_paths", [])),
             "error": run.get("error"),
             "timing": run.get("timing"),
         },
         "pytest": pytest_final,
-        "component_judgement": component_judgement(asr_data, tts_data, llm_data, e2e_data, aec_data, pytest_final, live_latency_data, aec_matrix_data, playback_path_data, tts_serving_data),
+        "component_judgement": component_judgement(asr_data, tts_data, llm_data, e2e_data, aec_data, pytest_final, live_latency_data, aec_matrix_data, playback_path_data, tts_serving_data, stability_data, echo_rejection_data, mic_readiness_data, interruption_data),
     }
 
 
@@ -282,6 +344,10 @@ def component_judgement(
     aec_matrix_data: dict[str, Any] | None = None,
     playback_path_data: dict[str, Any] | None = None,
     tts_serving_data: dict[str, Any] | None = None,
+    stability_data: dict[str, Any] | None = None,
+    echo_rejection_data: dict[str, Any] | None = None,
+    mic_readiness_data: dict[str, Any] | None = None,
+    interruption_data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return component states without collapsing blocked work into PASS/FAIL."""
     asr_rows = list(asr_data.get("modes", {}).values())
@@ -292,6 +358,10 @@ def component_judgement(
     aec_matrix_data = aec_matrix_data or {}
     playback_path_data = playback_path_data or {}
     tts_serving_data = tts_serving_data or {}
+    stability_data = stability_data or {}
+    echo_rejection_data = echo_rejection_data or {}
+    mic_readiness_data = mic_readiness_data or {}
+    interruption_data = interruption_data or {}
     states = {
         "asr": "measured" if asr_rows and all(row.get("status") == "measured" for row in asr_rows) else "partial",
         "tts": "measured" if any(row.get("status") == "measured" for row in tts_rows) else "partial",
@@ -305,6 +375,11 @@ def component_judgement(
         "tts_serving": tts_serving_data.get("status", "missing"),
         "aec_matrix": aec_matrix_data.get("status", "missing"),
         "playback_path": playback_path_data.get("status", "missing"),
+        "continuous_stability": (stability_data.get("component_status") or {}).get("continuous_stability", stability_data.get("status", "missing")),
+        "server_restart": (stability_data.get("component_status") or {}).get("server_restart", "missing"),
+        "echo_rejection": echo_rejection_data.get("component_status", echo_rejection_data.get("status", "missing")),
+        "microphone_readiness": mic_readiness_data.get("status", "missing"),
+        "interruption": (stability_data.get("component_status") or {}).get("interruption", interruption_data.get("status", "missing")),
         "cpu_asr_profile": ("measured" if asr_data.get("cpu_resident_profile", {}).get("status") == "measured" else "partial"),
         "test_reproducibility": "pass" if pytest_data.get("exit_code") == 0 else "unverified",
     }

@@ -480,3 +480,80 @@ vLLM-Omni HTTP streamingのfinal physical medianは`1.7750 s`で、第一目標`
 incremental text WebSocketはHTTP streamingが既に2秒未満のため、次の必須作業にはしない。6.94秒outlierやLLM first-chunk変動の安定化が必要になった場合に、公式WebSocket `input.append`/`input.done`を次の比較候補とする。async OFF比較も同じ理由でP0ではなく、現行結果はofficial async default ONのみである。
 
 Phase 3Bの機械可読結果は`results/bench_tts_serving.json`、final live E2Eは`results/bench_live_latency.json`、集約は`results/summary.json`である。生成WAV/PCM、raw capture、server log、model weight、cache、credentialはGit管理しない。
+
+## Phase 4: Continuous Live Stability + Self-Echo Rejection
+
+Phase 4はPhase 3Bの固定経路を継続した。ASRは`faster-whisper large-v3-turbo` GPU `int8_float16`、LLMはlocal Ollama `qwen3.5:9b-q4_K_M`、TTSは`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice` / `Ono_Anna` / `Japanese` / 24 kHz、servingはmatching `vllm-omni==0.28.0` + `vllm==0.28.0` HTTP raw-PCM streaming、persistent PCM playbackである。Python Qwen3-TTS backendはfallbackとして維持し、vLLM 0.29/main、別model、FlashInfer/nvcc対応は行っていない。
+
+### Continuous stability
+
+同一質問の反復を避け、8種類の短い日本語fixture WAVを循環し、resident serverで50 attemptsを実行した。physical onset未検出turnは削除せずblockedとして保存した。
+
+| metric | result | target / interpretation |
+|---|---:|---|
+| attempts | 50 | target 50 attempts |
+| measured turns | 48 | 2 turns blocked by physical onset detector |
+| failed turns | 0 | no pipeline error or hang |
+| blocked turns | 2 | turns 1–2; retained in JSON |
+| physical first audio median | 1.7850 s | target <2.0 s: met |
+| p90 | 2.2860 s | recorded |
+| p95 | 2.3990 s | target <2.5 s: met |
+| p99-equivalent | 2.5937 s | recorded |
+| max | 2.7300 s | recorded |
+| failure rate | 4.0% | blocked onset attempts included; failed=0 |
+| physical onset success | 96.0% | target >=95%: met |
+
+Turn-level JSON includes ASR duration, LLM TTFT/total, first text chunk, TTS request, first PCM, first actual speech PCM, playback start/complete, physical onset, total turn latency, VRAM/RAM/CPU, vLLM/Ollama health, cancellation state, retry state, and error fields. Stage medians were `ASR 0.2577 s` (ASR-only duration `0.2191 s`), LLM TTFT `0.1937 s`, LLM total `0.6069 s`, first-sentence buffering `0.4149 s`, TTS request→first PCM `0.0647 s`, TTS request→first actual speech PCM `0.5540 s`, and total turn `1.7850 s`.
+
+Outlier classification uses component median ratios and a minimum delta, not a fixed 3-second rule. Among 15 flagged rows, the dominant causes were `first_pcm_to_actual` 7, `first_sentence_buffering` 6, and acoustic onset detection 2. The first turn also exposed cold Ollama/LLM behavior (`LLM TTFT 23.7647 s`) and was blocked by the physical detector; this is recorded separately from the Phase 3B 6.94-second event.
+
+The Phase 3B 6.9400-second row was reclassified from its saved stage values: `tts_request_to_first_pcm=2.2791 s`, 38.8x its component median, was the dominant relative cause; ASR was also elevated at 2.7188 s (9.4x), while LLM TTFT and downstream stream-to-physical were not dominant. This identifies the primary hypothesis as a TTS first-PCM/server contention or cold-path event, not an unclassified physical-only event; the measurement does not prove a single internal vLLM kernel cause.
+
+Warm-state medians by 10-turn window were:
+
+| turns | TTFA (TTS request→first actual PCM) | physical first audio | VRAM peak | process RAM peak |
+|---|---:|---:|---:|---:|
+| 1–10 | 0.9206 s | 2.1500 s | 15,101 MiB | 4,159.24 MiB |
+| 11–20 | 0.5018 s | 1.7400 s | 15,101 MiB | 4,159.25 MiB |
+| 21–30 | 0.5176 s | 1.7300 s | 15,101 MiB | 4,159.26 MiB |
+| 31–40 | 0.5167 s | 1.7700 s | 15,101 MiB | 4,159.27 MiB |
+| 41–50 | 0.5681 s | 1.8200 s | 15,101 MiB | 4,159.30 MiB |
+
+The first-window TTFA includes the cold path. First-to-last 10-turn drift was 0 MiB VRAM and +0.06 MiB process RAM; no clear memory leak was detected. No GC or cache clear was forced per turn. The component remains `measured_with_limitations`, because 48/50 attempts produced measurable physical onset rather than 50/50 measured onsets, even though the attempt count and three numeric latency targets passed.
+
+### Server lifecycle and interruption
+
+The benchmark performed server start/readiness, 50-turn use, clean stop, restart, and three post-restart fixture turns. Restart readiness was HTTP 200 and all 3 restart turns were measured. The vLLM server used the isolated Python environment and FlashInfer sampler fallback `VLLM_USE_FLASHINFER_SAMPLER=0`; this was unchanged from Phase 3B.
+
+A real vLLM streaming turn was programmatically interrupted after the first PCM queue. `queued_pcm_discarded=true` and the standalone blocking-LLM cancellation probe observed `llm_stream_cancelled=true` with a 5.3 ms cancel-to-return. `pipeline.cancel()` stopped the persistent PCM process, discarded stale queued audio, propagated cancel to the active vLLM HTTP client, and returned the pipeline to cancelled state with empty `spoken_text`. Software playback stop was `0.1986 s`, meeting the `<=0.200 s` target; `vllm_http_stream_cancelled=true` was observed. No separable post-interrupt physical microphone interval was detected, so physical stop latency is `null`, not fabricated. This is a physical-stop measurement limitation, not a claim of zero acoustic tail.
+
+### Self-echo rejection
+
+The adopted candidate is a post-VAD reference-aware layer, not a replacement AEC: 80 ms windows / 40 ms hop, bounded normalized reference correlation with lag, microphone/reference energy ratio, and residual unexplained energy after reference projection. When assistant playback is active and reference explains the AEC-output candidate, it returns `probable_self_echo` and rejects it; otherwise it returns `possible_user_speech`. Thresholds were selected by grid search over the measured fixture distributions rather than fixed before measurement.
+
+The automated dataset used 10 assistant-only fixtures (delayed/scaled assistant reference plus noise) and 10 synthetic user-like fixtures (the same residual echo plus an independent injected signal). It is a regression fixture, not a physical double-talk success test and not a production guarantee.
+
+| metric | result | target |
+|---|---:|---:|
+| assistant-only VAD-positive fixtures | 10 | recorded |
+| assistant-only echo rejects | 10/10 | recorded |
+| assistant-only false accept | 0/10 = 0% | <=10%: met |
+| synthetic user-like accepted | 10/10 = 100% | >=90%: met |
+| synthetic user-like false reject | 0% | recorded |
+
+Measured thresholds were correlation `0.9642`, max lag `66 ms`, energy ratio `0.1417–0.4390`, and max short-window residual ratio `0.9`. The simple mute reference gives 0% assistant-only false accept by disabling VAD, but it was not adopted because it removes future barge-in candidates. Phase 4 uses the echo-aware candidate instead; AEC filter parameters were not retuned.
+
+### Real microphone readiness
+
+A short automated readiness recording resolved the raw USB microphone target and an AEC source, measured RMS/peak/clipping/VAD, loaded and transcribed the fixed GPU ASR, and restored the audio settings. Raw capture RMS/peak were `0.02542 / 0.11334`, clipping `0`; AEC capture RMS/peak were `0.003285 / 0.01990`, clipping `0`; AEC VAD speech ratio was `0.0` with no human speech required; ASR loaded/transcribed successfully with empty content. The raw/AEC recorder returned code 1 after controlled stop but produced valid duration-bearing WAVs; this return code is retained in the artifact. The AEC readiness master used the available GoStream sink while leaving the physical playback target unchanged. `mic-readiness` is `measured`, not a human conversation approval.
+
+### Phase 4 files and judgement
+
+- `results/bench_stability.json`: 50 continuous attempts, retained blocked rows, stage/outlier classification, warm windows, server restart, memory, and interruption link
+- `results/bench_echo_rejection.json`: fixture rows, correlation/lag/energy distributions, calibrated thresholds, and mute reference
+- `results/bench_mic_readiness.json`: raw USB/AEC/VAD/ASR readiness
+- `results/bench_interruption.json`: independent resident-server interruption measurement
+- `results/summary.json`: aggregate and component judgement
+- `docs/echo-rejection.md`: algorithm and limitation notes
+
+Component judgement is `continuous_stability=measured_with_limitations`, `echo_rejection=pass`, `interruption=pass`, `server_restart=pass`, and `microphone_readiness=measured`. Phase 4 overall is `measured_with_limitations`: continuous latency and onset thresholds passed, but two initial physical-onset blocks and the unresolved physical-stop tail keep the result from being a blanket production claim. The next step may proceed to a human real-microphone conversation only as a controlled experiment; the largest remaining issue is robust physical onset/self-echo behavior under real double-talk, especially separating residual assistant audio from an overlapping user voice.

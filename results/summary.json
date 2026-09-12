@@ -1,6 +1,6 @@
 {
   "schema": "local-live-ja/summary/v2",
-  "generated_at": "2026-09-12T10:42:34.325962+00:00",
+  "generated_at": "2026-09-12T12:19:40.769453+00:00",
   "environment": {
     "captured_at": "2026-09-11T20:26:57.367044+00:00",
     "hostname": "ws1",
@@ -43,6 +43,10 @@
     "aec_matrix": "results/bench_aec_matrix.json",
     "playback_path": "results/bench_playback_path.json",
     "tts_serving": "results/bench_tts_serving.json",
+    "stability": "results/bench_stability.json",
+    "echo_rejection": "results/bench_echo_rejection.json",
+    "mic_readiness": "results/bench_mic_readiness.json",
+    "interruption": "results/bench_interruption.json",
     "live_latency_python_reference": "results/bench_live_latency_python.json",
     "run": "results/run_latest.json"
   },
@@ -52763,9 +52767,1115 @@
     },
     "volume_restore_error": null
   },
+  "phase4": {
+    "stability": {
+      "status": "measured",
+      "configuration": {
+        "asr": {
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16"
+        },
+        "llm": {
+          "model": "qwen3.5:9b-q4_K_M",
+          "provider": "ollama"
+        },
+        "tts": {
+          "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+          "speaker": "Ono_Anna",
+          "language": "Japanese",
+          "server": "vLLM-Omni 0.28.0 / vLLM 0.28.0",
+          "streaming": true
+        },
+        "target_turns": 50,
+        "minimum_turns": 20,
+        "aec": "not used in synthetic latency path; Phase 2 echo-only reference retained separately"
+      },
+      "summary": {
+        "target_turn_count": 50,
+        "measured_turn_count": 48,
+        "attempt_count": 50,
+        "failed_turn_count": 0,
+        "blocked_turn_count": 2,
+        "failure_rate": 0.04,
+        "physical_onset_detection_success_rate": 0.96,
+        "physical_onset_detection_failure_rate": 0.040000000000000036,
+        "physical_first_audio_s": {
+          "values": [
+            2.119997287,
+            2.359998582,
+            2.009995163,
+            1.099998071,
+            2.179996855,
+            2.179997424,
+            2.279998896,
+            1.739998047,
+            2.229997089,
+            1.899996816,
+            1.289998428,
+            1.019999034,
+            2.219998891,
+            1.779995463,
+            1.459997128,
+            1.699997084,
+            2.419997388,
+            1.649996842,
+            1.499997389,
+            1.189996038,
+            1.729998503,
+            1.729997544,
+            2.439997137,
+            1.739997312,
+            2.269998476,
+            1.659998873,
+            0.989995258,
+            2.279996766,
+            1.739997372,
+            0.999998061,
+            1.719996934,
+            1.569998279,
+            2.009996564,
+            1.81999707,
+            2.299996894,
+            1.369998469,
+            1.799997824,
+            2.069996627,
+            1.849997307,
+            1.649996047,
+            2.729996736,
+            1.899996855,
+            1.399997137,
+            0.919996322,
+            1.909996931,
+            1.749997356,
+            1.899997364,
+            1.789998792
+          ],
+          "count": 48,
+          "median": 1.7849971275,
+          "p90": 2.2859982954,
+          "p95": 2.3989978059,
+          "p99": 2.5936969244700006,
+          "min": 0.919996322,
+          "max": 2.729996736,
+          "mean": 1.7993723484375,
+          "stddev": 0.4220487365758673
+        },
+        "stage_medians_s": {
+          "acoustic_onset": 0.809533437,
+          "asr": 0.2576599005,
+          "asr_duration": 0.2190688805,
+          "first_pcm_to_actual": 0.49,
+          "first_pcm_to_playback": 0.00045135149999999996,
+          "first_sentence_buffering": 0.414915111,
+          "llm_total": 0.6068942024999999,
+          "llm_ttft": 0.193661965,
+          "playback": 4.51200336,
+          "total_turn": 1.7849971275,
+          "tts_request_to_actual": 0.5539728835,
+          "tts_request_to_first_pcm": 0.06468515150000001
+        },
+        "outlier_count": 15,
+        "outlier_cause_counts": {
+          "acoustic_onset_detection": 2,
+          "first_pcm_to_actual": 7,
+          "first_sentence_buffering": 6
+        },
+        "dominant_outlier_cause": "first_pcm_to_actual",
+        "memory_leak": {
+          "suspected": false,
+          "vram_first_to_last_delta_mib": 0.0,
+          "ram_first_to_last_delta_mib": 0.056640625,
+          "method": "first versus last 10-turn median; no per-turn GC/cache clear"
+        },
+        "goals": {
+          "median_lt_2s": true,
+          "p95_lt_2_5s": true,
+          "onset_success_ge_95pct": true
+        }
+      },
+      "warm_state_windows": [
+        {
+          "turn_range": [
+            1,
+            10
+          ],
+          "attempt_count": 10,
+          "measured_count": 8,
+          "ttfa_s": {
+            "values": [
+              0.415405384,
+              0.575552671,
+              0.778550435,
+              0.881998717,
+              0.959149385,
+              1.027333525,
+              1.227733722,
+              1.285206876
+            ],
+            "count": 8,
+            "median": 0.920574051,
+            "p90": 1.2449756682,
+            "p95": 1.2650912720999998,
+            "p99": 1.2811837552199998,
+            "min": 0.415405384,
+            "max": 1.285206876,
+            "mean": 0.8938663393749999,
+            "stddev": 0.3000898165613831
+          },
+          "physical_first_audio_s": {
+            "values": [
+              1.099998071,
+              1.739998047,
+              2.009995163,
+              2.119997287,
+              2.179996855,
+              2.179997424,
+              2.279998896,
+              2.359998582
+            ],
+            "count": 8,
+            "median": 2.149997071,
+            "p90": 2.3039988017999997,
+            "p95": 2.3319986919,
+            "p99": 2.35439860398,
+            "min": 1.099998071,
+            "max": 2.359998582,
+            "mean": 1.996247540625,
+            "stddev": 0.4079193536520179
+          },
+          "vram_peak_mib": {
+            "values": [
+              15079.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15107.0
+            ],
+            "count": 8,
+            "median": 15101.0,
+            "p90": 15102.8,
+            "p95": 15104.9,
+            "p99": 15106.58,
+            "min": 15079.0,
+            "max": 15107.0,
+            "mean": 15099.0,
+            "stddev": 8.34950811211569
+          },
+          "ram_peak_mib": {
+            "values": [
+              4158.8203125,
+              4159.2421875,
+              4159.2421875,
+              4159.2421875,
+              4159.24609375,
+              4159.25,
+              4159.25390625,
+              4159.26171875
+            ],
+            "count": 8,
+            "median": 4159.244140625,
+            "p90": 4159.25625,
+            "p95": 4159.258984375,
+            "p99": 4159.261171875,
+            "min": 4158.8203125,
+            "max": 4159.26171875,
+            "mean": 4159.19482421875,
+            "stddev": 0.15148190137641843
+          }
+        },
+        {
+          "turn_range": [
+            11,
+            20
+          ],
+          "attempt_count": 10,
+          "measured_count": 10,
+          "ttfa_s": {
+            "values": [
+              0.378928791,
+              0.391406827,
+              0.418280707,
+              0.451187966,
+              0.469480971,
+              0.534049075,
+              0.547653996,
+              0.676652577,
+              0.769009775,
+              0.885181119
+            ],
+            "count": 10,
+            "median": 0.501765023,
+            "p90": 0.7806269094,
+            "p95": 0.8329040141999998,
+            "p99": 0.87472569804,
+            "min": 0.378928791,
+            "max": 0.885181119,
+            "mean": 0.5521831804,
+            "stddev": 0.17145750028330226
+          },
+          "physical_first_audio_s": {
+            "values": [
+              1.019999034,
+              1.289998428,
+              1.459997128,
+              1.649996842,
+              1.699997084,
+              1.779995463,
+              1.899996816,
+              2.219998891,
+              2.229997089,
+              2.419997388
+            ],
+            "count": 10,
+            "median": 1.7399962735,
+            "p90": 2.2489971188999998,
+            "p95": 2.33449725345,
+            "p99": 2.40289736109,
+            "min": 1.019999034,
+            "max": 2.419997388,
+            "mean": 1.7669974163,
+            "stddev": 0.4424436887595756
+          },
+          "vram_peak_mib": {
+            "values": [
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0
+            ],
+            "count": 10,
+            "median": 15101.0,
+            "p90": 15101.0,
+            "p95": 15101.0,
+            "p99": 15101.0,
+            "min": 15101.0,
+            "max": 15101.0,
+            "mean": 15101.0,
+            "stddev": 0.0
+          },
+          "ram_peak_mib": {
+            "values": [
+              4159.24609375,
+              4159.25,
+              4159.25,
+              4159.25,
+              4159.25,
+              4159.25,
+              4159.25390625,
+              4159.26171875,
+              4159.265625,
+              4159.265625
+            ],
+            "count": 10,
+            "median": 4159.25,
+            "p90": 4159.265625,
+            "p95": 4159.265625,
+            "p99": 4159.265625,
+            "min": 4159.24609375,
+            "max": 4159.265625,
+            "mean": 4159.254296875,
+            "stddev": 0.0072379906821288
+          }
+        },
+        {
+          "turn_range": [
+            21,
+            30
+          ],
+          "attempt_count": 10,
+          "measured_count": 10,
+          "ttfa_s": {
+            "values": [
+              0.30658945,
+              0.331418637,
+              0.423629178,
+              0.436074167,
+              0.478605304,
+              0.556599487,
+              0.575808087,
+              0.656854106,
+              1.15227705,
+              1.375252529
+            ],
+            "count": 10,
+            "median": 0.5176023955,
+            "p90": 1.1745745978999997,
+            "p95": 1.2749135634499997,
+            "p99": 1.35518473589,
+            "min": 0.30658945,
+            "max": 1.375252529,
+            "mean": 0.6293107995,
+            "stddev": 0.3549768621181919
+          },
+          "physical_first_audio_s": {
+            "values": [
+              0.989995258,
+              1.189996038,
+              1.499997389,
+              1.659998873,
+              1.729997544,
+              1.729998503,
+              1.739997312,
+              2.269998476,
+              2.279996766,
+              2.439997137
+            ],
+            "count": 10,
+            "median": 1.7299980234999999,
+            "p90": 2.2959968031,
+            "p95": 2.36799697005,
+            "p99": 2.4255971036100004,
+            "min": 0.989995258,
+            "max": 2.439997137,
+            "mean": 1.7529973296,
+            "stddev": 0.4702262530852613
+          },
+          "vram_peak_mib": {
+            "values": [
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0
+            ],
+            "count": 10,
+            "median": 15101.0,
+            "p90": 15101.0,
+            "p95": 15101.0,
+            "p99": 15101.0,
+            "min": 15101.0,
+            "max": 15101.0,
+            "mean": 15101.0,
+            "stddev": 0.0
+          },
+          "ram_peak_mib": {
+            "values": [
+              4159.2578125,
+              4159.26171875,
+              4159.26171875,
+              4159.26171875,
+              4159.26171875,
+              4159.265625,
+              4159.265625,
+              4159.2734375,
+              4159.27734375,
+              4159.28125
+            ],
+            "count": 10,
+            "median": 4159.263671875,
+            "p90": 4159.277734375,
+            "p95": 4159.2794921875,
+            "p99": 4159.2808984375,
+            "min": 4159.2578125,
+            "max": 4159.28125,
+            "mean": 4159.266796875,
+            "stddev": 0.007823343169687396
+          }
+        },
+        {
+          "turn_range": [
+            31,
+            40
+          ],
+          "attempt_count": 10,
+          "measured_count": 10,
+          "ttfa_s": {
+            "values": [
+              0.27449127,
+              0.375513974,
+              0.415354804,
+              0.466342487,
+              0.494049993,
+              0.539412005,
+              0.556821806,
+              0.605132792,
+              0.959801465,
+              1.297873305
+            ],
+            "count": 10,
+            "median": 0.516730999,
+            "p90": 0.9936086489999998,
+            "p95": 1.1457409769999995,
+            "p99": 1.2674468394,
+            "min": 0.27449127,
+            "max": 1.297873305,
+            "mean": 0.5984793901,
+            "stddev": 0.3057879114277366
+          },
+          "physical_first_audio_s": {
+            "values": [
+              0.999998061,
+              1.369998469,
+              1.569998279,
+              1.719996934,
+              1.739997372,
+              1.799997824,
+              1.81999707,
+              2.009996564,
+              2.069996627,
+              2.299996894
+            ],
+            "count": 10,
+            "median": 1.769997598,
+            "p90": 2.0929966537,
+            "p95": 2.19649677385,
+            "p99": 2.27929686997,
+            "min": 0.999998061,
+            "max": 2.299996894,
+            "mean": 1.7399974094000001,
+            "stddev": 0.36805742610274683
+          },
+          "vram_peak_mib": {
+            "values": [
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0
+            ],
+            "count": 10,
+            "median": 15101.0,
+            "p90": 15101.0,
+            "p95": 15101.0,
+            "p99": 15101.0,
+            "min": 15101.0,
+            "max": 15101.0,
+            "mean": 15101.0,
+            "stddev": 0.0
+          },
+          "ram_peak_mib": {
+            "values": [
+              4159.265625,
+              4159.265625,
+              4159.265625,
+              4159.265625,
+              4159.265625,
+              4159.26953125,
+              4159.26953125,
+              4159.28125,
+              4159.28125,
+              4159.28125
+            ],
+            "count": 10,
+            "median": 4159.267578125,
+            "p90": 4159.28125,
+            "p95": 4159.28125,
+            "p99": 4159.28125,
+            "min": 4159.265625,
+            "max": 4159.28125,
+            "mean": 4159.27109375,
+            "stddev": 0.007179192058380324
+          }
+        },
+        {
+          "turn_range": [
+            41,
+            50
+          ],
+          "attempt_count": 10,
+          "measured_count": 10,
+          "ttfa_s": {
+            "values": [
+              0.339883048,
+              0.436683235,
+              0.517783827,
+              0.545044412,
+              0.55134628,
+              0.584879033,
+              0.635879831,
+              1.066805165,
+              1.097770469,
+              1.397093094
+            ],
+            "count": 10,
+            "median": 0.5681126565,
+            "p90": 1.1277027314999999,
+            "p95": 1.2623979127499996,
+            "p99": 1.37015405775,
+            "min": 0.339883048,
+            "max": 1.397093094,
+            "mean": 0.7173168394,
+            "stddev": 0.34502874194318384
+          },
+          "physical_first_audio_s": {
+            "values": [
+              0.919996322,
+              1.399997137,
+              1.649996047,
+              1.749997356,
+              1.789998792,
+              1.849997307,
+              1.899996855,
+              1.899997364,
+              1.909996931,
+              2.729996736
+            ],
+            "count": 10,
+            "median": 1.8199980495,
+            "p90": 1.9919969114999998,
+            "p95": 2.360996823749999,
+            "p99": 2.65619675355,
+            "min": 0.919996322,
+            "max": 2.729996736,
+            "mean": 1.7799970847,
+            "stddev": 0.4539947258999792
+          },
+          "vram_peak_mib": {
+            "values": [
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15101.0,
+              15133.0
+            ],
+            "count": 10,
+            "median": 15101.0,
+            "p90": 15104.2,
+            "p95": 15118.6,
+            "p99": 15130.12,
+            "min": 15101.0,
+            "max": 15133.0,
+            "mean": 15104.2,
+            "stddev": 10.119288512538814
+          },
+          "ram_peak_mib": {
+            "values": [
+              4159.26953125,
+              4159.26953125,
+              4159.28515625,
+              4159.28515625,
+              4159.30078125,
+              4159.30078125,
+              4159.30078125,
+              4159.31640625,
+              4159.31640625,
+              4159.36328125
+            ],
+            "count": 10,
+            "median": 4159.30078125,
+            "p90": 4159.32109375,
+            "p95": 4159.3421875,
+            "p99": 4159.3590625,
+            "min": 4159.26953125,
+            "max": 4159.36328125,
+            "mean": 4159.30078125,
+            "stddev": 0.027559909490256152
+          }
+        }
+      ],
+      "component_status": {
+        "continuous_stability": "measured_with_limitations",
+        "server_restart": "pass",
+        "microphone_readiness": "measured",
+        "interruption": "pass"
+      },
+      "server": {
+        "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+        "base_url": "http://127.0.0.1:8091/v1",
+        "host": "127.0.0.1",
+        "port": 8091,
+        "python": "/home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python",
+        "server_start_to_ready_s": 58.397466653,
+        "model_load_s": 4.730901,
+        "health": {
+          "status": "ready",
+          "http_status": 200,
+          "voices": [
+            "aiden",
+            "default",
+            "dylan",
+            "eric",
+            "ono_anna",
+            "ryan",
+            "serena",
+            "sohee",
+            "uncle_fu",
+            "vivian"
+          ],
+          "elapsed_s": 0.016606601
+        },
+        "gpu_memory_at_ready_mib": [
+          9230
+        ],
+        "environment_overrides": {
+          "VLLM_USE_FLASHINFER_SAMPLER": "0"
+        },
+        "stop": {
+          "stopped": true,
+          "owned": true,
+          "returncode": 0
+        },
+        "versions": {
+          "vllm": "0.28.0",
+          "vllm_omni": "0.28.0",
+          "exit_code": 0
+        }
+      },
+      "server_restart": {
+        "server_start_to_ready_s": 56.394738381,
+        "health": {
+          "status": "ready",
+          "http_status": 200,
+          "voices": [
+            "aiden",
+            "default",
+            "dylan",
+            "eric",
+            "ono_anna",
+            "ryan",
+            "serena",
+            "sohee",
+            "uncle_fu",
+            "vivian"
+          ],
+          "elapsed_s": 0.027732456
+        },
+        "gpu_memory_at_ready_mib": [
+          14037
+        ],
+        "restart_elapsed_s": 73.094997318,
+        "completed_runs": 3,
+        "stop": null
+      },
+      "memory": {
+        "before": {
+          "gpu_memory_mib": [
+            15
+          ],
+          "process_snapshot": [
+            "7072 /bin/ollama serve"
+          ]
+        },
+        "server_ready": {
+          "gpu_memory_mib": [
+            9230
+          ],
+          "process_snapshot": [
+            "7072 /bin/ollama serve",
+            "301530 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -m vllm_omni.entrypoints.cli.main serve Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice --deploy-config /home/ws1/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml --omni --host 127.0.0.1 --port 8091 --trust-remote-code",
+            "301562 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -B -c from multiprocessing.resource_tracker import main;main(41)"
+          ]
+        },
+        "after_whisper_load": {
+          "gpu_memory_mib": [
+            10222
+          ],
+          "process_snapshot": [
+            "7072 /bin/ollama serve",
+            "301530 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -m vllm_omni.entrypoints.cli.main serve Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice --deploy-config /home/ws1/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml --omni --host 127.0.0.1 --port 8091 --trust-remote-code",
+            "301562 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -B -c from multiprocessing.resource_tracker import main;main(41)"
+          ]
+        },
+        "during_continuous": {
+          "gpu_memory_mib": [
+            15101
+          ],
+          "process_snapshot": [
+            "7072 /bin/ollama serve",
+            "301530 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -m vllm_omni.entrypoints.cli.main serve Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice --deploy-config /home/ws1/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml --omni --host 127.0.0.1 --port 8091 --trust-remote-code",
+            "301562 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -B -c from multiprocessing.resource_tracker import main;main(41)",
+            "301970 /usr/lib/ollama/llama-server --model /root/.ollama/models/blobs/sha256-dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c --port 42643 --host 127.0.0.1 --no-webui --offline -c 8192 -np 1 --log-verbosity 4 --no-log-prefix --no-log-timestamps --no-jinja --chat-template chatml --mmproj /root/.ollama/models/blobs/sha256-dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c --cache-type-k q8_0 --cache-type-v q8_0 --flash-attn on -b 512 -ub 512 --context-shift --keep 4"
+          ]
+        },
+        "after_server_stop": {
+          "gpu_memory_mib": [
+            5445
+          ],
+          "process_snapshot": [
+            "7072 /bin/ollama serve",
+            "301970 /usr/lib/ollama/llama-server --model /root/.ollama/models/blobs/sha256-dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c --port 42643 --host 127.0.0.1 --no-webui --offline -c 8192 -np 1 --log-verbosity 4 --no-log-prefix --no-log-timestamps --no-jinja --chat-template chatml --mmproj /root/.ollama/models/blobs/sha256-dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c --cache-type-k q8_0 --cache-type-v q8_0 --flash-attn on -b 512 -ub 512 --context-shift --keep 4"
+          ]
+        }
+      },
+      "interruption": {
+        "status": "measured",
+        "software_playback_stop_s": 0.198566033,
+        "physical_stop_s": null,
+        "persistent_pcm_active_after_interrupt": false,
+        "vllm_http_stream_cancelled": true,
+        "pipeline": {
+          "cancelled": true,
+          "state": "IDLE",
+          "error": null,
+          "spoken_text": ""
+        }
+      },
+      "phase3b_outlier_reference": {
+        "source": "results/bench_live_latency.json",
+        "latency_s": 6.939998895,
+        "stage_values": {
+          "asr": 2.718756569,
+          "llm_ttft": 0.114514817,
+          "first_chunk_buffering": 0.026008204,
+          "tts_request_to_first_pcm": 2.279123913,
+          "first_pcm_to_queue": 0.002477717,
+          "stream_to_physical": 1.798943033
+        },
+        "component_medians": {
+          "asr": 0.288777046,
+          "llm_ttft": 0.10582878849999999,
+          "first_chunk_buffering": 0.026036814,
+          "tts_request_to_first_pcm": 0.0587864815,
+          "first_pcm_to_queue": 0.0004951835,
+          "stream_to_physical": 1.287073119
+        },
+        "classification": {
+          "is_outlier": true,
+          "dominant_cause": "tts_request_to_first_pcm",
+          "stage_flags": {
+            "asr": {
+              "value_s": 2.718756569,
+              "median_s": 0.288777046,
+              "ratio_to_median": 9.414725327580227,
+              "flagged": true
+            },
+            "llm_ttft": {
+              "value_s": 0.114514817,
+              "median_s": 0.10582878849999999,
+              "ratio_to_median": 1.0820762348611788,
+              "flagged": false
+            },
+            "first_chunk_buffering": {
+              "value_s": 0.026008204,
+              "median_s": 0.026036814,
+              "ratio_to_median": 0.998901171241612,
+              "flagged": false
+            },
+            "tts_request_to_first_pcm": {
+              "value_s": 2.279123913,
+              "median_s": 0.0587864815,
+              "ratio_to_median": 38.76952412945483,
+              "flagged": true
+            },
+            "first_pcm_to_queue": {
+              "value_s": 0.002477717,
+              "median_s": 0.0004951835,
+              "ratio_to_median": 5.003634006383492,
+              "flagged": false
+            },
+            "stream_to_physical": {
+              "value_s": 1.798943033,
+              "median_s": 1.287073119,
+              "ratio_to_median": 1.3977007261232375,
+              "flagged": false
+            }
+          }
+        },
+        "interpretation": "The dominant relative stage is retained as the primary hypothesis; acoustic onset remains a measured downstream contributor."
+      }
+    },
+    "echo_rejection": {
+      "status": "measured",
+      "method": "post-VAD reference correlation + short-window residual energy + measured lag",
+      "thresholds": {
+        "correlation_threshold": 0.9642105263157894,
+        "residual_energy_ratio_threshold": 0.9,
+        "max_lag_s": 0.066,
+        "energy_ratio_min": 0.1416587676434453,
+        "energy_ratio_max": 0.43899117398706705,
+        "window_s": 0.08,
+        "hop_s": 0.04,
+        "vad_threshold": 0.015,
+        "calibrated_from": "synthetic_fixture_grid_search"
+      },
+      "assistant_only": {
+        "vad_positives": 10,
+        "vad_positive_frames": 188,
+        "echo_reject_count": 10,
+        "false_accept_count": 0,
+        "false_accept_rate": 0.0
+      },
+      "synthetic_user_like": {
+        "vad_positives": 10,
+        "vad_positive_frames": 419,
+        "accepted_count": 10,
+        "acceptance_rate": 1.0,
+        "false_reject_rate": 0.0
+      },
+      "correlation_distribution": {
+        "values": [
+          0.9856991767883301,
+          0.08323889225721359,
+          0.9852396249771118,
+          0.08492536842823029,
+          0.9847562909126282,
+          0.09529126435518265,
+          0.9849175214767456,
+          0.11883719265460968,
+          0.9846051335334778,
+          0.08962187170982361,
+          0.984764814376831,
+          0.09447810053825378,
+          0.9842541217803955,
+          0.0965200886130333,
+          0.9846042990684509,
+          0.10375338047742844,
+          0.9844335317611694,
+          0.10108721256256104,
+          0.9842667579650879,
+          0.10506018996238708
+        ],
+        "count": 20,
+        "median": 0.5515456572175026,
+        "min": 0.08323889225721359,
+        "max": 0.9856991767883301
+      },
+      "energy_ratio_distribution": {
+        "values": [
+          0.20236966806206472,
+          2.401534525748669,
+          0.21442072163066964,
+          2.4578465787215182,
+          0.22647659501552328,
+          2.5122479960155033,
+          0.23833438043661223,
+          2.5700060803170723,
+          0.25057193711916426,
+          2.670374798421452,
+          0.26233174842789697,
+          2.725753319988854,
+          0.2742586539044272,
+          2.7771127632105976,
+          0.28616100641567255,
+          2.831206403897489,
+          0.29840712205443304,
+          2.940069583449434,
+          0.3103638325830126,
+          2.9921810044600807
+        ],
+        "count": 20,
+        "median": 1.3559491791658407,
+        "min": 0.20236966806206472,
+        "max": 2.9921810044600807
+      },
+      "residual_energy_ratio_distribution": {
+        "values": [
+          0.7048258557593705,
+          0.9999961768862956,
+          0.7157658708485768,
+          0.9999994313439355,
+          0.7223800178140095,
+          0.9999900443689291,
+          0.7130459582828588,
+          0.9999998923822102,
+          0.7389380990355446,
+          0.9999996851330863,
+          0.7534393298696819,
+          0.9999900103046765,
+          0.7300826988424473,
+          0.9999943187113243,
+          0.738741113863981,
+          0.9999964983181228,
+          0.7482161402867813,
+          0.9999905865170399,
+          0.7417613790292753,
+          0.9999978602401927
+        ],
+        "count": 20,
+        "median": 0.8767146700871792,
+        "min": 0.7048258557593705,
+        "max": 0.9999998923822102
+      },
+      "lag_seconds_distribution": {
+        "values": [
+          0.02,
+          0.02,
+          0.024,
+          0.024,
+          0.028,
+          0.028,
+          0.032,
+          0.032,
+          0.036,
+          0.036,
+          0.04,
+          0.04,
+          0.044,
+          0.044,
+          0.048,
+          0.048,
+          0.052,
+          0.052,
+          0.056,
+          0.056
+        ],
+        "count": 20,
+        "median": 0.038,
+        "min": 0.02,
+        "max": 0.056
+      },
+      "component_status": "pass",
+      "mute_reference": {
+        "assistant_only_false_accept_rate": 0.0,
+        "adopted": false,
+        "reason": "VAD disabled during playback would prevent future barge-in"
+      }
+    },
+    "mic_readiness": {
+      "status": "measured",
+      "raw_usb_microphone": {
+        "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+        "stats": {
+          "path": "results/artifacts/phase4_mic_readiness_raw.wav",
+          "sample_rate": 16000,
+          "frames": 10211,
+          "duration_s": 0.6381875,
+          "rms": 0.0015787433367222548,
+          "peak": 0.007904052734375,
+          "clipping_ratio": 0.0
+        }
+      },
+      "aec_source": {
+        "target": "Local_Live_Echo_Cancellation_Source",
+        "sink_master": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo",
+        "stats": {
+          "path": "results/artifacts/phase4_mic_readiness_aec.wav",
+          "sample_rate": 16000,
+          "frames": 15502,
+          "duration_s": 0.968875,
+          "rms": 0.0002316526952199638,
+          "peak": 0.001068115234375,
+          "clipping_ratio": 0.0
+        }
+      },
+      "vad": {
+        "raw": {
+          "intervals": [],
+          "speech_ratio": 0.0
+        },
+        "aec": {
+          "intervals": [],
+          "speech_ratio": 0.0
+        }
+      },
+      "asr": {
+        "status": "loaded_and_transcribed",
+        "result": {
+          "model": "large-v3-turbo",
+          "device": "cuda",
+          "compute_type": "int8_float16",
+          "text": "",
+          "elapsed_seconds": 0.05781497,
+          "gpu_memory_peak_mib": 1237
+        }
+      }
+    },
+    "interruption": {
+      "status": "measured",
+      "server": {
+        "server_start_to_ready_s": 58.401292182,
+        "health": {
+          "status": "ready",
+          "http_status": 200,
+          "voices": [
+            "aiden",
+            "default",
+            "dylan",
+            "eric",
+            "ono_anna",
+            "ryan",
+            "serena",
+            "sohee",
+            "uncle_fu",
+            "vivian"
+          ],
+          "elapsed_s": 0.021108272
+        },
+        "gpu_memory_at_ready_mib": [
+          7995
+        ],
+        "stop": {
+          "stopped": true,
+          "owned": true,
+          "returncode": 0
+        }
+      },
+      "interruption": {
+        "status": "measured",
+        "expected": {
+          "persistent_pcm_stopped": true,
+          "stale_pcm_rejected": true,
+          "pipeline_cancelled": true,
+          "llm_stream_cancelled": true
+        },
+        "interrupt_request_ns": 280039270970986,
+        "playback_process_stopped_ns": 280039469537019,
+        "software_playback_stop_s": 0.198566033,
+        "persistent_pcm_active_after_interrupt": false,
+        "queued_pcm_discarded": true,
+        "queued_pcm_count_before_cancel": 1,
+        "pipeline": {
+          "cancelled": true,
+          "state": "IDLE",
+          "error": null,
+          "spoken_text": ""
+        },
+        "vllm_http_stream_cancelled": true,
+        "llm_cancel_probe": {
+          "status": "measured",
+          "cancel_request_to_return_s": 0.005337844,
+          "llm_stream_cancelled": true,
+          "pipeline_cancelled": true,
+          "state": "IDLE",
+          "tts_cancel_hook_calls": 1,
+          "playback_cancel_hook_calls": 1,
+          "worker_started_to_return_s": 0.005727447
+        },
+        "capture": {
+          "path": "results/artifacts/phase4_interruption_raw.wav",
+          "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo",
+          "record_returncode": 1,
+          "record_stdout": "",
+          "record_stderr": "",
+          "timing_ns": {
+            "record_start": 280036955128127,
+            "record_end": 280039774904743
+          },
+          "recording_stats": {
+            "path": "results/artifacts/phase4_interruption_raw.wav",
+            "sample_rate": 16000,
+            "frames": 39224,
+            "duration_s": 2.4515,
+            "rms": 0.0015184886287897825,
+            "peak": 0.00799560546875,
+            "clipping_ratio": 0.0
+          }
+        },
+        "physical_stop_s": null,
+        "physical_stop_intervals_s": [],
+        "physical_stop_method": "last VAD interval after interrupt; null means no separable post-interrupt interval"
+      }
+    }
+  },
   "run": {
     "status": "completed",
     "assistant_text": "こんにちは。今日は通常会話の音声認識を確認します。数字は 1、2、3 と 134、5 です。GPU、Quita、Doka、Orama、Python3.12 を使い、2026 年 9 月 12 日土曜日の午後 3 時 30 分にテストします。RTX ゴジタ 70Ti と USB マイクロフォンの状態も",
+    "spoken_text": null,
     "audio_paths_count": 5,
     "error": null,
     "timing": {
@@ -52779,12 +53889,14 @@
     }
   },
   "pytest": {
-    "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q",
+    "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q --junitxml=/tmp/local-live-ja-phase4-final3.xml",
     "exit_code": 0,
-    "passed": 66,
+    "passed": 77,
     "failed": 0,
     "errors": 0,
-    "output_tail": "..................................................................       [100%]\n"
+    "skipped": 0,
+    "output_tail": "........................................................................ [ 93%]\\n.....                                                                    [100%]\\n",
+    "junit_path": "/tmp/local-live-ja-phase4-final3.xml"
   },
   "component_judgement": {
     "asr": "measured",
@@ -52799,10 +53911,16 @@
     "tts_serving": "measured",
     "aec_matrix": "measured_with_false_triggers",
     "playback_path": "measured",
+    "continuous_stability": "measured_with_limitations",
+    "server_restart": "pass",
+    "echo_rejection": "pass",
+    "microphone_readiness": "measured",
+    "interruption": "pass",
     "cpu_asr_profile": "measured",
     "test_reproducibility": "pass",
     "limitations": [
-      "aec_matrix"
+      "aec_matrix",
+      "continuous_stability"
     ],
     "overall": "measured_with_limitations"
   }

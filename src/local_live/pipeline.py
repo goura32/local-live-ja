@@ -8,6 +8,7 @@ from typing import Any
 
 from .sentence_chunker import SentenceChunker
 from .telemetry import EventLog
+from .echo_rejection import EchoRejectionConfig, classify_echo_candidate
 from .tools import MockToolRegistry
 from .llm.events import Cancelled, Completion, LLMError, TextDelta, ToolCall, ToolResult
 
@@ -22,11 +23,14 @@ class PipelineEvent:
 @dataclass
 class PipelineResult:
     assistant_text: str = ""
+    generated_text: str = ""
+    spoken_text: str = ""
     audio_paths: list[str] = field(default_factory=list)
     cancelled: bool = False
     error: str | None = None
     events: list[PipelineEvent] = field(default_factory=list)
     timing: dict[str, Any] = field(default_factory=dict)
+    state: str = "IDLE"
 
 
 class Cancellation:
@@ -55,6 +59,7 @@ class LivePipeline:
         sentence_timeout_s: float = 0.8,
         tool_registry: MockToolRegistry | None = None,
         max_tool_rounds: int = 3,
+        echo_rejection_config: EchoRejectionConfig | None = None,
     ) -> None:
         self.llm = llm
         self.tts = tts
@@ -64,14 +69,42 @@ class LivePipeline:
         self.tool_registry = tool_registry
         self.max_tool_rounds = max_tool_rounds
         self._active_cancel: Cancellation | None = None
+        self.state = "IDLE"
+        self.echo_rejection_config = echo_rejection_config or EchoRejectionConfig()
+
+    def classify_vad_candidate(
+        self,
+        reference: Any,
+        microphone: Any,
+        sample_rate: int,
+        *,
+        playback_active: bool,
+    ) -> dict[str, Any]:
+        """Apply the post-VAD echo gate without disabling VAD during playback."""
+        return classify_echo_candidate(
+            reference,
+            microphone,
+            sample_rate,
+            playback_active=playback_active,
+            config=self.echo_rejection_config,
+        )
 
     def cancel(self) -> None:
         if self._active_cancel:
             self._active_cancel.request()
+            for owner in (self.tts, self.playback):
+                cancel = getattr(owner, "cancel", None)
+                if callable(cancel):
+                    try:
+                        cancel()
+                    except Exception:
+                        # Cancellation is best effort; the turn still observes the event.
+                        pass
 
     def respond(self, user_text: str, cancel: Cancellation | None = None) -> PipelineResult:
         cancellation = cancel or Cancellation()
         self._active_cancel = cancellation
+        self.state = "RUNNING"
         log = EventLog()
         result = PipelineResult()
         messages: list[dict[str, Any]] = [
@@ -103,6 +136,7 @@ class LivePipeline:
                         return result
                     elif isinstance(event, LLMError):
                         result.error = event.message
+                        result.state = "ERROR"
                         result.events = self._events(log)
                         return result
                     if cancellation.event.is_set():
@@ -139,13 +173,17 @@ class LivePipeline:
                         log.mark("tool_result", name=call.name, call_id=call.call_id)
                     if round_index < self.max_tool_rounds:
                         continue
-                result.assistant_text += llm_text
+                result.generated_text = llm_text
                 if not completed and not llm_text and not tool_calls:
                     result.error = "LLM returned no content"
                 break
 
             chunker = SentenceChunker(**self.chunker_kwargs)
-            chunks = chunker.push(result.assistant_text)
+            if result.error:
+                result.state = "ERROR"
+                result.events = self._events(log)
+                return result
+            chunks = chunker.push(result.generated_text)
             chunks.extend(chunker.flush())
             for index, chunk in enumerate(chunks):
                 if cancellation.event.is_set():
@@ -156,6 +194,7 @@ class LivePipeline:
                 if bool(getattr(self.tts, "streaming", False)):
                     if not hasattr(self.tts, "synthesize_stream") or not hasattr(self.playback, "start"):
                         result.error = "streaming TTS requires a persistent PCM playback backend"
+                        result.state = "ERROR"
                         result.events = self._events(log)
                         return result
                     generated = self.tts.synthesize_stream(
@@ -166,16 +205,21 @@ class LivePipeline:
                         event_log=log,
                     )
                     log.mark("tts_end", path=str(output_path), streaming=True)
-                    if generated.get("cancelled") or cancellation.event.is_set():
+                    if generated.get("cancelled"):
                         self._finish_cancel(log, result, cancellation)
                         return result
                     if generated.get("status") != "measured":
                         result.error = str(generated.get("error") or "streaming TTS failed")
+                        result.state = "ERROR"
                         result.events = self._events(log)
                         return result
                     path = str(generated.get("path", output_path))
                     result.audio_paths.append(path)
+                    self._commit_spoken(log, result, chunk, path, streaming=True)
                     log.mark("playback_end", path=path, streaming=True, cancelled=False)
+                    if cancellation.event.is_set():
+                        self._finish_cancel(log, result, cancellation)
+                        return result
                     continue
                 else:
                     generated = self.tts.synthesize(chunk, output_path=output_path, cancel_event=cancellation.event)
@@ -184,24 +228,39 @@ class LivePipeline:
                     self._finish_cancel(log, result, cancellation)
                     return result
                 path = str(generated.get("path", output_path)) if isinstance(generated, dict) else str(output_path)
-                result.audio_paths.append(path)
                 log.mark("playback_start", path=path)
                 playback_result = self.playback.play(path, cancel_event=cancellation.event)
                 playback_cancelled = isinstance(playback_result, dict) and bool(playback_result.get("cancelled"))
                 log.mark("playback_end", path=path, cancelled=playback_cancelled)
-                if cancellation.event.is_set() or playback_cancelled:
+                if playback_cancelled:
+                    self._finish_cancel(log, result, cancellation)
+                    return result
+                result.audio_paths.append(path)
+                self._commit_spoken(log, result, chunk, path)
+                if cancellation.event.is_set():
                     self._finish_cancel(log, result, cancellation)
                     return result
 
             result.events = self._events(log)
             result.timing = self._timing(log)
+            result.state = "IDLE"
             return result
         except Exception as exc:  # boundary for a live turn; do not leak credentials
             result.error = f"{type(exc).__name__}: {exc}"
+            result.state = "ERROR"
             result.events = self._events(log)
             return result
         finally:
+            self.state = result.state
             self._active_cancel = None
+
+    @staticmethod
+    def _commit_spoken(log: EventLog, result: PipelineResult, text: str, path: str, *, streaming: bool = False) -> None:
+        result.spoken_text += text
+        # assistant_text is the history-safe compatibility field. Generated-only
+        # text remains available in generated_text and is never committed here.
+        result.assistant_text = result.spoken_text
+        log.mark("spoken_text_committed", text=text, path=path, streaming=streaming)
 
     def _finish_cancel(self, log: EventLog, result: PipelineResult, cancellation: Cancellation) -> None:
         if cancellation.requested_ns is None:
@@ -210,6 +269,7 @@ class LivePipeline:
         cancellation.completed_ns = time.monotonic_ns()
         log.mark("cancel_completed")
         result.cancelled = True
+        result.state = "IDLE"
         result.events = self._events(log) + [
             PipelineEvent("cancelled", cancellation.completed_ns, {"reason": "cancel_requested"})
         ]
