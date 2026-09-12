@@ -1,6 +1,6 @@
 {
   "schema": "local-live-ja/summary/v2",
-  "generated_at": "2026-09-12T22:37:18.535994+00:00",
+  "generated_at": "2026-09-12T23:02:21.948886+00:00",
   "environment": {
     "captured_at": "2026-09-12T22:37:08.608596+00:00",
     "hostname": "[REDACTED]",
@@ -63281,7 +63281,8 @@
       "too_short_rejection": true,
       "stale_pcm": true,
       "resource_growth": true,
-      "cleanup": true
+      "cleanup": true,
+      "queue_integrity": true
     },
     "multi_turn": {
       "application_success_count": 60,
@@ -63471,7 +63472,7 @@
     ],
     "resources": {
       "process": {
-        "sample_count": 124,
+        "sample_count": 123,
         "started": {
           "open_fds": 4,
           "child_processes": 0,
@@ -63497,10 +63498,10 @@
           "active_http_connections": false
         }
       },
-      "ram_peak_mib": 51.984375,
+      "ram_peak_mib": 51.9453125,
       "gpu_peak_mib": 15,
       "gpu_free_min_mib": 15827,
-      "cpu_load_percent": 2.695934959349594
+      "cpu_load_percent": 2.6754098360655734
     },
     "cleanup": {
       "stale_pcm_bytes": 0,
@@ -63535,20 +63536,17 @@
     }
   },
   "pytest": {
-    "schema": "local-live-ja/pytest/v2",
-    "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=src .venv/bin/python -m pytest",
-    "status": "pass",
-    "tests": 117,
-    "failures": 0,
+    "schema": "local-live-ja/pytest-result/v1",
+    "command": "pytest -q",
+    "tests": 118,
+    "passed": 118,
+    "failed": 0,
     "errors": 0,
     "skipped": 0,
-    "passed": 117,
-    "duration_s": 18.655,
-    "ci_equivalent": {
-      "passed": 116,
-      "deselected": 1,
-      "failed": 0
-    }
+    "status": "pass",
+    "compileall": "pass",
+    "uv_build": "pass",
+    "git_diff_check": "pass"
   },
   "component_judgement": {
     "asr": "measured",

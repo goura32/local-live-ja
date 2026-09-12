@@ -28,6 +28,8 @@ class PipelineResult:
     audio_paths: list[str] = field(default_factory=list)
     cancelled: bool = False
     error: str | None = None
+    retryable: bool = False
+    failure_phase: str | None = None
     events: list[PipelineEvent] = field(default_factory=list)
     timing: dict[str, Any] = field(default_factory=dict)
     state: str = "IDLE"
@@ -129,18 +131,21 @@ class LivePipeline:
         incremental = self.tool_registry is None
         spoken_chunk_index = 0
         drain_after_playback_cancel = False
+        current_phase = "llm"
 
         def speak_chunk(chunk: str) -> bool:
-            nonlocal drain_after_playback_cancel, spoken_chunk_index
+            nonlocal current_phase, drain_after_playback_cancel, spoken_chunk_index
             if cancellation.event.is_set():
                 self._finish_cancel(log, result, cancellation)
                 return False
             output_path = self.artifact_dir / f"assistant_{time.monotonic_ns()}_{spoken_chunk_index}.wav"
             spoken_chunk_index += 1
             log.mark("tts_request", text_chars=len(chunk), incremental=incremental)
+            current_phase = "tts"
             if bool(getattr(self.tts, "streaming", False)):
                 if not hasattr(self.tts, "synthesize_stream") or not hasattr(self.playback, "start"):
                     result.error = "streaming TTS requires a persistent PCM playback backend"
+                    result.failure_phase = "tts"
                     return False
                 generated = self.tts.synthesize_stream(
                     chunk,
@@ -154,7 +159,9 @@ class LivePipeline:
                     self._finish_cancel(log, result, cancellation)
                     return False
                 if generated.get("status") != "measured":
-                    result.error = str(generated.get("error") or "streaming TTS failed")
+                    result.error = "streaming TTS failed"
+                    result.retryable = True
+                    result.failure_phase = "tts"
                     return False
                 path = str(generated.get("path", output_path))
                 result.audio_paths.append(path)
@@ -168,6 +175,7 @@ class LivePipeline:
                 return False
             path = str(generated.get("path", output_path)) if isinstance(generated, dict) else str(output_path)
             log.mark("playback_start", path=path)
+            current_phase = "playback"
             playback_result = self.playback.play(path, cancel_event=cancellation.event)
             playback_cancelled = isinstance(playback_result, dict) and bool(playback_result.get("cancelled"))
             log.mark("playback_end", path=path, cancelled=playback_cancelled)
@@ -184,6 +192,7 @@ class LivePipeline:
 
         try:
             for round_index in range(self.max_tool_rounds + 1):
+                current_phase = "llm"
                 log.mark("llm_start", round=round_index)
                 text_parts: list[str] = []
                 tool_calls: list[ToolCall] = []
@@ -216,7 +225,9 @@ class LivePipeline:
                         return result
                     elif isinstance(event, LLMError):
                         result.generated_text = "".join(text_parts)
-                        result.error = event.message
+                        result.error = "LLM stream error"
+                        result.retryable = event.retryable
+                        result.failure_phase = "llm"
                         result.state = "ERROR"
                         result.events = self._events(log)
                         return result
@@ -255,6 +266,8 @@ class LivePipeline:
                         continue
                 if not completed and not llm_text and not tool_calls:
                     result.error = "LLM returned no content"
+                    result.retryable = True
+                    result.failure_phase = "llm"
                 if chunker is not None:
                     for chunk in chunker.flush():
                         if not speak_chunk(chunk):
@@ -282,7 +295,9 @@ class LivePipeline:
             result.state = "IDLE"
             return result
         except Exception as exc:  # boundary for a live turn; do not leak credentials
-            result.error = f"{type(exc).__name__}: {exc}"
+            result.error = f"{type(exc).__name__}"
+            result.retryable = bool(getattr(exc, "retryable", True))
+            result.failure_phase = current_phase
             result.state = "ERROR"
             result.events = self._events(log)
             result.timing = self._timing(log)

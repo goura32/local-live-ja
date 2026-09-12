@@ -1,10 +1,10 @@
 {
   "schema": "local-live-ja/bench-app/v2",
   "benchmark": "app",
-  "started_at": "2026-09-12T22:36:41Z",
-  "finished_at": "2026-09-12T22:37:00Z",
+  "started_at": "2026-09-12T23:06:36Z",
+  "finished_at": "2026-09-12T23:06:55Z",
   "environment": {
-    "captured_at": "2026-09-12T22:37:01.133681+00:00",
+    "captured_at": "2026-09-12T23:06:56.332615+00:00",
     "hostname": "[REDACTED]",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
@@ -50,7 +50,8 @@
       "too_short_rejection": true,
       "stale_pcm": true,
       "resource_growth": true,
-      "cleanup": true
+      "cleanup": true,
+      "queue_integrity": true
     },
     "multi_turn": {
       "summary": {
@@ -60,6 +61,9 @@
         "recovery_count": 0,
         "barge_in_count": 0,
         "cancel_count": 0,
+        "pending_utterance_count": 0,
+        "queue_drop_count": 0,
+        "source_dropped_frames": 0,
         "history": {
           "messages": [
             {
@@ -164,7 +168,8 @@
             }
           ],
           "max_turns": 12,
-          "max_chars": 8000
+          "max_chars": 8000,
+          "truncated_count": 0
         },
         "transition_states": [
           "ASSISTANT_SPEAKING",
@@ -232,7 +237,7 @@
       },
       "resources": {
         "process": {
-          "sample_count": 124,
+          "sample_count": 123,
           "started": {
             "open_fds": 4,
             "child_processes": 0,
@@ -258,10 +263,10 @@
             "active_http_connections": false
           }
         },
-        "ram_peak_mib": 51.984375,
+        "ram_peak_mib": 51.94921875,
         "gpu_peak_mib": 15,
         "gpu_free_min_mib": 15827,
-        "cpu_load_percent": 2.695934959349594
+        "cpu_load_percent": 2.713934426229508
       }
     },
     "synthetic_application_level_barge_in": [
@@ -422,6 +427,8 @@
       "active_after_session": false,
       "fixture_source_stopped": true
     },
+    "queue_drop_count": 0,
+    "source_dropped_frames": 0,
     "too_short_rejected": true,
     "deferred_manual": [
       "human speech recognition quality",

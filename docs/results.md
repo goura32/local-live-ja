@@ -29,7 +29,7 @@
 | tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
 | E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
 | AEC | measured with limitations | stable targetで16条件matrixと3候補×3 repeatを測定。VAD false triggerは残る |
-| test reproducibility | pass | 単一process・直列pytest、exit code 0、117 tests pass（Phase 7最終） |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、118 tests pass（Phase 7最終） |
 
 Phase 1〜2時点の総合判定は`measured_with_limitations`だった。これは過去snapshotであり、現在の総合判定ではない。phase-2でsynthetic user endからraw USB microphone acoustic onsetまでの物理latency、TTS length matrix、AEC volume/gain matrix、CPU ASR resident profileを追加した。live latencyは3.4000秒で2秒目標未達、AECは減衰改善を確認したがassistant-only VAD false triggerが残る。真のonline Qwen3-TTS streamingは前提にしていない。
 

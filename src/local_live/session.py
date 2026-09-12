@@ -225,11 +225,13 @@ class FixtureAudioSource:
         self.started = False
         self.stopped = False
         self.eof = False
+        self.dropped_frames = 0
 
     def start(self) -> None:
         self.started = True
         self.stopped = False
         self.eof = False
+        self.dropped_frames = 0
 
     def read(self, timeout_s: float = 0.1) -> np.ndarray | None:
         if not self.started or self.stopped:
@@ -258,6 +260,8 @@ class RealMicrophoneSource:
         block_ms: int = 20,
         queue_size: int = 128,
     ) -> None:
+        if queue_size < 1:
+            raise ValueError("queue_size must be positive")
         self.target = target
         self.sample_rate = sample_rate
         self.block_size = max(1, round(sample_rate * block_ms / 1000))
@@ -265,6 +269,7 @@ class RealMicrophoneSource:
         self._stream: Any = None
         self._lock = threading.Lock()
         self._error: Exception | None = None
+        self.dropped_frames = 0
         self.eof = False
 
     @property
@@ -277,6 +282,7 @@ class RealMicrophoneSource:
         except ImportError as exc:
             raise RuntimeError("sounddevice is not installed; run uv sync --extra voice") from exc
         self._error = None
+        self.dropped_frames = 0
         self.eof = False
 
         def callback(indata: Any, frames: int, time_info: Any, status: Any) -> None:
@@ -284,6 +290,10 @@ class RealMicrophoneSource:
             if status:
                 self._error = RuntimeError(str(status))
             with self._lock:
+                if len(self._queue) == self._queue.maxlen:
+                    self._queue.popleft()
+                    self.dropped_frames += 1
+                    self._error = RuntimeError("microphone queue overflow")
                 self._queue.append(np.asarray(indata, dtype=np.float32).reshape(-1).copy())
 
         try:
@@ -331,6 +341,7 @@ class ConversationHistory:
         self.max_turns = max_turns
         self.max_chars = max_chars
         self._messages: list[dict[str, str]] = []
+        self.truncated_count = 0
 
     def messages(self) -> list[dict[str, str]]:
         return [{"role": "system", "content": self.system_prompt}] + [dict(item) for item in self._messages]
@@ -339,6 +350,9 @@ class ConversationHistory:
         content = str(text).strip()
         if not content:
             raise ValueError("user history text must not be empty")
+        if len(content) > self.max_chars:
+            content = content[: self.max_chars]
+            self.truncated_count += 1
         self._messages.append({"role": "user", "content": content})
         self._trim()
 
@@ -346,6 +360,9 @@ class ConversationHistory:
         content = str(spoken_text).strip()
         if not content:
             return
+        if len(content) > self.max_chars:
+            content = content[: self.max_chars]
+            self.truncated_count += 1
         self._messages.append({"role": "assistant", "content": content})
         self._trim()
 
@@ -354,12 +371,14 @@ class ConversationHistory:
 
     def reset(self) -> None:
         self._messages.clear()
+        self.truncated_count = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "messages": self.messages(),
             "max_turns": self.max_turns,
             "max_chars": self.max_chars,
+            "truncated_count": self.truncated_count,
         }
 
     def _trim(self) -> None:
@@ -391,6 +410,7 @@ class SessionController:
         history: ConversationHistory | None = None,
         max_retries: int = 1,
         read_timeout_s: float = 0.1,
+        max_pending_utterances: int = 2,
     ) -> None:
         self.source = source
         self.asr = asr
@@ -402,6 +422,9 @@ class SessionController:
         )
         self.max_retries = max(0, max_retries)
         self.read_timeout_s = read_timeout_s
+        if max_pending_utterances < 1:
+            raise ValueError("max_pending_utterances must be positive")
+        self.max_pending_utterances = max_pending_utterances
         self.state = SessionState.IDLE
         self.events: list[dict[str, Any]] = []
         self.transitions: list[dict[str, Any]] = []
@@ -414,7 +437,9 @@ class SessionController:
         self._lock = threading.RLock()
         self._turn_thread: threading.Thread | None = None
         self._active_cancel: Cancellation | None = None
-        self._pending_utterance: np.ndarray | None = None
+        self._pending_utterances: deque[np.ndarray] = deque()
+        self.queue_drop_count = 0
+        self._source_restart_attempted = False
         self._barge_in_pending = False
         self._turn_counter = 0
 
@@ -427,6 +452,7 @@ class SessionController:
             if self.state not in {SessionState.IDLE, SessionState.ERROR_RECOVERY}:
                 return
             self._stop_event.clear()
+            self._source_restart_attempted = False
             self.source.start()
             self._transition(SessionState.LISTENING, "capture_started")
 
@@ -438,6 +464,10 @@ class SessionController:
             self._stop_event.set()
             if self._active_cancel is not None:
                 self._cancel_active_turn("shutdown")
+            discarded = len(self._pending_utterances)
+            self._pending_utterances.clear()
+            if discarded:
+                self._record("utterance_queue_discarded", count=discarded, reason="shutdown")
             try:
                 self.source.stop()
             finally:
@@ -451,7 +481,7 @@ class SessionController:
             self.vad.reset()
             self.events.clear()
             self.transitions.clear()
-            self._pending_utterance = None
+            self._pending_utterances.clear()
             self._barge_in_pending = False
             self.state = SessionState.IDLE
 
@@ -469,8 +499,7 @@ class SessionController:
             return False
         with self._lock:
             if self.turn_active:
-                self._pending_utterance = array.copy()
-                return False
+                return self._enqueue_pending(array, "submit_while_turn_active")
             self._launch_turn(array)
             return True
 
@@ -488,20 +517,32 @@ class SessionController:
         while time.monotonic() < deadline:
             with self._lock:
                 thread = self._turn_thread
-                pending = self._pending_utterance
+                pending = bool(self._pending_utterances)
                 active = thread is not None and thread.is_alive()
-            if not active and pending is None:
+            if not active and not pending:
                 return True
             if thread is not None:
                 thread.join(timeout=min(0.05, max(0.0, deadline - time.monotonic())))
-        return not self.turn_active and self._pending_utterance is None
+        return not self.turn_active and not self._pending_utterances
 
     def run(self, *, max_turns: int | None = None) -> dict[str, Any]:
-        self.start()
         try:
+            self.start()
             while not self._stop_event.is_set():
                 if max_turns is not None and self.application_success_count >= max_turns:
                     break
+                callback_error = getattr(self.source, "callback_error", None)
+                if callback_error:
+                    self._record("capture_error", error_type=callback_error)
+                    if self._source_restart_attempted:
+                        self._transition(SessionState.ERROR_RECOVERY, "capture_error_repeated")
+                        break
+                    self._source_restart_attempted = True
+                    self.recovery_count += 1
+                    self.source.stop()
+                    self.source.start()
+                    self._transition(SessionState.LISTENING, "capture_restarted")
+                    continue
                 chunk = self.source.read(self.read_timeout_s)
                 if chunk is None:
                     if self.source.eof:
@@ -524,6 +565,9 @@ class SessionController:
             "recovery_count": self.recovery_count,
             "barge_in_count": self.barge_in_count,
             "cancel_count": self.cancel_count,
+            "pending_utterance_count": len(self._pending_utterances),
+            "queue_drop_count": self.queue_drop_count,
+            "source_dropped_frames": int(getattr(self.source, "dropped_frames", 0)),
             "history": self.history.to_dict(),
             "transitions": list(self.transitions),
             "events": list(self.events),
@@ -541,6 +585,9 @@ class SessionController:
         )
         if event.kind == "speech_start":
             if self.turn_active:
+                if not self._playback_active():
+                    self._record("speech_queued_while_thinking")
+                    return
                 decision = self._classify_candidate(event.samples)
                 if decision.get("decision") == "possible_user_speech":
                     self.interrupt("possible_user_speech")
@@ -551,16 +598,28 @@ class SessionController:
                 self._transition(SessionState.USER_SPEAKING, "speech_continuation")
         elif event.kind == "speech_end":
             if self._barge_in_pending:
-                self._pending_utterance = event.samples.copy() if event.samples is not None else None
+                if event.samples is not None:
+                    self._enqueue_pending(event.samples, "barge_in")
                 return
             if self.turn_active:
-                self._pending_utterance = event.samples.copy() if event.samples is not None else None
+                if event.samples is not None:
+                    self._enqueue_pending(event.samples, "assistant_busy")
                 return
             self._transition(SessionState.FINALIZING, event.reason or "speech_end")
             if event.samples is not None:
                 self.submit_utterance(event.samples)
         elif event.kind == "too_short":
             self._transition(SessionState.LISTENING, "too_short_rejected")
+
+    def _enqueue_pending(self, samples: np.ndarray, reason: str) -> bool:
+        with self._lock:
+            if len(self._pending_utterances) >= self.max_pending_utterances:
+                self.queue_drop_count += 1
+                self._record("utterance_queue_full", reason=reason, capacity=self.max_pending_utterances)
+                return False
+            self._pending_utterances.append(samples.copy())
+            self._record("utterance_queued", reason=reason, depth=len(self._pending_utterances))
+            return True
 
     def _classify_candidate(self, samples: np.ndarray | None) -> dict[str, Any]:
         reference = getattr(self.pipeline.playback, "reference_samples", None)
@@ -576,6 +635,12 @@ class SessionController:
         except Exception as exc:
             self._record("echo_rejection_error", error_type=type(exc).__name__)
             return {"decision": "possible_user_speech", "reason": "echo_gate_error"}
+
+    def _playback_active(self) -> bool:
+        active = getattr(self.pipeline.playback, "active", None)
+        if active is None:
+            return self.state == SessionState.ASSISTANT_SPEAKING
+        return bool(active)
 
     def _launch_turn(self, samples: np.ndarray) -> None:
         self._turn_counter += 1
@@ -610,9 +675,15 @@ class SessionController:
                 result = self.pipeline.respond(user_text, cancellation, history=self.history.messages())
                 if not result.error or result.cancelled:
                     break
-                if attempt < self.max_retries:
+                if getattr(result, "retryable", False) and attempt < self.max_retries:
                     self.recovery_count += 1
-                    self._record("turn_retry", turn_id=turn_id, attempt=attempt + 1, error_type=result.error)
+                    self._record(
+                        "turn_retry",
+                        turn_id=turn_id,
+                        attempt=attempt + 1,
+                        error_type=result.error,
+                        failure_phase=getattr(result, "failure_phase", None),
+                    )
                     continue
             if result is None:
                 self.application_failure_count += 1
@@ -624,7 +695,15 @@ class SessionController:
             elif result.error:
                 self.application_failure_count += 1
                 self._transition(SessionState.ERROR_RECOVERY, "turn_error")
-                self._record("turn_error", turn_id=turn_id, error_type=result.error)
+                self._record(
+                    "turn_error",
+                    turn_id=turn_id,
+                    error_type=result.error,
+                    failure_phase=getattr(result, "failure_phase", None),
+                    retryable=getattr(result, "retryable", False),
+                )
+                if not getattr(result, "retryable", False):
+                    self._stop_event.set()
             else:
                 self.application_success_count += 1
                 self._record(
@@ -643,8 +722,7 @@ class SessionController:
                 self._active_cancel = None
                 self._turn_thread = None
                 self._barge_in_pending = False
-                pending = self._pending_utterance
-                self._pending_utterance = None
+                pending = self._pending_utterances.popleft() if self._pending_utterances else None
                 if self._stop_event.is_set():
                     self._transition(SessionState.IDLE, "stopped")
                 elif pending is not None and len(pending) >= self.vad.config.min_speech_duration_s * self.vad.config.sample_rate:

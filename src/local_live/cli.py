@@ -397,6 +397,7 @@ def _run_chat(args: argparse.Namespace, config: dict[str, Any]) -> int:
             target=mic_target,
             sample_rate=vad_config.sample_rate,
             block_ms=vad_config.frame_ms,
+            queue_size=int(chat_cfg.get("capture_queue_size", 128)),
         )
         controller = SessionController(
             source=source,
@@ -411,6 +412,7 @@ def _run_chat(args: argparse.Namespace, config: dict[str, Any]) -> int:
             ),
             max_retries=int(chat_cfg.get("max_retries", 1)),
             read_timeout_s=float(chat_cfg.get("read_timeout_s", 0.1)),
+            max_pending_utterances=int(chat_cfg.get("pending_utterance_capacity", 2)),
         )
         print(f"Local Live JA ASR: faster-whisper {asr.model_name} ({asr_device}, {compute_type})")
         print(f"LLM: {args.provider} {getattr(provider, 'requested_model', '') or nested(config, 'llm', 'local_model', default='auto')}")

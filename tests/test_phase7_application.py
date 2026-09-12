@@ -118,6 +118,13 @@ def test_history_commits_only_spoken_text_and_trims_pairs() -> None:
     assert history.messages() == [{"role": "system", "content": "system"}]
 
 
+def test_history_truncates_oversize_message_with_evidence() -> None:
+    history = ConversationHistory("system", max_turns=2, max_chars=5)
+    history.append_user("abcdefgh")
+    assert history.messages()[-1] == {"role": "user", "content": "abcde"}
+    assert history.to_dict()["truncated_count"] == 1
+
+
 def test_streaming_vad_emits_start_continuation_end_and_rejects_short() -> None:
     vad = StreamingVAD(VADConfig(min_speech_duration_s=0.12, end_silence_s=0.10, frame_ms=20, threshold=0.02))
     events = vad.process(speech()[:1600])

@@ -236,6 +236,8 @@ def compact_phase7_application(app: dict[str, Any]) -> dict[str, Any]:
             "history_context_forwarded": multi_turn.get("history_context_forwarded"),
             "history_roles": multi_turn.get("history_roles"),
             "incremental_first_tts_before_completion": (multi_turn.get("incremental_llm_tts") or {}).get("first_tts_before_completion"),
+            "queue_drop_count": multi_summary.get("queue_drop_count"),
+            "source_dropped_frames": multi_summary.get("source_dropped_frames"),
         },
         "synthetic_application_level_barge_in": data.get("synthetic_application_level_barge_in"),
         "recovery": data.get("recovery_matrix"),

@@ -1,16 +1,13 @@
 {
-  "schema": "local-live-ja/pytest/v2",
-  "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=src .venv/bin/python -m pytest",
-  "status": "pass",
-  "tests": 117,
-  "failures": 0,
+  "schema": "local-live-ja/pytest-result/v1",
+  "command": "pytest -q",
+  "tests": 118,
+  "passed": 118,
+  "failed": 0,
   "errors": 0,
   "skipped": 0,
-  "passed": 117,
-  "duration_s": 18.655,
-  "ci_equivalent": {
-    "passed": 116,
-    "deselected": 1,
-    "failed": 0
-  }
+  "status": "pass",
+  "compileall": "pass",
+  "uv_build": "pass",
+  "git_diff_check": "pass"
 }

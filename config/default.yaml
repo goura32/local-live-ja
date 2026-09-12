@@ -127,3 +127,5 @@ chat:
   microphone_block_ms: 20
   read_timeout_s: 0.1
   max_retries: 1
+  pending_utterance_capacity: 2
+  capture_queue_size: 128

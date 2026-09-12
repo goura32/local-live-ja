@@ -257,6 +257,9 @@ def _run_multiturn(config: dict[str, Any], turns: int) -> dict[str, Any]:
             "recovery_count",
             "barge_in_count",
             "cancel_count",
+            "pending_utterance_count",
+            "queue_drop_count",
+            "source_dropped_frames",
             "history",
         )
     }
@@ -467,6 +470,7 @@ def run_application_bench(config: dict[str, Any], *, turns: int | None = None) -
             (multiturn["resources"]["process"].get("monotonic_growth") or {}).values()
         ),
         "cleanup": multiturn["cleanup"]["stale_pcm_bytes"] == 0 and not multiturn["cleanup"]["active_after_session"],
+        "queue_integrity": multiturn["summary"]["queue_drop_count"] == 0 and multiturn["summary"]["source_dropped_frames"] == 0,
     }
     data = {
         "schema": "local-live-ja/application-acceptance/v1",
@@ -478,6 +482,8 @@ def run_application_bench(config: dict[str, Any], *, turns: int | None = None) -
         "synthetic_application_level_barge_in": barge_rows,
         "recovery_matrix": recovery_rows,
         "cleanup": multiturn["cleanup"],
+        "queue_drop_count": multiturn["summary"]["queue_drop_count"],
+        "source_dropped_frames": multiturn["summary"]["source_dropped_frames"],
         "too_short_rejected": rejected,
         "deferred_manual": [
             "human speech recognition quality",

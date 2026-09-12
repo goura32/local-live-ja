@@ -440,10 +440,24 @@ class PipeWirePlayback:
     def __init__(self, target: int | str | None = None) -> None:
         self.target = target
         self._process: subprocess.Popen[str] | None = None
+        self.reference_samples = np.empty(0, dtype=np.float32)
+        self.reference_sample_rate = 0
+
+    @property
+    def active(self) -> bool:
+        return self._process is not None and self._process.poll() is None
 
     def play(self, audio_path: str | Path, *, cancel_event: Any = None) -> dict[str, Any]:
         if self.target is not None and (not isinstance(self.target, str) or self.target.isdecimal()):
             raise ValueError("numeric PipeWire node IDs are not stable playback targets")
+        try:
+            reference, self.reference_sample_rate = sf.read(str(audio_path), dtype="float32", always_2d=False)
+            self.reference_samples = np.asarray(reference, dtype=np.float32)
+            if self.reference_samples.ndim > 1:
+                self.reference_samples = self.reference_samples.mean(axis=1)
+        except Exception:
+            self.reference_samples = np.empty(0, dtype=np.float32)
+            self.reference_sample_rate = 0
         command = ["pw-play"]
         if self.target is not None:
             command += ["--target", str(self.target)]
