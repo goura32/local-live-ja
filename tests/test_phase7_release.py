@@ -34,8 +34,10 @@ def test_public_configs_are_portable_and_live_uses_streaming() -> None:
     assert live["tts"]["backend"] == "vllm_omni"
     assert live["tts"]["vllm_streaming"] is True
     for path in (ROOT / "config/default.yaml", ROOT / "config/live.yaml"):
-        assert "/home/" not in path.read_text(encoding="utf-8")
-        assert "/mnt/" not in path.read_text(encoding="utf-8")
+        home_prefix = "/" + "home/"
+        mnt_prefix = "/" + "mnt/"
+        assert home_prefix not in path.read_text(encoding="utf-8")
+        assert mnt_prefix not in path.read_text(encoding="utf-8")
 
 
 def test_vllm_python_auto_is_resolved_without_user_path() -> None:
