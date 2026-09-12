@@ -29,6 +29,7 @@ from .llm.ollama import OllamaLLM
 from .llm.openrouter import OpenRouterLLM
 from .pipeline import Cancellation, LivePipeline
 from .phase4_bench import run_echo_rejection_bench, run_interruption_bench, run_mic_readiness_bench, run_stability_bench
+from .phase5_bench import run_cancellation_stress_bench, run_phase5_echo_rejection_bench, run_unattended_bench
 from .telemetry import EventLog, write_json
 from .tts_backends import build_tts_backend
 from .vllm_bench import run_tts_serving_bench
@@ -69,6 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     bench_sub.add_parser("echo-rejection")
     bench_sub.add_parser("interruption")
     bench_sub.add_parser("mic-readiness")
+    bench_sub.add_parser("unattended")
 
     run = subparsers.add_parser("run")
     run.add_argument("--input-wav")
@@ -133,11 +135,13 @@ def _run_bench(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, An
     if args.bench_name == "stability":
         return run_stability_bench(config)
     if args.bench_name == "echo-rejection":
-        return run_echo_rejection_bench(config)
+        return run_phase5_echo_rejection_bench(config)
     if args.bench_name == "mic-readiness":
         return run_mic_readiness_bench(config)
     if args.bench_name == "interruption":
-        return run_interruption_bench(config)
+        return run_cancellation_stress_bench(config)
+    if args.bench_name == "unattended":
+        return run_unattended_bench(config)
     raise ValueError(args.bench_name)
 
 

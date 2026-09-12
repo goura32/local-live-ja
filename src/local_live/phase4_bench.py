@@ -540,10 +540,12 @@ def _run_stability_turn(
             "process_rss_peak_mib": monitor.ram_memory_peak_mib,
             "gpu_memory_start_mib": monitor.started_gpu,
             "gpu_memory_peak_mib": monitor.gpu_memory_peak_mib,
+            "gpu_memory_free_min_mib": monitor.gpu_memory_free_min_mib,
             "gpu_memory_end_mib": current_gpu_memory(),
             "cpu_load_percent": monitor.cpu_load_percent,
         }
         row["peak_vram_mib"] = monitor.gpu_memory_peak_mib
+        row["gpu_memory_free_min_mib"] = monitor.gpu_memory_free_min_mib
         row["ram_mib"] = monitor.ram_memory_peak_mib
         row["cpu_percent"] = monitor.cpu_load_percent
         row["turn_elapsed_s"] = (time.monotonic_ns() - started_ns) / 1e9
@@ -577,6 +579,7 @@ def _window_summary(rows: list[dict[str, Any]], start: int, end: int) -> dict[st
         "ttfa_s": percentile_summary(vals("tts_request_to_actual")),
         "physical_first_audio_s": percentile_summary(vals("total_turn")),
         "vram_peak_mib": percentile_summary(vals("peak_vram_mib")),
+        "vram_free_min_mib": percentile_summary(vals("gpu_memory_free_min_mib")),
         "ram_peak_mib": percentile_summary(vals("ram_mib")),
     }
 
@@ -753,6 +756,10 @@ def run_stability_bench(config: dict[str, Any]) -> dict[str, Any]:
             "physical_onset_detection_failure_rate": 1.0 - physical_detected / len(data["turns"]) if data["turns"] else None,
             "physical_first_audio_s": percentile_summary(all_total),
             "stage_medians_s": medians,
+            "gpu_memory_baseline_mib": next((max(row.get("memory", {}).get("gpu_memory_start_mib") or []) for row in data["turns"] if row.get("memory", {}).get("gpu_memory_start_mib")), None),
+            "gpu_memory_peak_mib": max((row.get("peak_vram_mib") for row in data["turns"] if isinstance(row.get("peak_vram_mib"), (int, float))), default=None),
+            "gpu_memory_free_min_mib": min((row.get("gpu_memory_free_min_mib") for row in data["turns"] if isinstance(row.get("gpu_memory_free_min_mib"), (int, float))), default=None),
+            "vram_warning_below_500_mib": any(isinstance(row.get("gpu_memory_free_min_mib"), (int, float)) and row["gpu_memory_free_min_mib"] < 500 for row in data["turns"]),
             "outlier_count": sum(row.get("outlier", {}).get("is_outlier", False) for row in data["turns"]),
             "outlier_cause_counts": {
                 cause: sum(row.get("outlier", {}).get("dominant_cause") == cause for row in data["turns"])
@@ -793,12 +800,14 @@ def run_stability_bench(config: dict[str, Any]) -> dict[str, Any]:
                 asr = WhisperASR(model=nested(config, "asr", "model", default="large-v3-turbo"), device="cuda", compute_type=str(nested(config, "asr", "gpu_default_compute_type", default="int8_float16")), language="ja", beam_size=int(nested(config, "asr", "beam_size", default=5)))
                 asr.load()
                 restart_engine = _make_vllm_client(config, streaming=True, initial=nested(config, "tts", "vllm_initial_codec_chunk_frames", default=None))
-                for index in range(1, 4):
+                restart_turns = max(3, int(nested(config, "bench", "stability_restart_turns", default=3)))
+                for index in range(1, restart_turns + 1):
                     data["restart_runs"].append(_run_stability_turn(config, engine=restart_engine, asr=asr, provider=provider, fixture=fixtures[(index - 1) % len(fixtures)], turn_index=index, phase="restart", playback_target=str(playback_target), capture_target=str(capture_target)))
+                data["server_restart"]["requested_runs"] = restart_turns
                 data["server_restart"]["completed_runs"] = sum(row.get("status") == "measured" for row in data["restart_runs"])
         data["component_status"] = {
             "continuous_stability": _stability_status(data),
-            "server_restart": "pass" if data.get("server_restart", {}).get("completed_runs") == 3 else "measured_with_limitations",
+            "server_restart": "pass" if data.get("server_restart", {}).get("completed_runs") == data.get("server_restart", {}).get("requested_runs", max(3, int(nested(config, "bench", "stability_restart_turns", default=3)))) else "measured_with_limitations",
             "microphone_readiness": data.get("microphone_readiness", {}).get("status", "blocked"),
         }
         data["status"] = "measured" if len(measured) >= minimum_turns else "partial"

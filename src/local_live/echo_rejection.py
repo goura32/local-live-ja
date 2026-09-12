@@ -66,6 +66,18 @@ def _correlation(left: np.ndarray, right: np.ndarray) -> float:
     return float(abs(np.dot(left, right) / denominator))
 
 
+def _active_correlation(left: np.ndarray, right: np.ndarray) -> float:
+    """Correlate signal-bearing reference samples without silent/noise padding."""
+    if len(left) < 2 or len(right) < 2:
+        return 0.0
+    reference_peak = float(np.max(np.abs(left)))
+    active_floor = max(1e-4, reference_peak * 0.02)
+    active = np.abs(left) >= active_floor
+    if int(np.count_nonzero(active)) < 32:
+        return _correlation(left, right)
+    return _correlation(left[active], right[active])
+
+
 def _resample(signal: np.ndarray, source_rate: int, target_rate: int) -> np.ndarray:
     if source_rate == target_rate:
         return signal.astype(np.float32, copy=False)
@@ -101,7 +113,7 @@ def _best_alignment(reference: np.ndarray, microphone: np.ndarray, sample_rate: 
         left, right = _aligned_segments(ref, mic, lag)
         if len(left) < max(32, search_rate // 100):
             continue
-        score = _correlation(left, right)
+        score = _active_correlation(left, right)
         if score > best_score:
             best_score = score
             best_lag = lag
@@ -135,6 +147,47 @@ def _window_metric(reference: np.ndarray, microphone: np.ndarray) -> dict[str, f
     }
 
 
+def _padded_slice(value: np.ndarray, start: int, end: int) -> np.ndarray:
+    """Return a fixed-size slice, padding outside the signal with zeros."""
+    if end <= start:
+        return np.empty(0, dtype=np.float32)
+    result = np.zeros(end - start, dtype=np.float32)
+    source_start = max(0, start)
+    source_end = min(len(value), end)
+    if source_end > source_start:
+        result[source_start - start : source_end - start] = value[source_start:source_end]
+    return result
+
+
+def _window_metrics(
+    reference: np.ndarray,
+    microphone: np.ndarray,
+    lag_samples: int,
+    window_length: int,
+    hop_length: int,
+    energy_floor: float,
+    sample_rate: int,
+) -> list[dict[str, float]]:
+    """Measure overlap and unmatched leading/trailing microphone windows.
+
+    ``lag_samples`` means that microphone sample ``i + lag_samples`` maps to
+    reference sample ``i``.  Zero-reference windows keep microphone audio
+    after the reference ends visible as unexplained residual energy.
+    """
+    span_start = min(0, lag_samples)
+    span_end = max(len(microphone), len(reference) + lag_samples)
+    windows: list[dict[str, float]] = []
+    for start in range(span_start, max(span_start, span_end - window_length + 1), hop_length):
+        end = start + window_length
+        ref_window = _padded_slice(reference, start - lag_samples, end - lag_samples)
+        mic_window = _padded_slice(microphone, start, end)
+        metric = _window_metric(ref_window, mic_window)
+        if max(metric["reference_rms"], metric["microphone_rms"]) >= energy_floor:
+            metric["start_s"] = start / sample_rate
+            windows.append(metric)
+    return windows
+
+
 def analyze_echo_pair(
     reference: np.ndarray,
     microphone: np.ndarray,
@@ -163,23 +216,36 @@ def analyze_echo_pair(
     aligned_ref, aligned_mic = _aligned_segments(ref, mic, lag_samples)
     window_length = max(1, int(round(window_s * sample_rate)))
     hop_length = max(1, int(round(hop_s * sample_rate)))
-    windows: list[dict[str, float]] = []
-    for start in range(0, max(0, len(aligned_ref) - window_length + 1), hop_length):
-        end = start + window_length
-        metric = _window_metric(aligned_ref[start:end], aligned_mic[start:end])
-        if max(metric["reference_rms"], metric["microphone_rms"]) >= energy_floor:
-            metric["start_s"] = start / sample_rate
-            windows.append(metric)
+    windows = _window_metrics(ref, mic, lag_samples, window_length, hop_length, energy_floor, sample_rate)
     if not windows:
         windows = [_window_metric(aligned_ref, aligned_mic)]
+    reference_floor = max(energy_floor, max((item["reference_rms"] for item in windows), default=0.0) * 0.25)
+    noise_window = mic[: min(len(mic), max(1, int(round(0.25 * sample_rate))))]
+    noise_rms = _rms(noise_window)
+    residual_candidates = [
+        item["residual_energy_ratio"]
+        for item in windows
+        if item["reference_rms"] >= reference_floor
+        or (item["reference_rms"] <= 1e-9 and item["microphone_rms"] >= max(energy_floor, noise_rms * 2.5))
+    ]
+    if not residual_candidates:
+        residual_candidates = [item["residual_energy_ratio"] for item in windows]
+    active_correlations = [
+        item["correlation"]
+        for item in windows
+        if item["reference_rms"] >= reference_floor
+    ]
     return {
         "correlation": correlation,
+        "max_window_correlation": float(max(active_correlations, default=correlation)),
         "lag_samples": lag_samples,
         "lag_seconds": lag_samples / sample_rate,
         "energy_ratio": _rms(mic) / max(_rms(ref), 1e-9),
         "residual_energy_ratio": float(statistics.median(item["residual_energy_ratio"] for item in windows)),
         "min_window_correlation": float(min(item["correlation"] for item in windows)),
-        "max_window_residual_energy_ratio": float(max(item["residual_energy_ratio"] for item in windows)),
+        "max_window_residual_energy_ratio": float(max(residual_candidates)),
+        "residual_reference_floor": reference_floor,
+        "noise_floor_rms": noise_rms,
         "window_metrics": windows,
     }
 
@@ -187,7 +253,10 @@ def analyze_echo_pair(
 def _is_echo(metrics: Mapping[str, Any], config: EchoRejectionConfig) -> bool:
     energy_ratio = float(metrics.get("energy_ratio", 0.0))
     lag_seconds = abs(float(metrics.get("lag_seconds", 0.0)))
-    correlation = float(metrics.get("correlation", 0.0))
+    correlation = max(
+        float(metrics.get("correlation", 0.0)),
+        float(metrics.get("max_window_correlation", 0.0)),
+    )
     residual = float(metrics.get("max_window_residual_energy_ratio", metrics.get("residual_energy_ratio", 1.0)))
     return (
         correlation >= config.correlation_threshold
@@ -195,6 +264,24 @@ def _is_echo(metrics: Mapping[str, Any], config: EchoRejectionConfig) -> bool:
         and residual <= config.residual_energy_ratio_threshold
         and config.energy_ratio_min <= energy_ratio <= config.energy_ratio_max
     )
+
+
+def threshold_margin(metrics: Mapping[str, Any], config: EchoRejectionConfig) -> dict[str, float]:
+    """Return signed margins; positive means the corresponding gate passes."""
+    energy_ratio = float(metrics.get("energy_ratio", 0.0))
+    lag_seconds = abs(float(metrics.get("lag_seconds", 0.0)))
+    correlation = max(
+        float(metrics.get("correlation", 0.0)),
+        float(metrics.get("max_window_correlation", 0.0)),
+    )
+    residual = float(metrics.get("max_window_residual_energy_ratio", metrics.get("residual_energy_ratio", 1.0)))
+    return {
+        "correlation_minus_threshold": correlation - config.correlation_threshold,
+        "lag_limit_minus_abs_lag_s": config.max_lag_s - lag_seconds,
+        "energy_ratio_minus_min": energy_ratio - config.energy_ratio_min,
+        "energy_max_minus_ratio": config.energy_ratio_max - energy_ratio,
+        "residual_threshold_minus_value": config.residual_energy_ratio_threshold - residual,
+    }
 
 
 def classify_echo_candidate(
@@ -225,6 +312,7 @@ def classify_echo_candidate(
         "reason": "reference_explained" if echo else "unexplained_energy_or_mismatch",
         "metrics": metrics,
         "thresholds": selected.__dict__.copy(),
+        "threshold_margin": threshold_margin(metrics, selected),
     }
 
 
@@ -311,6 +399,8 @@ def evaluate_echo_rejection(
                 "decision": decision["decision"],
                 "reject": decision["reject"],
                 "metrics": decision["metrics"],
+                "threshold_margin": decision.get("threshold_margin"),
+                "metadata": fixture.get("metadata"),
             }
         )
     assistant_rows = [row for row in rows if row["label"] == "assistant_only"]
@@ -351,9 +441,83 @@ def evaluate_echo_rejection(
         "energy_ratio_distribution": distribution("energy_ratio"),
         "residual_energy_ratio_distribution": distribution("max_window_residual_energy_ratio"),
         "lag_seconds_distribution": distribution("lag_seconds"),
+        "threshold_margin_rows": [
+            {"name": row["name"], "label": row["label"], "margin": row.get("threshold_margin")}
+            for row in rows
+        ],
         "mute_reference": {
             "assistant_only_false_accept_rate": 0.0,
             "adopted": False,
             "reason": "VAD disabled during playback would prevent future barge-in",
+        },
+    }
+
+
+def split_calibration_validation(
+    fixtures: list[Mapping[str, Any]],
+    *,
+    fraction: float = 0.5,
+) -> dict[str, list[Mapping[str, Any]]]:
+    """Make a deterministic, label-stratified calibration/validation split."""
+    if not 0.0 < fraction < 1.0:
+        raise ValueError("fraction must be between zero and one")
+    grouped: dict[str, list[Mapping[str, Any]]] = {}
+    for fixture in fixtures:
+        grouped.setdefault(str(fixture.get("label", "unknown")), []).append(fixture)
+    calibration: list[Mapping[str, Any]] = []
+    validation: list[Mapping[str, Any]] = []
+    for label in sorted(grouped):
+        rows = grouped[label]
+        cut = min(len(rows), max(1, int(round(len(rows) * fraction)))) if rows else 0
+        calibration.extend(rows[:cut])
+        validation.extend(rows[cut:])
+    return {"calibration": calibration, "validation": validation}
+
+
+def evaluate_echo_rejection_split(
+    fixtures: list[Mapping[str, Any]],
+    sample_rate: int,
+    *,
+    fixed_config: EchoRejectionConfig,
+    calibration_fraction: float = 0.5,
+) -> dict[str, Any]:
+    """Evaluate Phase 4 thresholds first, then a calibration-only alternative."""
+    split = split_calibration_validation(fixtures, fraction=calibration_fraction)
+    calibration = split["calibration"]
+    validation = split["validation"]
+    calibrated_config = calibrate_thresholds(calibration, sample_rate)
+    fixed_all = evaluate_echo_rejection(fixtures, sample_rate, config=fixed_config)
+    fixed_calibration = evaluate_echo_rejection(calibration, sample_rate, config=fixed_config)
+    fixed_validation = evaluate_echo_rejection(validation, sample_rate, config=fixed_config)
+    calibrated_validation = evaluate_echo_rejection(validation, sample_rate, config=calibrated_config)
+    fixed_values = fixed_config.__dict__
+    calibrated_values = calibrated_config.__dict__
+    labels = sorted({str(row.get("label", "unknown")) for row in fixtures})
+    return {
+        "status": "measured",
+        "split": {
+            "calibration_count": len(calibration),
+            "validation_count": len(validation),
+            "calibration_labels": {label: sum(row.get("label") == label for row in calibration) for label in labels},
+            "validation_labels": {label: sum(row.get("label") == label for row in validation) for label in labels},
+            "fraction": calibration_fraction,
+        },
+        "threshold_selection_order": [
+            "fixed_phase4_thresholds_first",
+            "calibration_only_grid_search",
+            "validation_reported_separately",
+        ],
+        "fixed_thresholds": fixed_values,
+        "fixed_threshold_evaluation": {
+            "all": fixed_all,
+            "calibration": fixed_calibration,
+            "validation": fixed_validation,
+        },
+        "calibrated_thresholds_from_calibration": calibrated_values,
+        "calibrated_validation_evaluation": calibrated_validation,
+        "threshold_delta_from_fixed": {
+            key: float(calibrated_values[key]) - float(fixed_values[key])
+            for key in fixed_values
+            if isinstance(fixed_values.get(key), (int, float)) and isinstance(calibrated_values.get(key), (int, float))
         },
     }

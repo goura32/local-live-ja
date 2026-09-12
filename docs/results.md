@@ -13,7 +13,7 @@
 | tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
 | E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
 | AEC | measured with limitations | stable targetで16条件matrixと3候補×3 repeatを測定。VAD false triggerは残る |
-| test reproducibility | pass | 単一process・直列pytest、exit code 0、41 tests pass |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、89 tests pass |
 
 総合判定は`measured_with_limitations`。phase-2でsynthetic user endからraw USB microphone acoustic onsetまでの物理latency、TTS length matrix、AEC volume/gain matrix、CPU ASR resident profileを追加した。live latencyは3.4000秒で2秒目標未達、AECは減衰改善を確認したがassistant-only VAD false triggerが残る。真のonline Qwen3-TTS streamingは前提にしていない。
 
@@ -557,3 +557,50 @@ A short automated readiness recording resolved the raw USB microphone target and
 - `docs/echo-rejection.md`: algorithm and limitation notes
 
 Component judgement is `continuous_stability=measured_with_limitations`, `echo_rejection=pass`, `interruption=pass`, `server_restart=pass`, and `microphone_readiness=measured`. Phase 4 overall is `measured_with_limitations`: continuous latency and onset thresholds passed, but two initial physical-onset blocks and the unresolved physical-stop tail keep the result from being a blanket production claim. The next step may proceed to a human real-microphone conversation only as a controlled experiment; the largest remaining issue is robust physical onset/self-echo behavior under real double-talk, especially separating residual assistant audio from an overlapping user voice.
+
+## Phase 5: unattended robustness and synthetic double-talk
+
+Phase 5 was run without human speech, human barge-in, subjective listening, manual gain/device changes, or production-readiness approval. The fixed configuration remained `large-v3-turbo` / GPU `int8_float16`, Ollama `qwen3.5:9b-q4_K_M`, Qwen3-TTS CustomVoice `Ono_Anna` / Japanese, vLLM-Omni/vLLM `0.28.0`, HTTP raw PCM streaming, and the existing AEC path. Generated WAVs and logs remain ignored artifacts.
+
+### Extended echo-rejection dataset
+
+The dataset contains 40 deterministic rows: 20 assistant-only and 20 synthetic user-like rows. It uses the existing distinct Japanese `phase4_input_technical.wav` fixture (`PipeWireとCUDAの状態を教えてください。`) rather than copying the assistant reference. The 20 conditions cover assistant-start, assistant-middle, assistant-end, and assistant-end-or-after offsets; weak-user/strong-echo, equal-level, and strong-user/weak-echo levels; noise RMS `0.0005/0.002/0.006`; and lag `20/40/60 ms`. The first evaluation applied the Phase 4 threshold unchanged. Calibration and validation were stratified 50/50 (10 assistant-only + 10 user-like rows per split); the calibrated candidate was reported separately and was not used to hide fixed-threshold results.
+
+| validation metric | fixed Phase 4 threshold | calibration-only threshold applied to validation | target |
+|---|---:|---:|---:|
+| assistant-only false accept | 0/10 = 0% | 0/10 = 0% | <=5% |
+| synthetic user-like acceptance | 10/10 = 100% | 10/10 = 100% | >=95% |
+| synthetic user-like false reject | 0% | 0% | recorded |
+
+The fixed threshold remained correlation `0.9642105263`, lag `<=66 ms`, energy ratio `0.1416587676–0.438991174`, residual ratio `0.9`, 80 ms window, and 40 ms hop. Score distributions and per-row threshold margins are in `results/bench_echo_rejection.json`. The analyzer now includes active-reference window correlation and evaluates strong unmatched trailing/leading microphone energy; it does not introduce an ML classifier or replace AEC.
+
+### Physical onset repeat and detector sensitivity
+
+The same fixed 3.04 s assistant reference was played 30 times. All 30 playback commands succeeded, all 30 captures had valid duration and nonzero RMS/peak, PipeWire reported 6 devices (3 sinks/3 sources) on each checked repeat, and no repeat was blocked or failed. The raw recorder returned `1` after controlled SIGTERM while valid WAVs were produced; this return code is retained and classified as expected for this path. Onset detection was 30/30 (100%), with no blocked-cause classification. The repeated rows retain expected onset (`1.04 s`), detected onset, recording length, raw RMS/peak, cross-correlation, device availability, PipeWire health, and threshold sensitivity.
+
+The bounded synthetic detector suite at 3x/4x/5x noise multipliers produced 0 false negatives, 0 false positives, and 0.0 s timing error. Physical replay showed one early false-positive candidate and 14 late-onset candidates against the generated-signal expectation; the largest timing error was `0.97 s`, while median absolute timing error was `0.25 s`. These candidates had valid capture and playback, so they are physical timing/reference-alignment limitations rather than missing-speaker or missing-microphone evidence. No production threshold relaxation was adopted.
+
+### 100-turn stability, outliers, and resources
+
+The unattended stability run completed 100/100 measured turns, 0 blocked, and 0 failed turns. Physical first audio was median `1.799997737 s`, p95 `2.4804976766 s`, p99 `4.7790963299 s`, and max `28.449995525 s`. The 17 outliers were retained; dominant classification was `first_sentence_buffering` (11), with acoustic onset (2), first-PCM-to-actual (3), and LLM TTFT (1) also recorded. The 28.45 s maximum was not discarded or relabeled as a normal latency value.
+
+VRAM during the continuous run was baseline `9,830 MiB`, peak `15,091 MiB`, free minimum `751 MiB`, and OOM count `0`; the <500 MiB warning did not trigger. First-vs-last-10-turn drift was `0 MiB` VRAM and `+1.869 MiB` RAM, with no clear continuous memory leak. End-of-run process snapshots had no child or playback process. The aggregate lifecycle snapshot showed end-of-run warm-cache growth (Ollama/Whisper/runtime state) and FD start/end growth `4 -> 43`; no monotonic FD series was captured, so FD cleanup is a follow-up rather than a claimed leak-free result. The completed run recorded HTTP connections with the legacy all-TCP-state counter; the current implementation counts only live `ESTABLISHED`/`SYN_*`/`LISTEN` states, so the stored connection delta is not treated as an active-connection leak.
+
+Server lifecycle completed start/readiness, 100 turns, clean stop, restart, 5 post-restart turns, and clean stop. Restart readiness was HTTP 200; completed restart runs were `5/5`. The vLLM FlashInfer fallback environment remained `VLLM_USE_FLASHINFER_SAMPLER=0`.
+
+### Fault and cancellation resilience
+
+The bounded fault matrix measured all six probes: vLLM HTTP stream disconnect, playback process premature exit, empty/invalid PCM, injected Ollama request failure, unavailable vLLM health, and mock unavailable microphone target. Each returned without a hang; playback cleanup and error/state classification were retained, and the matrix reported next-turn recovery.
+
+Cancellation stress ran first-PCM, playback-middle, and playback-end queue boundaries five times each (15/15). Software stop median was `0.003183324 s` (3.18 ms), pipeline IDLE rate `100%`, recovery rate `100%`, and stale PCM count `0`. `spoken_text_correct` was true for all 15 rows: canceled/incomplete PCM was not committed as spoken text, while the post-cancel recovery probe committed only its completed response. HTTP stream was active and its close cancellation was observed at all 15 interrupt points; no late PCM was successfully queued after cancellation.
+
+### Phase 5 judgement and artifacts
+
+Phase 5 is `measured_with_limitations`, not a production-readiness claim. The numeric stability, echo validation, cancellation, fault, server-restart, audio-state restore, and VRAM-margin candidates passed. The remaining measured limitations are the physical onset timing/reference-alignment candidates and the end-of-run FD increase without a per-turn FD series. Human speech, physical double-talk/barge-in, MOS/listening, manual gain tuning, and production approval are `deferred_manual` by design and are not blockers for this unattended phase.
+
+- `results/bench_unattended.json`: complete Phase 5 orchestration, all 100 turn rows, 30 onset rows, resources, VRAM, fault and cancellation links
+- `results/bench_echo_rejection.json`: 40 fixture rows, fixed-threshold first evaluation, calibration/validation split, distributions, margins, and calibrated comparison
+- `results/bench_stability.json`: 100-turn rows, retained outliers, restart lifecycle, free-VRAM and memory summaries
+- `results/bench_interruption.json`: 15 cancellation rows, stale-PCM and `spoken_text` checks, recovery probe
+- `results/summary.json`: compact Phase 5 aggregate
+- `docs/unattended-validation.md`: unattended protocol and exclusions

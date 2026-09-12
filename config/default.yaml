@@ -74,6 +74,12 @@ bench:
   audio_signal_floor_rms: 0.000001
   stability_minimum_turns: 20
   stability_target_turns: 50
+  unattended_minimum_turns: 60
+  unattended_turns: 100
+  unattended_restart_turns: 5
+  onset_repeat_repeats: 30
+  cancellation_repeats_per_timing: 5
+  cancellation_wait_s: 60.0
   mic_readiness_duration_s: 1.0
 
 echo_rejection:

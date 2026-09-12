@@ -103,6 +103,16 @@ def current_gpu_memory() -> list[int]:
     return result
 
 
+def current_gpu_memory_free() -> list[int]:
+    values = nvidia_smi("memory.free")
+    result: list[int] = []
+    for row in values:
+        match = re.search(r"\d+", row.get("memory.free", ""))
+        if match:
+            result.append(int(match.group(0)))
+    return result
+
+
 @dataclass
 class ResourceMonitor:
     interval_s: float = 0.1
@@ -111,12 +121,15 @@ class ResourceMonitor:
     cpu_samples: list[float] = field(default_factory=list, init=False)
     ram_samples_mib: list[float] = field(default_factory=list, init=False)
     gpu_samples: list[list[int]] = field(default_factory=list, init=False)
+    gpu_free_samples: list[list[int]] = field(default_factory=list, init=False)
     started_gpu: list[int] = field(default_factory=list, init=False)
+    started_gpu_free: list[int] = field(default_factory=list, init=False)
 
     def __enter__(self) -> "ResourceMonitor":
         if psutil:
             psutil.cpu_percent(interval=None)
         self.started_gpu = current_gpu_memory()
+        self.started_gpu_free = current_gpu_memory_free()
         self._thread = threading.Thread(target=self._sample, name="local-live-resource-monitor", daemon=True)
         self._thread.start()
         return self
@@ -135,6 +148,7 @@ class ResourceMonitor:
                 except (OSError, psutil.Error):
                     pass
             self.gpu_samples.append(current_gpu_memory())
+            self.gpu_free_samples.append(current_gpu_memory_free())
             self._stop.wait(self.interval_s)
 
     @property
@@ -157,6 +171,11 @@ class ResourceMonitor:
     @property
     def ram_memory_peak_mib(self) -> float | None:
         return max(self.ram_samples_mib) if self.ram_samples_mib else None
+
+    @property
+    def gpu_memory_free_min_mib(self) -> int | None:
+        values = [value for sample in self.gpu_free_samples for value in sample]
+        return min(values) if values else (min(self.started_gpu_free) if self.started_gpu_free else None)
 
 
 @dataclass

@@ -128,6 +128,57 @@ def compact_phase4(
     }
 
 
+def compact_phase5(unattended: dict[str, Any], echo_rejection: dict[str, Any], interruption: dict[str, Any]) -> dict[str, Any]:
+    """Keep Phase 5 evidence compact; detailed turn rows remain in bench files."""
+    stability = unattended.get("stability") or {}
+    stability_summary = stability.get("summary") or {}
+    echo = unattended.get("echo_rejection") or echo_rejection
+    split = echo.get("phase5_split_evaluation") or {}
+    fixed_validation = ((split.get("fixed_threshold_evaluation") or {}).get("validation") or {})
+    calibrated_validation = split.get("calibrated_validation_evaluation") or {}
+    onset = unattended.get("physical_onset_repeat") or {}
+    cancellation = unattended.get("cancellation") or interruption
+    return {
+        "status": unattended.get("status"),
+        "summary": unattended.get("summary"),
+        "stability": {
+            "status": stability.get("status"),
+            "configuration": stability.get("configuration"),
+            "summary": stability_summary,
+            "warm_state_windows": stability.get("warm_state_windows"),
+            "component_status": stability.get("component_status"),
+            "server_restart": stability.get("server_restart"),
+            "memory": stability.get("memory"),
+        },
+        "echo_rejection": {
+            "status": echo.get("status"),
+            "dataset": echo.get("dataset"),
+            "fixed_thresholds": split.get("fixed_thresholds"),
+            "fixed_validation": {key: fixed_validation.get(key) for key in ("assistant_only", "synthetic_user_like", "correlation_distribution", "energy_ratio_distribution", "lag_seconds_distribution")},
+            "calibrated_thresholds_from_calibration": split.get("calibrated_thresholds_from_calibration"),
+            "calibrated_validation": {key: calibrated_validation.get(key) for key in ("assistant_only", "synthetic_user_like", "correlation_distribution", "energy_ratio_distribution", "lag_seconds_distribution")},
+            "targets": echo.get("targets"),
+            "component_status": echo.get("component_status"),
+        },
+        "physical_onset_repeat": {
+            "status": onset.get("status"),
+            "summary": onset.get("summary"),
+            "threshold_sensitivity": onset.get("threshold_sensitivity"),
+            "targets": onset.get("targets"),
+        },
+        "cancellation": {
+            "status": cancellation.get("status"),
+            "summary": cancellation.get("summary"),
+            "recovery_probe": cancellation.get("recovery_probe"),
+            "audio_state": cancellation.get("audio_state"),
+        },
+        "fault_injection": unattended.get("fault_injection"),
+        "resource_lifecycle": unattended.get("resource_lifecycle"),
+        "vram_margin": unattended.get("vram_margin"),
+        "deferred_manual": unattended.get("deferred_manual", []),
+    }
+
+
 def build_summary() -> dict[str, Any]:
     doctor = load("doctor.json")
     asr = load("bench_asr.json")
@@ -143,6 +194,7 @@ def build_summary() -> dict[str, Any]:
     echo_rejection = load("bench_echo_rejection.json")
     mic_readiness = load("bench_mic_readiness.json")
     interruption = load("bench_interruption.json")
+    unattended = load("bench_unattended.json")
     run = load("run_latest.json")
     pytest_final = load("pytest_final.json")
 
@@ -159,6 +211,7 @@ def build_summary() -> dict[str, Any]:
     echo_rejection_data = echo_rejection.get("data", {})
     mic_readiness_data = mic_readiness.get("data", {})
     interruption_data = interruption.get("data", {})
+    unattended_data = unattended.get("data", {})
 
     return {
         "schema": "local-live-ja/summary/v2",
@@ -179,6 +232,7 @@ def build_summary() -> dict[str, Any]:
             "echo_rejection": "results/bench_echo_rejection.json",
             "mic_readiness": "results/bench_mic_readiness.json",
             "interruption": "results/bench_interruption.json",
+            "unattended": "results/bench_unattended.json",
             "live_latency_python_reference": "results/bench_live_latency_python.json",
             "run": "results/run_latest.json",
         },
@@ -320,6 +374,7 @@ def build_summary() -> dict[str, Any]:
             "volume_restore_error": tts_serving_data.get("volume_restore_error"),
         },
         "phase4": compact_phase4(stability_data, echo_rejection_data, mic_readiness_data, interruption_data),
+        "phase5": compact_phase5(unattended_data, echo_rejection_data, interruption_data),
         "run": {
             "status": run.get("status"),
             "assistant_text": run.get("spoken_text", run.get("assistant_text")),

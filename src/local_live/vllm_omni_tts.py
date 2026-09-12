@@ -163,12 +163,6 @@ class VLLMOmniTTSEngine:
     def cancel(self) -> dict[str, Any]:
         """Stop active playback and close the active HTTP stream if present."""
         self._cancel_requested.set()
-        playback = self._active_playback
-        if playback is not None:
-            try:
-                playback.cancel()
-            except Exception:
-                pass
         client = self._active_client
         if client is not None:
             self._active_http_cancelled = True
@@ -178,6 +172,12 @@ class VLLMOmniTTSEngine:
                     close()
                 except Exception:
                     pass
+        playback = self._active_playback
+        if playback is not None:
+            try:
+                playback.cancel()
+            except Exception:
+                pass
         return {"cancel_requested": True}
 
     def _is_cancelled(self, cancel_event: Any = None) -> bool:
