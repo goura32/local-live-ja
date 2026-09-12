@@ -90,6 +90,7 @@ def build_summary() -> dict[str, Any]:
     live_latency = load("bench_live_latency.json")
     aec_matrix = load("bench_aec_matrix.json")
     playback_path = load("bench_playback_path.json")
+    tts_serving = load("bench_tts_serving.json")
     run = load("run_latest.json")
     pytest_final = load("pytest_final.json")
 
@@ -101,6 +102,7 @@ def build_summary() -> dict[str, Any]:
     live_latency_data = live_latency.get("data", {})
     aec_matrix_data = aec_matrix.get("data", {})
     playback_path_data = playback_path.get("data", {})
+    tts_serving_data = tts_serving.get("data", {})
 
     return {
         "schema": "local-live-ja/summary/v2",
@@ -116,6 +118,8 @@ def build_summary() -> dict[str, Any]:
             "live_latency": "results/bench_live_latency.json",
             "aec_matrix": "results/bench_aec_matrix.json",
             "playback_path": "results/bench_playback_path.json",
+            "tts_serving": "results/bench_tts_serving.json",
+            "live_latency_python_reference": "results/bench_live_latency_python.json",
             "run": "results/run_latest.json",
         },
         "doctor": {
@@ -200,6 +204,8 @@ def build_summary() -> dict[str, Any]:
         "aec": aec_data,
         "live_latency": {
             "status": live_latency_data.get("status"),
+            "backend": live_latency_data.get("backend"),
+            "streaming": live_latency_data.get("streaming"),
             "metric_name": live_latency_data.get("metric_name"),
             "metric_definition": live_latency_data.get("metric_definition"),
             "event_definition": live_latency_data.get("event_definition"),
@@ -213,6 +219,10 @@ def build_summary() -> dict[str, Any]:
             "first_chunk_policy_comparison": live_latency_data.get("first_chunk_policy_comparison"),
             "trim_policy": live_latency_data.get("trim_policy"),
             "latency_budget": live_latency_data.get("latency_budget"),
+            "server": live_latency_data.get("server"),
+            "memory": live_latency_data.get("memory"),
+            "python_baseline_reference": live_latency_data.get("python_baseline_reference"),
+            "volume_restore_error": live_latency_data.get("volume_restore_error"),
             "error_type": live_latency_data.get("error_type"),
             "error": live_latency_data.get("error"),
         },
@@ -231,6 +241,24 @@ def build_summary() -> dict[str, Any]:
             "error": aec_matrix_data.get("error"),
         },
         "playback_path": playback_path_data,
+        "tts_serving": {
+            "status": tts_serving_data.get("status"),
+            "model": tts_serving_data.get("model"),
+            "speaker": tts_serving_data.get("speaker"),
+            "language": tts_serving_data.get("language"),
+            "sample_rate_hz": tts_serving_data.get("sample_rate_hz"),
+            "repeat_target_per_text_per_mode": tts_serving_data.get("repeat_target_per_text_per_mode"),
+            "responses": tts_serving_data.get("responses"),
+            "modes": tts_serving_data.get("modes"),
+            "initial_codec_chunk_frames_comparison": tts_serving_data.get("initial_codec_chunk_frames_comparison"),
+            "async_chunk": tts_serving_data.get("async_chunk"),
+            "server": tts_serving_data.get("server"),
+            "quality": tts_serving_data.get("quality"),
+            "initial_codec_chunk_frames_quality": tts_serving_data.get("initial_codec_chunk_frames_quality"),
+            "memory": tts_serving_data.get("memory"),
+            "targets": tts_serving_data.get("targets"),
+            "volume_restore_error": tts_serving_data.get("volume_restore_error"),
+        },
         "run": {
             "status": run.get("status"),
             "assistant_text": run.get("assistant_text"),
@@ -239,7 +267,7 @@ def build_summary() -> dict[str, Any]:
             "timing": run.get("timing"),
         },
         "pytest": pytest_final,
-        "component_judgement": component_judgement(asr_data, tts_data, llm_data, e2e_data, aec_data, pytest_final, live_latency_data, aec_matrix_data, playback_path_data),
+        "component_judgement": component_judgement(asr_data, tts_data, llm_data, e2e_data, aec_data, pytest_final, live_latency_data, aec_matrix_data, playback_path_data, tts_serving_data),
     }
 
 
@@ -253,6 +281,7 @@ def component_judgement(
     live_latency_data: dict[str, Any] | None = None,
     aec_matrix_data: dict[str, Any] | None = None,
     playback_path_data: dict[str, Any] | None = None,
+    tts_serving_data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return component states without collapsing blocked work into PASS/FAIL."""
     asr_rows = list(asr_data.get("modes", {}).values())
@@ -262,6 +291,7 @@ def component_judgement(
     live_latency_data = live_latency_data or {}
     aec_matrix_data = aec_matrix_data or {}
     playback_path_data = playback_path_data or {}
+    tts_serving_data = tts_serving_data or {}
     states = {
         "asr": "measured" if asr_rows and all(row.get("status") == "measured" for row in asr_rows) else "partial",
         "tts": "measured" if any(row.get("status") == "measured" for row in tts_rows) else "partial",
@@ -272,6 +302,7 @@ def component_judgement(
         "e2e": "measured" if e2e_rows and all(row.get("status") == "measured" for row in e2e_rows) else "partial",
         "aec": aec_data.get("status", "partial"),
         "live_latency": live_latency_data.get("status", "missing"),
+        "tts_serving": tts_serving_data.get("status", "missing"),
         "aec_matrix": aec_matrix_data.get("status", "missing"),
         "playback_path": playback_path_data.get("status", "missing"),
         "cpu_asr_profile": ("measured" if asr_data.get("cpu_resident_profile", {}).get("status") == "measured" else "partial"),

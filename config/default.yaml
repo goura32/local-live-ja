@@ -27,6 +27,7 @@ llm:
 
 # Official Qwen3-TTS Python API is used per sentence chunk; no custom streaming engine.
 tts:
+  backend: python
   model: Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice
   speaker: Ono_Anna
   language: Japanese
@@ -48,12 +49,21 @@ tts:
   sentence_timeout_s: 0.8
   safe_trim_enabled: true
   safe_trim_pre_roll_s: 0.05
+  vllm_base_url: http://127.0.0.1:8091/v1
+  vllm_python: /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python
+  vllm_timeout_s: 300.0
+  vllm_server_start_timeout_s: 900.0
+  vllm_gpu_memory_utilization: null
+  vllm_streaming: false
+  vllm_initial_codec_chunk_frames: null
+  vllm_use_flashinfer_sampler: false
 
 bench:
   e2e_repeats: 3
   e2e_max_attempts: 9
   tts_warm_repeats: 5
   tts_generation_policy_repeats: 3
+  tts_serving_repeats: 5
   cpu_asr_warm_repeats: 5
   live_latency_repeats: 10
   live_latency_max_attempts: 14

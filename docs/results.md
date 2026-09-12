@@ -388,3 +388,95 @@ median `<2.0 s` は未達、stretch goal `<1.5 s` も未達である。trimは�
 live latencyはphysical測定として成立したが2秒目標未達、AEC matrixは測定成立したがfalse trigger
 残存のため、総合判定は `measured_with_limitations` とする。基準時点のAEC/E2E/TTS/ASR結果と
 過去outlierは `results/history/` から削除していない。
+
+## Phase 3B: Qwen3-TTS serving comparison
+
+Phase 3Bは同じ`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、speaker=`Ono_Anna`、language=`Japanese`、24 kHzを、official Python API、vLLM-Omni non-streaming HTTP、vLLM-Omni HTTP raw-PCM streamingで比較した。Phase 3Bの実装開始基準は指定された`8a4981801f44643d005f8c31549858f44bc60c0c`で、作業treeにはその後のPhase 3A metadata correction `8fd208c1c50f45122b73bffc3c231453d1d78e5f`が含まれる。
+
+### 公式仕様・version
+
+確認した公式sourceは`docs/vllm-omni.md`にも固定記録している。
+
+- repository main HEAD at inspection: `bc0c9f4b45c45c59aa2f92471842e8c18ae403ca`
+- benchmark package: `vllm-omni==0.28.0`、official tag commit `eb11446b7f2e30ca582f8aff3afe12e9a2e66f6c`
+- companion package: `vllm==0.28.0`
+- official source: `docs/serving/speech_api.md`、`vllm_omni/deploy/qwen3_tts.yaml`、`recipes/Qwen/Qwen3-TTS.md`
+- official speech API: `POST /v1/audio/speech`; non-stream responseはWAV、streamは`stream=true`、`stream_format=audio`、`response_format=pcm`でraw PCM chunkを返す
+- raw PCM benchmark format: signed 16-bit、mono、24 kHz。HTTP chunk境界はsample boundaryを仮定せず、奇数byteを次chunkへcarryした
+- official Qwen3-TTS recipeは0.6B CustomVoiceを含む。voices endpointは`ono_anna`をadvertiseするが、request payloadは要求どおり`Ono_Anna`を保持した
+- deploy default: `async_chunk=true`、`initial_codec_chunk_frames=1`。API field omitted（null相当）、explicit `1/2/4`を比較した。async OFFはserver再起動を伴うため今回未実施
+- official WebSocket routeは`/v1/audio/speech/stream`で、`input.append`/`input.done`を受けてsentence-scoped audioをstreamする。HTTP full-text PCMで先に効果を確認する方針のため未実装・未測定
+
+導入は既存`.venv`と分離した`/home/ws1/.venvs/local-live-vllm-omni-0.28.0`へ行った。serverは`127.0.0.1:8091`、single GPU、official deploy YAMLで起動し、readinessは`GET /v1/audio/voices`で確認した。最初のofficial FlashInfer sampler defaultはhostに`nvcc`が無いためJIT compile前に失敗した。modelやengineを変えず、server processだけ`VLLM_USE_FLASHINFER_SAMPLER=0`のPyTorch sampler fallbackで再起動し、readiness・request・停止が成功した。このoverrideは性能最適化ではなくhost compatibility workaroundである。
+
+server startupは`56.37 s`（process start → voices readiness）、logの2 stage model-load合計は`4.49 s`（`2.61 s + 1.88 s`）。standalone server readiness時VRAMは`8,614 MiB`、server停止returncodeは0だった。
+
+### standalone serving benchmark
+
+5種類の同一日本語response（短い肯定、短文、数字、技術用語、2文）を各方式で5回測った。Python modeは最初のmodel load rowを保持し、warm-only集計では`model_load_seconds=0`の24 rowsを使った。vLLM modeはserver resident状態の25 rowsである。physical rowsはすべてstable USB speaker/microphone target、raw USB capture、outlier保持である。
+
+| mode | measured rows | request → first PCM/full audio median | request → first actual speech PCM median | physical first audio median |
+|---|---:|---:|---:|---:|
+| official Python API (warm-only) | 24 | 2.3128 s | 2.8472 s | 2.6950 s |
+| vLLM-Omni non-streaming | 25 | 0.4451 s | 1.0451 s | 1.2700 s |
+| vLLM-Omni HTTP streaming | 25 | 0.0376 s | 0.5479 s | 0.9600 s |
+
+vLLM HTTP streamingは全25 rowsで`first_audio_chunk_received`、`first_audio_chunk_queued`、`playback_stream_started`、`last_audio_chunk_received`、`playback_completed`を保存した。chunkごとの`pw-play`起動は行わず、各runの1本のpersistent `pw-cat` stdinへPCMを継続供給した。stream generated audioのstable onsetはmedian`0.5479 s`相当であり、network first chunk `0.0376 s`と区別した。
+
+### initial_codec_chunk_frames
+
+同じ短文を各3回、stream playback sinkへ流して比較した。全候補12/12 rowsがmeasured、clipping ratioは0、PCM continuity errorは無かった。
+
+| request value | first PCM median | final duration median | CER代表row |
+|---:|---:|---:|---:|
+| omitted / null | 0.0386 s | 3.12 s | 0.0000 |
+| 1 | 0.0429 s | 3.20 s | 0.0000 |
+| 2 | 0.0635 s | 2.96 s | 0.0000 |
+| 4 | 0.0730 s | 2.00 s | 0.0000 |
+
+最短はrequest field omitted（server deploy defaultを使う）だった。explicit `4`は速さだけでなくdurationも短くなるため、今回の採用値にはしない。main streaming benchmarkはfield omittedで測定した。
+
+### final live E2E
+
+経路はsynthetic user WAV → GPU `large-v3-turbo/int8_float16` → local Ollama `qwen3.5:9b-q4_K_M` → natural sentence boundary first chunk → vLLM-Omni HTTP streaming → first PCM → persistent playback → raw USB microphoneである。10 measuredを得るまで最大14 attemptsを許容し、physical onset未検出のattemptも削除しなかった。
+
+| attempt | result |
+|---:|---:|
+| 1 | 6.9400 s |
+| 2 | 1.6200 s |
+| 3 | blocked: raw microphone acoustic onset not detected |
+| 4 | 1.8200 s |
+| 5 | 1.4100 s |
+| 6 | 1.2500 s |
+| 7 | 1.8700 s |
+| 8 | 1.7300 s |
+| 9 | 1.5800 s |
+| 10 | 1.8400 s |
+| 11 | 1.8900 s |
+
+10 measured rowsのindividual valuesは`6.9400 / 1.6200 / 1.8200 / 1.4100 / 1.2500 / 1.8700 / 1.7300 / 1.5800 / 1.8400 / 1.8900 s`。summaryはmedian`1.7750 s`、p95相当`4.6675 s`、mean`2.1950 s`、standard deviation`1.6804 s`、min/max`1.2500 / 6.9400 s`である。6.94秒は削除していないoutlierで、3回目のblocked rowもJSONに残した。
+
+vLLM streaming final E2Eのrequest→first PCM medianは`0.0588 s`、request→first actual speech PCM medianは`1.0039 s`。standalone servingのstream request→first actual PCMは`0.5479 s`である。同じ機器で測ったpure physical playback path medianは`0.2186 s`。Phase 3A Python baseline median`2.7550 s`に対する改善率は`35.57%`である。
+
+### GPU memory / quality / cancellation
+
+| observation | VRAM |
+|---|---:|
+| vLLM server standalone ready | 8,614 MiB |
+| vLLM server + Ollama resident + Whisper loaded | 13,790 MiB |
+| live pipeline during E2E | 15,085 MiB |
+| after server stop (Ollama remains) | 6,043 MiB |
+
+16,303 MiB GPUでOOMは発生しなかったが、live pipelineのfree memoryは約1.2 GiBまで減った。既存Ollama processは停止・再設定していない。server停止後にvLLM process/resource trackerは消え、audio settings（speaker/microphone volume、mute、default sink/source）はread-backで復元確認した。
+
+同じmodel/speaker/languageを使った3方式のWhisper roundtripは15 representative rowsで測定し、各rowにtranscript、CER、duration、RMS、peak、clipping ratioを保存した。clipping ratioは全方式0。絶対CERはresponse/textや生成samplingの差で変動したが、vLLM serving方式だけに一貫した明らかな悪化は観測されなかった。initial frame probe代表CERも全候補0である。MOSは実施していない。
+
+stream parser、PCM format、chunk ordering、empty chunk、connection interruption、cancellation、persistent playback cleanup、backend switch、server unavailable、timing aggregationは`tests/test_phase3b_contract.py`を含むserial pytestで自動検証した。midstream cancellationではfake persistent processがterminateされ、古いPCMをqueueし続けないことを確認した。
+
+### Phase 3B判定
+
+vLLM-Omni HTTP streamingのfinal physical medianは`1.7750 s`で、第一目標`<2.0 s`を達成した。stretch goal`<1.5 s`は未達である。判定帯は1.5–2.0秒なので、固定モデルのままQwen3-TTS + vLLM-Omni streamingをLive既定候補として継続し、official Python backendをfallbackとして残す。別TTS model/engine比較へ直ちに進む条件（serving変更後も`>=2.5 s`）には該当しない。
+
+incremental text WebSocketはHTTP streamingが既に2秒未満のため、次の必須作業にはしない。6.94秒outlierやLLM first-chunk変動の安定化が必要になった場合に、公式WebSocket `input.append`/`input.done`を次の比較候補とする。async OFF比較も同じ理由でP0ではなく、現行結果はofficial async default ONのみである。
+
+Phase 3Bの機械可読結果は`results/bench_tts_serving.json`、final live E2Eは`results/bench_live_latency.json`、集約は`results/summary.json`である。生成WAV/PCM、raw capture、server log、model weight、cache、credentialはGit管理しない。

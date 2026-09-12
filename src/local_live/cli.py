@@ -11,7 +11,7 @@ import numpy as np
 import soundfile as sf
 
 from .asr import WhisperASR
-from .audio import EchoCancelSession, PipeWireInventory, PipeWirePlayback, record_fixed, stable_target
+from .audio import EchoCancelSession, PipeWireInventory, PipeWirePCMPlayback, PipeWirePlayback, record_fixed, stable_target
 from .bench import (
     run_aec_bench,
     run_aec_matrix_bench,
@@ -28,7 +28,8 @@ from .llm.ollama import OllamaLLM
 from .llm.openrouter import OpenRouterLLM
 from .pipeline import Cancellation, LivePipeline
 from .telemetry import EventLog, write_json
-from .tts import Qwen3TTSEngine
+from .tts_backends import build_tts_backend
+from .vllm_bench import run_tts_serving_bench
 from .vad import detect_speech_intervals, trim_to_speech
 
 
@@ -46,13 +47,19 @@ def build_parser() -> argparse.ArgumentParser:
     asr.add_argument("--skip-cpu", action="store_true")
     tts = bench_sub.add_parser("tts")
     tts.add_argument("--skip-cpu", action="store_true")
+    serving = bench_sub.add_parser("tts-serving")
+    serving.add_argument("--skip-python", action="store_true")
+    serving.add_argument("--skip-physical", action="store_true")
+    serving.add_argument("--initial-codec-chunk-frames", type=int, action="append")
     bench_sub.add_parser("llm")
     e2e = bench_sub.add_parser("e2e")
     e2e.add_argument("--force-audio", action="store_true")
     e2e.add_argument("--skip-openrouter", action="store_true")
     aec = bench_sub.add_parser("aec")
     aec.add_argument("--force-audio", action="store_true")
-    bench_sub.add_parser("live-latency")
+    live_latency = bench_sub.add_parser("live-latency")
+    live_latency.add_argument("--backend", choices=["python", "vllm_omni"], default=None)
+    live_latency.add_argument("--streaming", action="store_true")
     bench_sub.add_parser("playback-path")
     aec_matrix = bench_sub.add_parser("aec-matrix")
     aec_matrix.add_argument("--force-audio", action="store_true")
@@ -90,6 +97,13 @@ def _run_bench(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, An
         return run_asr_bench(config, audio_path=args.audio, force_audio=args.force_audio, skip_cpu=args.skip_cpu)
     if args.bench_name == "tts":
         return run_tts_bench(config, skip_cpu=args.skip_cpu)
+    if args.bench_name == "tts-serving":
+        return run_tts_serving_bench(
+            config,
+            skip_python=args.skip_python,
+            skip_physical=args.skip_physical,
+            initial_codec_chunk_frames=args.initial_codec_chunk_frames,
+        )
     if args.bench_name == "llm":
         return run_llm_bench(config)
     if args.bench_name == "e2e":
@@ -97,6 +111,14 @@ def _run_bench(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, An
     if args.bench_name == "aec":
         return run_aec_bench(config, force_audio=args.force_audio)
     if args.bench_name == "live-latency":
+        if args.backend == "vllm_omni":
+            config = dict(config)
+            config["tts"] = dict(config.get("tts", {}))
+            config["tts"]["backend"] = "vllm_omni"
+            config["tts"]["vllm_streaming"] = bool(args.streaming)
+            from .vllm_bench import run_vllm_live_latency_bench
+
+            return run_vllm_live_latency_bench(config, streaming=bool(args.streaming))
         return run_live_latency_bench(config)
     if args.bench_name == "playback-path":
         return run_playback_path_bench(config)
@@ -164,19 +186,17 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
         user_asr = asr.transcribe(input_path, event_log=log)
         providers = _make_providers(config)
         provider = providers[args.provider]
-        tts = Qwen3TTSEngine(
-            model=nested(config, "tts", "model", default="Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"),
-            speaker=nested(config, "tts", "speaker", default="Ono_Anna"),
-            language="Japanese",
-            device="auto",
-            max_new_tokens=int(nested(config, "tts", "max_new_tokens", default=2048)),
-            generation_kwargs=dict(nested(config, "tts", "generation_kwargs", default={}) or {}),
-        )
+        tts = build_tts_backend(config)
         playback_target = stable_target(speaker) if speaker else None
+        playback = (
+            PipeWirePCMPlayback(playback_target)
+            if bool(getattr(tts, "streaming", False)) and playback_target
+            else PipeWirePlayback(playback_target)
+        )
         pipeline = LivePipeline(
             llm=provider,
             tts=tts,
-            playback=PipeWirePlayback(playback_target),
+            playback=playback,
             artifact_dir=artifact,
             sentence_max_chars=int(nested(config, "tts", "sentence_max_chars", default=48)),
             sentence_timeout_s=float(nested(config, "tts", "sentence_timeout_s", default=0.8)),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ctypes
 import gc
 import importlib
 import os
@@ -40,6 +41,16 @@ def _prepare_cuda_libraries() -> list[str]:
         existing = os.environ.get("LD_LIBRARY_PATH", "")
         entries = [entry for entry in existing.split(":") if entry]
         os.environ["LD_LIBRARY_PATH"] = ":".join(paths + [entry for entry in entries if entry not in paths])
+        for library_name in ("libcublas.so.12", "libcudnn.so.9", "libcudnn.so.8"):
+            for path in paths:
+                candidate = Path(path) / library_name
+                if not candidate.is_file():
+                    continue
+                try:
+                    ctypes.CDLL(str(candidate), mode=ctypes.RTLD_GLOBAL)
+                except OSError:
+                    pass
+                break
     return paths
 
 

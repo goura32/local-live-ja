@@ -16,3 +16,11 @@ leading silence. Volume changes are bounded to
 0–100% and guarded by snapshot/restore of volume, mute, and default sink/source state.
 
 Paths in summaries point to local artifacts and are not distribution assets. Credential values are never written to results, logs, Markdown, or Git.
+
+Phase 3B adds `bench_tts_serving.json` for the three fixed-model serving modes and
+`bench_live_latency.json` for the final vLLM-Omni streaming E2E. The latter keeps
+the Phase 3A Python baseline in `bench_live_latency_python.json` before replacing
+the live-latency payload. Server readiness/model-load timing, raw PCM chunk timing,
+initial-codec probes, quality/CER, VRAM snapshots, and cancellation/cleanup status
+are committed as metadata. Generated WAV/PCM, raw microphone captures, vLLM server
+logs, model weights, caches, credentials, and isolated virtual environments are not.

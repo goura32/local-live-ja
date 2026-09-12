@@ -468,6 +468,119 @@ class PipeWirePlayback:
         return {"path": str(audio_path), "cancelled": False, "stdout": stdout.strip()}
 
 
+class PipeWirePCMPlayback:
+    """Persistent raw PCM playback stream for incremental TTS audio."""
+
+    def __init__(
+        self,
+        target: str,
+        *,
+        popen_factory: Callable[..., Any] = subprocess.Popen,
+    ) -> None:
+        if not isinstance(target, str) or not target or target.isdecimal():
+            raise ValueError("numeric PipeWire node IDs are not stable playback targets")
+        self.target = target
+        self._popen_factory = popen_factory
+        self._process: subprocess.Popen[bytes] | None = None
+        self.started_ns: int | None = None
+        self.last_queued_ns: int | None = None
+
+    @property
+    def active(self) -> bool:
+        return self._process is not None
+
+    def start(self, *, sample_rate: int, channels: int) -> dict[str, Any]:
+        if self._process is not None:
+            raise RuntimeError("PCM playback stream already active")
+        if sample_rate <= 0 or channels <= 0:
+            raise ValueError("sample_rate and channels must be positive")
+        command = [
+            "pw-cat",
+            "--playback",
+            "--target",
+            self.target,
+            "--rate",
+            str(sample_rate),
+            "--channels",
+            str(channels),
+            "--format",
+            "s16",
+            "-",
+        ]
+        try:
+            self._process = self._popen_factory(
+                command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except OSError as exc:
+            raise RuntimeError(f"pw-cat unavailable: {type(exc).__name__}") from exc
+        process = self._process
+        if process is None or process.stdin is None:
+            self._process = None
+            raise RuntimeError("pw-cat stdin was not created")
+        self.started_ns = time.monotonic_ns()
+        return {"started_ns": self.started_ns, "target": self.target, "command": command}
+
+    def queue(self, payload: bytes) -> dict[str, Any]:
+        process = self._process
+        if process is None or process.stdin is None:
+            raise RuntimeError("PCM playback stream is not active")
+        if not payload:
+            return {"queued": False}
+        if process.poll() is not None:
+            self._process = None
+            raise RuntimeError("PCM playback stream exited before queue")
+        try:
+            process.stdin.write(payload)
+            process.stdin.flush()
+        except (BrokenPipeError, OSError) as exc:
+            self._process = None
+            raise RuntimeError("PCM playback stream closed") from exc
+        self.last_queued_ns = time.monotonic_ns()
+        return {"queued": True}
+
+    def finish(self) -> dict[str, Any]:
+        process = self._process
+        if process is None or process.stdin is None:
+            raise RuntimeError("PCM playback stream is not active")
+        try:
+            process.stdin.close()
+            process.wait(timeout=10.0)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        finally:
+            self._process = None
+        stdout_pipe = getattr(process, "stdout", None)
+        stderr_pipe = getattr(process, "stderr", None)
+        stdout = stdout_pipe.read() if stdout_pipe is not None else b""
+        stderr = stderr_pipe.read() if stderr_pipe is not None else b""
+        if process.returncode not in (0, None):
+            error = stderr.decode(errors="replace").strip() if isinstance(stderr, bytes) else str(stderr).strip()
+            raise RuntimeError(f"pw-cat failed: {error or 'unknown error'}")
+        return {"cancelled": False, "stdout": stdout.decode(errors="replace").strip() if isinstance(stdout, bytes) else str(stdout).strip()}
+
+    def cancel(self) -> dict[str, Any]:
+        process = self._process
+        if process is None:
+            return {"cancelled": True, "already_inactive": True}
+        if process.stdin is not None:
+            try:
+                process.stdin.close()
+            except OSError:
+                pass
+        process.terminate()
+        try:
+            process.wait(timeout=2.0)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        self._process = None
+        return {"cancelled": True}
+
+
 def _module_id(stdout: str) -> str | None:
     matches = re.findall(r"(?:module|id|object)\D*(\d+)", stdout, flags=re.IGNORECASE)
     return matches[-1] if matches else None

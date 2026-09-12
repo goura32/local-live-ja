@@ -12,6 +12,8 @@ The current measurement contract is:
 - `bench playback-path`: plays one low-level deterministic probe WAV five times and subtracts its known in-WAV signal start, isolating the physical PipeWire/USB/room/microphone path from TTS generation and generated-WAV leading silence in `results/bench_playback_path.json`.
 - `bench aec-matrix`: serially measures the 25/50/75/100% speaker-volume × microphone-source-volume matrix as raw/OFF/ON, with clipping safety gates, assistant-only VAD false-trigger metrics, Whisper self-rerecognition, and three-repeat retests of up to three candidates. Pulse volume, mute, and default sink/source are restored in a finally-equivalent guard.
 - `bench asr`: includes a CPU resident-model profile with one separately labeled first transcription and five warm transcriptions. Decode/resample, VAD, and faster-whisper inference have separate timings.
+- `bench tts-serving`: compares the fixed Qwen3-TTS 0.6B CustomVoice model through the official Python API, vLLM-Omni non-streaming HTTP, and vLLM-Omni HTTP raw-PCM streaming. It starts the isolated vLLM-Omni server on `127.0.0.1:8091`, waits for `/v1/audio/voices`, runs five Japanese responses × five warm rows per mode, records TTFA/first actual PCM/physical onset/RTF/VRAM/CER, probes `initial_codec_chunk_frames` omitted/1/2/4, and stops the owned server in a finally-equivalent path. Streaming writes one continuous PCM stream to persistent `pw-cat`; it never starts a player per chunk.
+- `bench live-latency --backend vllm_omni --streaming`: runs the final ten-measured-run synthetic-user → GPU Whisper → local Ollama → natural first sentence → vLLM-Omni raw PCM → persistent playback path. Up to `live_latency_max_attempts` attempts are retained when raw microphone onset is blocked.
 
 After running the benchmarks, refresh the compact machine-readable rollup with:
 
@@ -20,4 +22,4 @@ cd ~/projects/local-live-ja
 .venv/bin/python bench/summarize_results.py
 ```
 
-Benchmark JSON uses `local-live-ja/bench-*/v2`; phase-specific live-latency and AEC-matrix fields are versioned within their result payloads. Old baseline and retry results are retained under `results/history/` rather than overwritten without a record.
+Benchmark JSON uses `local-live-ja/bench-*/v2`; Phase 3B serving and live result payloads include official source commit/version, server readiness/model-load timing, sampler fallback override, async/default observations, raw PCM timing, and server/memory cleanup. Old baseline and retry results are retained under `results/history/` rather than overwritten without a record. Generated WAV/PCM, raw capture, model weights/cache, credentials, and server logs remain ignored.

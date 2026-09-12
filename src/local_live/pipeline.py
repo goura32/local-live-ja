@@ -153,8 +153,33 @@ class LivePipeline:
                     return result
                 output_path = self.artifact_dir / f"assistant_{time.monotonic_ns()}_{index}.wav"
                 log.mark("tts_request", text_chars=len(chunk))
-                generated = self.tts.synthesize(chunk, output_path=output_path, cancel_event=cancellation.event)
-                log.mark("tts_end", path=str(output_path))
+                if bool(getattr(self.tts, "streaming", False)):
+                    if not hasattr(self.tts, "synthesize_stream") or not hasattr(self.playback, "start"):
+                        result.error = "streaming TTS requires a persistent PCM playback backend"
+                        result.events = self._events(log)
+                        return result
+                    generated = self.tts.synthesize_stream(
+                        chunk,
+                        output_path=output_path,
+                        playback=self.playback,
+                        cancel_event=cancellation.event,
+                        event_log=log,
+                    )
+                    log.mark("tts_end", path=str(output_path), streaming=True)
+                    if generated.get("cancelled") or cancellation.event.is_set():
+                        self._finish_cancel(log, result, cancellation)
+                        return result
+                    if generated.get("status") != "measured":
+                        result.error = str(generated.get("error") or "streaming TTS failed")
+                        result.events = self._events(log)
+                        return result
+                    path = str(generated.get("path", output_path))
+                    result.audio_paths.append(path)
+                    log.mark("playback_end", path=path, streaming=True, cancelled=False)
+                    continue
+                else:
+                    generated = self.tts.synthesize(chunk, output_path=output_path, cancel_event=cancellation.event)
+                    log.mark("tts_end", path=str(output_path))
                 if cancellation.event.is_set():
                     self._finish_cancel(log, result, cancellation)
                     return result
