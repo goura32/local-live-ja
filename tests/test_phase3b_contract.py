@@ -289,6 +289,8 @@ def test_vllm_non_streaming_request_saves_wav_and_exact_fixed_fields(tmp_path):
         "voice": "Ono_Anna",
         "language": "Japanese",
         "task_type": "CustomVoice",
+        "speed": 1.0,
+        "sample_rate": 24000,
         "response_format": "wav",
     }
 

@@ -175,6 +175,8 @@ class VLLMOmniTTSEngine:
             "voice": self.speaker,
             "language": self.language,
             "task_type": "CustomVoice",
+            "speed": 1.0,
+            "sample_rate": VLLM_OMNI_SAMPLE_RATE,
             "response_format": "pcm" if stream else "wav",
         }
         if stream:
@@ -182,8 +184,8 @@ class VLLMOmniTTSEngine:
             payload["stream_format"] = stream_format or "audio"
         selected_initial = self.initial_codec_chunk_frames if initial_codec_chunk_frames is None else initial_codec_chunk_frames
         if selected_initial is not None:
-            if selected_initial < 1:
-                raise ValueError("initial_codec_chunk_frames must be positive")
+            if selected_initial < 0:
+                raise ValueError("initial_codec_chunk_frames must be non-negative")
             payload["initial_codec_chunk_frames"] = selected_initial
         return payload
 

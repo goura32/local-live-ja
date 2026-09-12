@@ -401,13 +401,13 @@ Phase 3Bは同じ`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、speaker=`Ono_Anna`、l
 - benchmark package: `vllm-omni==0.28.0`、official tag commit `eb11446b7f2e30ca582f8aff3afe12e9a2e66f6c`
 - companion package: `vllm==0.28.0`
 - official source: `docs/serving/speech_api.md`、`vllm_omni/deploy/qwen3_tts.yaml`、`recipes/Qwen/Qwen3-TTS.md`
-- official speech API: `POST /v1/audio/speech`; non-stream responseはWAV、streamは`stream=true`、`stream_format=audio`、`response_format=pcm`でraw PCM chunkを返す
+- official speech API: `POST /v1/audio/speech`; non-stream responseはWAV、streamは`stream=true`、`stream_format=audio`、`response_format=pcm`、`speed=1.0`、`sample_rate=24000`でraw PCM chunkを返す
 - raw PCM benchmark format: signed 16-bit、mono、24 kHz。HTTP chunk境界はsample boundaryを仮定せず、奇数byteを次chunkへcarryした
 - official Qwen3-TTS recipeは0.6B CustomVoiceを含む。voices endpointは`ono_anna`をadvertiseするが、request payloadは要求どおり`Ono_Anna`を保持した
 - deploy default: `async_chunk=true`、`initial_codec_chunk_frames=1`。API field omitted（null相当）、explicit `1/2/4`を比較した。async OFFはserver再起動を伴うため今回未実施
-- official WebSocket routeは`/v1/audio/speech/stream`で、`input.append`/`input.done`を受けてsentence-scoped audioをstreamする。HTTP full-text PCMで先に効果を確認する方針のため未実装・未測定
+- official WebSocket routeは`/v1/audio/speech/stream`で、`session.config`、`input.text`、`input.done`、`session.close`を受けてsentence-scoped audioをstreamする。server→clientの`text.delta`は無い。HTTP full-text PCMで先に効果を確認する方針のため未実装・未測定
 
-導入は既存`.venv`と分離した`/home/ws1/.venvs/local-live-vllm-omni-0.28.0`へ行った。serverは`127.0.0.1:8091`、single GPU、official deploy YAMLで起動し、readinessは`GET /v1/audio/voices`で確認した。最初のofficial FlashInfer sampler defaultはhostに`nvcc`が無いためJIT compile前に失敗した。modelやengineを変えず、server processだけ`VLLM_USE_FLASHINFER_SAMPLER=0`のPyTorch sampler fallbackで再起動し、readiness・request・停止が成功した。このoverrideは性能最適化ではなくhost compatibility workaroundである。
+導入は既存`.venv`と分離した`/home/ws1/.venvs/local-live-vllm-omni-0.28.0`へ行った。serverは`127.0.0.1:8091`、single GPU、official deploy YAMLで起動し、readinessは`GET /v1/audio/voices`で確認した。最初のofficial FlashInfer sampler defaultはhostに`nvcc`が無いためJIT compile前に失敗した。modelやengineを変えず、server processだけ`VLLM_USE_FLASHINFER_SAMPLER=0`のPyTorch sampler fallbackで再起動し、readiness・request・停止が成功した。このoverrideは性能最適化ではなくhost compatibility workaroundである。standalone 25×3の本測定はserverのspeed/sample-rate default（1.0/24 kHz）を使用し、その後のcontract smokeでclientが明示する`speed=1.0`・`sample_rate=24000` payloadの受理を確認した。
 
 server startupは`56.37 s`（process start → voices readiness）、logの2 stage model-load合計は`4.49 s`（`2.61 s + 1.88 s`）。standalone server readiness時VRAMは`8,614 MiB`、server停止returncodeは0だった。
 

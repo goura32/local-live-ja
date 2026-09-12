@@ -18,6 +18,10 @@ The release was installed in the isolated environment
 `/home/ws1/.venvs/local-live-vllm-omni-0.28.0`. The repository's existing
 `.venv` was not modified. The resolver selected Python 3.12, Torch
 `2.13.0+cu130`, Transformers `5.14.1`, and Triton `3.7.1` for the isolated vLLM environment.
+The requested `main` SHA is a later `v0.29.0rc1-40` development checkout; its
+installation documentation requires a matching vLLM 0.29.x line. The measured
+runtime therefore used the coherent stable v0.28.0/vLLM 0.28.0 pair, while the
+current main checkout was used for the pre-implementation specification review.
 
 ## Confirmed Qwen3-TTS serving contract
 
@@ -50,14 +54,19 @@ Raw HTTP audio streaming uses the same endpoint with:
 {
   "stream": true,
   "stream_format": "audio",
-  "response_format": "pcm"
+  "response_format": "pcm",
+  "speed": 1.0,
+  "sample_rate": 24000
 }
 ```
 
 The official recipe's raw playback example specifies 24 kHz, signed 16-bit,
 mono PCM. The client therefore preserves byte ordering across network chunk
 boundaries and sends PCM to one persistent `pw-cat` playback process; it does
-not start a new player for each network chunk.
+not start a new player for each network chunk. Raw HTTP streaming has no WAV
+header, JSON envelope, application-level done marker, or sample-rate field;
+HTTP EOF is the completion boundary, so the client sends/records `speed=1.0`
+and `sample_rate=24000` explicitly.
 
 ## Chunking and WebSocket behavior
 
@@ -82,6 +91,8 @@ chunks. `input.done` flushes the buffered utterance and keeps the connection
 open. This means it is not the same as arbitrary token-by-token audio
 synthesis. Phase 3B prioritizes the documented HTTP raw PCM path; the
 WebSocket incremental-text path is recorded but not made a prerequisite.
+The inspected handler does not emit server-to-client `text.delta` events; text
+must be generated upstream and sent by the client.
 
 The official HTTP API does not expose a server-side request-received
 monotonic timestamp. Phase 3B records response headers as the first
@@ -92,13 +103,15 @@ rather than inventing a timestamp.
 
 The server is started on `127.0.0.1:8091`, readiness is checked with
 `GET /v1/audio/voices`, and the model is treated as resident after readiness.
-The public API does not provide an independent model-load timestamp, so
-results record:
+The public API does not provide an independent model-load timestamp. The runner
+therefore parses the two stage `Model loading took ... seconds` log entries when
+available and records their sum as a log-derived estimate; results always also
+record:
 
 - server process start
 - server readiness
 - combined start-to-ready duration
-- `model_load_s: null` with the reason that readiness includes model residency
+- `model_load_s` plus the stage values, or `null` when those log entries are unavailable
 
 The server is stopped by the owner after the benchmark. A pre-existing ready
 service on port 8091 is treated as a collision and is never terminated.
