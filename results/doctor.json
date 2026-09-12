@@ -1,8 +1,8 @@
 {
   "schema": "local-live-ja/doctor/v1",
   "environment": {
-    "captured_at": "2026-09-11T20:26:57.367044+00:00",
-    "hostname": "ws1",
+    "captured_at": "2026-09-12T22:37:08.608596+00:00",
+    "hostname": "[REDACTED]",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
     "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
@@ -94,34 +94,40 @@
           {
             "node_id": 54,
             "name": "GoStream アナログステレオ",
-            "kind": "sink"
+            "kind": "sink",
+            "target": "alsa_output.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
           },
           {
-            "node_id": 62,
+            "node_id": 120,
             "name": "Built-in Audio デジタルステレオ (IEC958)",
-            "kind": "sink"
+            "kind": "sink",
+            "target": "alsa_output.pci-0000_00_1f.3.iec958-stereo"
           },
           {
-            "node_id": 69,
+            "node_id": 131,
             "name": "USB Audio アナログステレオ",
-            "kind": "sink"
+            "kind": "sink",
+            "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
           }
         ],
         "sources": [
           {
             "node_id": 55,
             "name": "GoStream アナログステレオ",
-            "kind": "source"
+            "kind": "source",
+            "target": "alsa_input.usb-Osee_Technology_Co._Ltd._GoStream_562a2f1fb808cf1b-02.analog-stereo"
           },
           {
-            "node_id": 61,
+            "node_id": 121,
             "name": "Built-in Audio アナログステレオ",
-            "kind": "source"
+            "kind": "source",
+            "target": "alsa_input.pci-0000_00_1f.3.analog-stereo.9"
           },
           {
-            "node_id": 71,
+            "node_id": 132,
             "name": "USB Audio アナログステレオ",
-            "kind": "source"
+            "kind": "source",
+            "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
           }
         ],
         "devices": [
@@ -129,18 +135,20 @@
           "GoStream",
           "HDA NVidia",
           "USB Audio",
-          "カード 1: GoStream [GoStream], デバイス 0: USB Audio [USB Audio]",
-          "カード 3: Audio [USB Audio], デバイス 0: USB Audio [USB Audio]"
+          "card 1: GoStream [GoStream], device 0: USB Audio [USB Audio]",
+          "card 3: Audio [USB Audio], device 0: USB Audio [USB Audio]"
         ],
         "usb_microphone": {
-          "node_id": 71,
+          "node_id": 132,
           "name": "USB Audio アナログステレオ",
-          "kind": "source"
+          "kind": "source",
+          "target": "alsa_input.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
         },
         "usb_speaker": {
-          "node_id": 69,
+          "node_id": 131,
           "name": "USB Audio アナログステレオ",
-          "kind": "sink"
+          "kind": "sink",
+          "target": "alsa_output.usb-Generic_USB_Audio_201405280001-00.analog-stereo"
         }
       }
     },
@@ -170,7 +178,7 @@
     "git_github": {
       "status": "pass",
       "git_version": "git version 2.43.0",
-      "git_repo_root": "/home/ws1/projects/local-live-ja",
+      "git_repo_root": "repository root",
       "gh_installed": true,
       "gh_auth_exit_code": 0,
       "github_authentication": true

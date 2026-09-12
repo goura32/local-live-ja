@@ -5,7 +5,7 @@
   "finished_at": "2026-09-12T10:08:03Z",
   "environment": {
     "captured_at": "2026-09-12T10:08:03.950227+00:00",
-    "hostname": "ws1",
+    "hostname": "[REDACTED]",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
     "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
@@ -20425,16 +20425,16 @@
       "base_url": "http://127.0.0.1:8091/v1",
       "host": "127.0.0.1",
       "port": 8091,
-      "python": "/home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python",
-      "deploy_config": "/home/ws1/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml",
+      "python": "~/.venvs/local-live-vllm-omni-0.28.0/bin/python",
+      "deploy_config": "~/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml",
       "command": [
-        "/home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python",
+        "~/.venvs/local-live-vllm-omni-0.28.0/bin/python",
         "-m",
         "vllm_omni.entrypoints.cli.main",
         "serve",
         "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
         "--deploy-config",
-        "/home/ws1/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml",
+        "~/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml",
         "--omni",
         "--host",
         "127.0.0.1",
@@ -20494,9 +20494,9 @@
         ],
         "process_snapshot": [
           "7072 /bin/ollama serve",
-          "278437 /usr/bin/bash -c source /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh >/dev/null 2>&1 || true export AI_AGENT=\"${AI_AGENT:-hermes-agent}\" HERMES_AGENT=\"${HERMES_AGENT:-true}\" export GIT_PAGER=\"${GIT_PAGER:-cat}\" PAGER=\"${PAGER:-cat}\" builtin cd -- /home/ws1/projects/local-live-ja || exit 126 eval 'python3 -c '\\''import time; time.sleep(135)'\\''; nvidia-smi --query-gpu=memory.used,memory.free --format=csv,noheader; pgrep -af '\\''vllm_omni.entrypoints|pw-record|pw-play|pw-cat'\\'' || true' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > \"$__hermes_snap_tmp\" && mv -f \"$__hermes_snap_tmp\" /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh; } 2>/dev/null || rm -f \"$__hermes_snap_tmp\" 2>/dev/null || true printf '\\n__HERMES_CWD_017f579a4693__%s__HERMES_CWD_017f579a4693__\\n' \"$(pwd -P)\" exit $__hermes_ec",
-          "278451 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -m vllm_omni.entrypoints.cli.main serve Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice --deploy-config /home/ws1/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml --omni --host 127.0.0.1 --port 8091 --trust-remote-code",
-          "278475 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -B -c from multiprocessing.resource_tracker import main;main(41)"
+          "278437 /usr/bin/bash -c source [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh >/dev/null 2>&1 || true export AI_AGENT=\"${AI_AGENT:-hermes-agent}\" HERMES_AGENT=\"${HERMES_AGENT:-true}\" export GIT_PAGER=\"${GIT_PAGER:-cat}\" PAGER=\"${PAGER:-cat}\" builtin cd -- repository root || exit 126 eval 'python3 -c '\\''import time; time.sleep(135)'\\''; nvidia-smi --query-gpu=memory.used,memory.free --format=csv,noheader; pgrep -af '\\''vllm_omni.entrypoints|pw-record|pw-play|pw-cat'\\'' || true' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > \"$__hermes_snap_tmp\" && mv -f \"$__hermes_snap_tmp\" [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh; } 2>/dev/null || rm -f \"$__hermes_snap_tmp\" 2>/dev/null || true printf '\\n__HERMES_CWD_017f579a4693__%s__HERMES_CWD_017f579a4693__\\n' \"$(pwd -P)\" exit $__hermes_ec",
+          "278451 ~/.venvs/local-live-vllm-omni-0.28.0/bin/python -m vllm_omni.entrypoints.cli.main serve Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice --deploy-config ~/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml --omni --host 127.0.0.1 --port 8091 --trust-remote-code",
+          "278475 ~/.venvs/local-live-vllm-omni-0.28.0/bin/python -B -c from multiprocessing.resource_tracker import main;main(41)"
         ]
       }
     },
@@ -20766,9 +20766,9 @@
         ],
         "process_snapshot": [
           "7072 /bin/ollama serve",
-          "278451 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -m vllm_omni.entrypoints.cli.main serve Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice --deploy-config /home/ws1/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml --omni --host 127.0.0.1 --port 8091 --trust-remote-code",
-          "278475 /home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python -B -c from multiprocessing.resource_tracker import main;main(41)",
-          "281723 /usr/bin/bash -c source /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh >/dev/null 2>&1 || true export AI_AGENT=\"${AI_AGENT:-hermes-agent}\" HERMES_AGENT=\"${HERMES_AGENT:-true}\" export GIT_PAGER=\"${GIT_PAGER:-cat}\" PAGER=\"${PAGER:-cat}\" builtin cd -- /home/ws1/projects/local-live-ja || exit 126 eval 'python3 -c '\\''import time; time.sleep(140)'\\''; nvidia-smi --query-gpu=memory.used,memory.free --format=csv,noheader; pgrep -af '\\''vllm_omni.entrypoints|pw-record|pw-cat|pw-play'\\'' || true' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > \"$__hermes_snap_tmp\" && mv -f \"$__hermes_snap_tmp\" /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh; } 2>/dev/null || rm -f \"$__hermes_snap_tmp\" 2>/dev/null || true printf '\\n__HERMES_CWD_017f579a4693__%s__HERMES_CWD_017f579a4693__\\n' \"$(pwd -P)\" exit $__hermes_ec"
+          "278451 ~/.venvs/local-live-vllm-omni-0.28.0/bin/python -m vllm_omni.entrypoints.cli.main serve Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice --deploy-config ~/.venvs/local-live-vllm-omni-0.28.0/lib/python3.12/site-packages/vllm_omni/deploy/qwen3_tts.yaml --omni --host 127.0.0.1 --port 8091 --trust-remote-code",
+          "278475 ~/.venvs/local-live-vllm-omni-0.28.0/bin/python -B -c from multiprocessing.resource_tracker import main;main(41)",
+          "281723 /usr/bin/bash -c source [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh >/dev/null 2>&1 || true export AI_AGENT=\"${AI_AGENT:-hermes-agent}\" HERMES_AGENT=\"${HERMES_AGENT:-true}\" export GIT_PAGER=\"${GIT_PAGER:-cat}\" PAGER=\"${PAGER:-cat}\" builtin cd -- repository root || exit 126 eval 'python3 -c '\\''import time; time.sleep(140)'\\''; nvidia-smi --query-gpu=memory.used,memory.free --format=csv,noheader; pgrep -af '\\''vllm_omni.entrypoints|pw-record|pw-cat|pw-play'\\'' || true' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > \"$__hermes_snap_tmp\" && mv -f \"$__hermes_snap_tmp\" [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh; } 2>/dev/null || rm -f \"$__hermes_snap_tmp\" 2>/dev/null || true printf '\\n__HERMES_CWD_017f579a4693__%s__HERMES_CWD_017f579a4693__\\n' \"$(pwd -P)\" exit $__hermes_ec"
         ]
       },
       "after_server_stop": {
@@ -20777,7 +20777,7 @@
         ],
         "process_snapshot": [
           "7072 /bin/ollama serve",
-          "281723 /usr/bin/bash -c source /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh >/dev/null 2>&1 || true export AI_AGENT=\"${AI_AGENT:-hermes-agent}\" HERMES_AGENT=\"${HERMES_AGENT:-true}\" export GIT_PAGER=\"${GIT_PAGER:-cat}\" PAGER=\"${PAGER:-cat}\" builtin cd -- /home/ws1/projects/local-live-ja || exit 126 eval 'python3 -c '\\''import time; time.sleep(140)'\\''; nvidia-smi --query-gpu=memory.used,memory.free --format=csv,noheader; pgrep -af '\\''vllm_omni.entrypoints|pw-record|pw-cat|pw-play'\\'' || true' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > \"$__hermes_snap_tmp\" && mv -f \"$__hermes_snap_tmp\" /home/ws1/.hermes/cache/terminal/hermes-snap-017f579a4693.sh; } 2>/dev/null || rm -f \"$__hermes_snap_tmp\" 2>/dev/null || true printf '\\n__HERMES_CWD_017f579a4693__%s__HERMES_CWD_017f579a4693__\\n' \"$(pwd -P)\" exit $__hermes_ec"
+          "281723 /usr/bin/bash -c source [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh >/dev/null 2>&1 || true export AI_AGENT=\"${AI_AGENT:-hermes-agent}\" HERMES_AGENT=\"${HERMES_AGENT:-true}\" export GIT_PAGER=\"${GIT_PAGER:-cat}\" PAGER=\"${PAGER:-cat}\" builtin cd -- repository root || exit 126 eval 'python3 -c '\\''import time; time.sleep(140)'\\''; nvidia-smi --query-gpu=memory.used,memory.free --format=csv,noheader; pgrep -af '\\''vllm_omni.entrypoints|pw-record|pw-cat|pw-play'\\'' || true' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > \"$__hermes_snap_tmp\" && mv -f \"$__hermes_snap_tmp\" [LOCAL_TOOL_CACHE]/cache/terminal/hermes-snap-017f579a4693.sh; } 2>/dev/null || rm -f \"$__hermes_snap_tmp\" 2>/dev/null || true printf '\\n__HERMES_CWD_017f579a4693__%s__HERMES_CWD_017f579a4693__\\n' \"$(pwd -P)\" exit $__hermes_ec"
         ]
       }
     },

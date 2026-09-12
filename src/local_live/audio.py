@@ -508,6 +508,8 @@ class PipeWirePCMPlayback:
         self.pcm_write_count = 0
         self.process_alive_at_start: bool | None = None
         self.process_exit_status: int | None = None
+        self.reference_pcm = bytearray()
+        self.reference_samples = np.empty(0, dtype=np.float32)
 
     @property
     def active(self) -> bool:
@@ -551,6 +553,8 @@ class PipeWirePCMPlayback:
         self.pcm_bytes_queued = 0
         self.pcm_write_count = 0
         self.process_exit_status = None
+        self.reference_pcm.clear()
+        self.reference_samples = np.empty(0, dtype=np.float32)
         self.process_alive_at_start = process.poll() is None
         self.started_ns = time.monotonic_ns()
         return {"started_ns": self.started_ns, "target": self.target, "command": command}
@@ -580,6 +584,9 @@ class PipeWirePCMPlayback:
         self.first_queued_ns = self.first_queued_ns or self.last_queued_ns
         self.pcm_bytes_queued += len(payload)
         self.pcm_write_count += 1
+        self.reference_pcm.extend(payload)
+        aligned_reference = bytes(self.reference_pcm[: len(self.reference_pcm) - (len(self.reference_pcm) % 2)])
+        self.reference_samples = np.frombuffer(aligned_reference, dtype="<i2").astype(np.float32) / 32768.0
         return {"queued": True}
 
     def finish(self) -> dict[str, Any]:
@@ -623,6 +630,8 @@ class PipeWirePCMPlayback:
         finally:
             self.process_exit_status = process.returncode
             self._process = None
+            self.reference_pcm.clear()
+            self.reference_samples = np.empty(0, dtype=np.float32)
         return {
             "cancelled": True,
             "pcm_bytes_queued": self.pcm_bytes_queued,

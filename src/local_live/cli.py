@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import signal
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,7 @@ import soundfile as sf
 
 from .asr import WhisperASR
 from .audio import EchoCancelSession, PipeWireInventory, PipeWirePCMPlayback, PipeWirePlayback, record_fixed, stable_target
+from .app_bench import run_application_bench
 from .bench import (
     run_aec_bench,
     run_aec_matrix_bench,
@@ -34,7 +36,10 @@ from .phase6_bench import run_phase6_physical_onset_bench, run_phase6_unattended
 from .telemetry import EventLog, write_json
 from .tts_backends import build_tts_backend
 from .vllm_bench import run_tts_serving_bench
+from .vllm_bench import _vllm_python
+from .vllm_server import VLLMOmniServer
 from .vad import detect_speech_intervals, trim_to_speech
+from .session import ConversationHistory, RealMicrophoneSource, SessionController, VADConfig
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -74,6 +79,7 @@ def build_parser() -> argparse.ArgumentParser:
     bench_sub.add_parser("unattended")
     bench_sub.add_parser("physical-onset")
     bench_sub.add_parser("phase6")
+    bench_sub.add_parser("app")
 
     run = subparsers.add_parser("run")
     run.add_argument("--input-wav")
@@ -82,6 +88,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--asr-device", choices=["auto", "cuda", "cpu"], default="auto")
     run.add_argument("--compute-type", default=None)
     run.add_argument("--no-aec", action="store_true")
+    chat = subparsers.add_parser("chat", help="continuous microphone conversation")
+    chat.add_argument("--provider", choices=["local", "openrouter"], default="local")
+    chat.add_argument("--tts-backend", choices=["python", "vllm_omni"], default=None)
+    chat.add_argument("--no-aec", action="store_true")
+    chat.add_argument("--max-turns", type=int, default=None, help="bounded session for unattended smoke tests")
+    chat.add_argument("--start-vllm", action="store_true", help="start and own the localhost vLLM-Omni server")
     return parser
 
 
@@ -100,6 +112,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "run":
         return _run_live(args, config)
+    if args.command == "chat":
+        return _run_chat(args, config)
     return 2
 
 
@@ -149,6 +163,8 @@ def _run_bench(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, An
         return run_phase6_physical_onset_bench(config)
     if args.bench_name == "phase6":
         return run_phase6_unattended_bench(config)
+    if args.bench_name == "app":
+        return run_application_bench(config)
     raise ValueError(args.bench_name)
 
 
@@ -248,11 +264,239 @@ def _run_live(args: argparse.Namespace, config: dict[str, Any]) -> int:
         print(json.dumps({"status": payload["status"], "assistant_text": payload["assistant_text"], "result": str(output_path)}, ensure_ascii=False))
         return 0 if payload["status"] in {"completed", "cancelled"} else 1
     except Exception as exc:
-        print(json.dumps({"status": "error", "error_type": type(exc).__name__, "error": str(exc)}, ensure_ascii=False))
+        print(json.dumps({"status": "error", "error_type": type(exc).__name__, "error": "redacted"}, ensure_ascii=False))
         return 1
     finally:
         if aec_session:
             aec_session.unload()
+
+
+def _run_chat(args: argparse.Namespace, config: dict[str, Any]) -> int:
+    # chat defaults to the portable, streaming live profile; diagnostic run and bench keep default.yaml.
+    if str(args.config) == "config/default.yaml" and Path("config/live.yaml").is_file():
+        config = load_config("config/live.yaml")
+    artifact = Path(nested(config, "app", "artifact_dir", default="results/artifacts"))
+    result_dir = Path(nested(config, "app", "result_dir", default="results"))
+    artifact.mkdir(parents=True, exist_ok=True)
+    aec_session: EchoCancelSession | None = None
+    controller: SessionController | None = None
+    playback: Any = None
+    asr: WhisperASR | None = None
+    tts: Any = None
+    previous_handlers: dict[int, Any] = {}
+    owner_server: VLLMOmniServer | None = None
+    stage = "inventory"
+    try:
+        inventory = PipeWireInventory.discover()
+        mic = _physical_audio_node(inventory.sources)
+        speaker = _physical_audio_node(inventory.sinks)
+        backend = args.tts_backend or str(nested(config, "tts", "backend", default="vllm_omni"))
+        if mic is None or speaker is None:
+            print(f"Local Live JA ASR: faster-whisper {nested(config, 'asr', 'model', default='large-v3-turbo')}")
+            print(f"LLM: {args.provider} {nested(config, 'llm', 'local_model', default='auto')}")
+            print(f"TTS: {backend} {nested(config, 'tts', 'model', default='Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice')}")
+            print("AEC: disabled (device unavailable)")
+            print(f"Microphone: {'unavailable' if mic is None else stable_target(mic)}")
+            print(f"Speaker: {'unavailable' if speaker is None else stable_target(speaker)}")
+            print(json.dumps({"status": "blocked", "reason": "microphone unavailable" if mic is None else "speaker unavailable"}, ensure_ascii=False))
+            return 1
+        if backend == "vllm_omni":
+            config = dict(config)
+            config["tts"] = dict(config.get("tts", {}))
+            config["tts"]["backend"] = "vllm_omni"
+            config["tts"]["vllm_streaming"] = True
+            if args.start_vllm:
+                stage = "vllm_start"
+                owner_server = VLLMOmniServer(
+                    python_bin=_vllm_python(config),
+                    model=str(nested(config, "tts", "model", default="Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice")),
+                    host=str(nested(config, "tts", "vllm_host", default="127.0.0.1")),
+                    port=int(nested(config, "tts", "vllm_port", default=8091)),
+                    log_path=artifact / "vllm_omni_chat.log",
+                    gpu_memory_utilization=nested(config, "tts", "vllm_gpu_memory_utilization", default=None),
+                    extra_env=(
+                        {}
+                        if bool(nested(config, "tts", "vllm_use_flashinfer_sampler", default=False))
+                        else {"VLLM_USE_FLASHINFER_SAMPLER": "0"}
+                    ),
+                )
+                owner_server.start(timeout_s=float(nested(config, "tts", "vllm_server_start_timeout_s", default=900.0)))
+        if args.no_aec:
+            aec_label = "disabled"
+        else:
+            stage = "aec"
+            aec_session = _make_aec_session(
+                config,
+                sink_master=stable_target(speaker) if speaker else None,
+                source_master=stable_target(mic) if mic else None,
+            )
+            aec_session.load()
+            aec_label = "WebRTC module-echo-cancel"
+            after = PipeWireInventory.discover()
+            mic = next((node for node in after.sources if node.node_id == aec_session.source_node_id), mic)
+            speaker = next((node for node in after.sinks if node.node_id == aec_session.sink_node_id), speaker)
+        mic_target = stable_target(mic) if mic else None
+        speaker_target = stable_target(speaker) if speaker else None
+        asr_device = "cuda" if _cuda_available() else "cpu"
+        compute_type = str(
+            nested(config, "asr", "gpu_default_compute_type", default="int8_float16")
+            if asr_device == "cuda"
+            else nested(config, "asr", "cpu_compute_type", default="int8")
+        )
+        stage = "asr"
+        asr = WhisperASR(
+            model=str(nested(config, "asr", "model", default="large-v3-turbo")),
+            device=asr_device,
+            compute_type=compute_type,
+            language=str(nested(config, "asr", "language", default="ja")),
+            beam_size=int(nested(config, "asr", "beam_size", default=5)),
+        )
+        stage = "provider_tts"
+        providers = _make_providers(config)
+        provider = providers[args.provider]
+        tts = build_tts_backend(config, backend_override=backend, streaming_override=(backend == "vllm_omni"))
+        if mic_target is None:
+            print(f"Local Live JA ASR: {asr.model_name}")
+            print(f"LLM: {getattr(provider, 'requested_model', args.provider)}")
+            print(f"TTS: {backend} {nested(config, 'tts', 'model', default='Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice')}")
+            print(f"AEC: {aec_label}")
+            print("Microphone: unavailable")
+            print(f"Speaker: {speaker_target or 'unavailable'}")
+            print(json.dumps({"status": "blocked", "reason": "microphone unavailable"}, ensure_ascii=False))
+            return 1
+        if speaker_target is None:
+            print(f"Local Live JA ASR: {asr.model_name}")
+            print(f"LLM: {getattr(provider, 'requested_model', args.provider)}")
+            print(f"TTS: {backend} {nested(config, 'tts', 'model', default='Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice')}")
+            print(f"AEC: {aec_label}")
+            print(f"Microphone: {mic_target}")
+            print("Speaker: unavailable")
+            print(json.dumps({"status": "blocked", "reason": "speaker unavailable"}, ensure_ascii=False))
+            return 1
+        playback = PipeWirePCMPlayback(speaker_target) if bool(getattr(tts, "streaming", False)) else PipeWirePlayback(speaker_target)
+        pipeline = LivePipeline(
+            llm=provider,
+            tts=tts,
+            playback=playback,
+            artifact_dir=artifact,
+            sentence_max_chars=int(nested(config, "tts", "sentence_max_chars", default=48)),
+            sentence_timeout_s=float(nested(config, "tts", "sentence_timeout_s", default=0.8)),
+            echo_rejection_config=echo_config_from_mapping(config.get("echo_rejection")),
+        )
+        chat_cfg = config.get("chat", {})
+        vad_config = VADConfig(
+            sample_rate=int(nested(config, "app", "sample_rate", default=16000)),
+            frame_ms=int(chat_cfg.get("microphone_block_ms", 20)),
+            min_speech_duration_s=float(chat_cfg.get("min_speech_duration_s", 0.12)),
+            end_silence_s=float(chat_cfg.get("end_silence_s", 0.12)),
+            max_utterance_duration_s=float(chat_cfg.get("max_utterance_duration_s", 8.0)),
+            threshold=float(chat_cfg.get("vad_threshold", 0.015)),
+            noise_multiplier=float(chat_cfg.get("vad_noise_multiplier", 3.0)),
+        )
+        source = RealMicrophoneSource(
+            target=mic_target,
+            sample_rate=vad_config.sample_rate,
+            block_ms=vad_config.frame_ms,
+        )
+        controller = SessionController(
+            source=source,
+            asr=asr,
+            pipeline=pipeline,
+            config=vad_config,
+            artifact_dir=artifact,
+            history=ConversationHistory(
+                "日本語で短く自然に答えてください。音声合成向けに一文を短くします。",
+                max_turns=int(chat_cfg.get("history_max_turns", 12)),
+                max_chars=int(chat_cfg.get("history_max_chars", 8000)),
+            ),
+            max_retries=int(chat_cfg.get("max_retries", 1)),
+            read_timeout_s=float(chat_cfg.get("read_timeout_s", 0.1)),
+        )
+        print(f"Local Live JA ASR: faster-whisper {asr.model_name} ({asr_device}, {compute_type})")
+        print(f"LLM: {args.provider} {getattr(provider, 'requested_model', '') or nested(config, 'llm', 'local_model', default='auto')}")
+        print(f"TTS: {backend} {nested(config, 'tts', 'model', default='Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice')} streaming={bool(getattr(tts, 'streaming', False))}")
+        print(f"AEC: {aec_label}")
+        print(f"Microphone: {mic_target}")
+        print(f"Speaker: {speaker_target}")
+        print("Listening...")
+        stop_requested = threading.Event()
+
+        def request_stop(_signum: int, _frame: Any) -> None:
+            stop_requested.set()
+            if controller is not None:
+                controller.stop()
+
+        for signum in (signal.SIGINT, signal.SIGTERM):
+            previous_handlers[signum] = signal.getsignal(signum)
+            signal.signal(signum, request_stop)
+        stage = "capture"
+        summary = controller.run(max_turns=args.max_turns)
+        payload = {
+            "schema": "local-live-ja/chat-session/v1",
+            "status": "completed" if summary["application_failure_count"] == 0 else "error",
+            "config": str(config.get("_path", "config/live.yaml")),
+            "provider": args.provider,
+            "tts_backend": backend,
+            "aec": aec_label,
+            "summary": summary,
+            "stop_requested": stop_requested.is_set(),
+        }
+        result_path = result_dir / "chat_latest.json"
+        write_json(result_path, payload)
+        print(json.dumps({"status": payload["status"], "result": str(result_path)}, ensure_ascii=False))
+        return 0 if payload["status"] == "completed" else 1
+    except KeyboardInterrupt:
+        if controller is not None:
+            controller.stop()
+        return 0
+    except Exception as exc:
+        if stage == "capture":
+            print("Microphone: unavailable")
+        failure = {
+            "schema": "local-live-ja/chat-session/v1",
+            "status": "error",
+            "stage": stage,
+            "error_type": type(exc).__name__,
+            "error": "redacted",
+        }
+        write_json(result_dir / "chat_latest.json", failure)
+        print(json.dumps(failure, ensure_ascii=False))
+        return 1
+    finally:
+        for signum, handler in previous_handlers.items():
+            signal.signal(signum, handler)
+        if controller is not None:
+            controller.stop()
+        if playback is not None:
+            cancel = getattr(playback, "cancel", None)
+            if callable(cancel):
+                try:
+                    cancel()
+                except Exception:
+                    pass
+        for owner in (tts, asr):
+            unload = getattr(owner, "unload", None)
+            if callable(unload):
+                try:
+                    unload()
+                except Exception:
+                    pass
+        if aec_session is not None:
+            aec_session.unload()
+        if owner_server is not None:
+            owner_server.stop()
+
+
+def _physical_audio_node(nodes: list[Any]) -> Any | None:
+    """Return a physical USB/GoStream node, never an AEC virtual node."""
+    candidates = [
+        node
+        for node in nodes
+        if "echo-cancel" not in f"{getattr(node, 'name', '')} {getattr(node, 'target', '')}".casefold()
+        and "local_live" not in f"{getattr(node, 'name', '')} {getattr(node, 'target', '')}".casefold()
+        and any(token in f"{getattr(node, 'name', '')} {getattr(node, 'target', '')}".casefold() for token in ("usb", "gostream"))
+    ]
+    return candidates[0] if candidates else None
 
 
 def _make_aec_session(

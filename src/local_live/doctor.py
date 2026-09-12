@@ -153,7 +153,7 @@ def _git_github_check() -> dict[str, Any]:
     return {
         "status": "pass" if git_code == 0 and gh_authenticated else "warn",
         "git_version": git_out if git_code == 0 else None,
-        "git_repo_root": root_out if root_code == 0 else None,
+        "git_repo_root": "repository root" if root_code == 0 else None,
         "gh_installed": shutil.which("gh") is not None,
         "gh_auth_exit_code": gh_code,
         "github_authentication": gh_authenticated,

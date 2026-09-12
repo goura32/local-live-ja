@@ -222,6 +222,29 @@ def compact_phase6(physical_onset: dict[str, Any], unattended: dict[str, Any]) -
     }
 
 
+def compact_phase7_application(app: dict[str, Any]) -> dict[str, Any]:
+    data = app.get("data") or {}
+    multi_turn = data.get("multi_turn") or {}
+    multi_summary = multi_turn.get("summary") or {}
+    return {
+        "status": data.get("status"),
+        "turns": data.get("turns"),
+        "checks": data.get("checks"),
+        "multi_turn": {
+            "application_success_count": multi_summary.get("application_success_count"),
+            "application_failure_count": multi_summary.get("application_failure_count"),
+            "history_context_forwarded": multi_turn.get("history_context_forwarded"),
+            "history_roles": multi_turn.get("history_roles"),
+            "incremental_first_tts_before_completion": (multi_turn.get("incremental_llm_tts") or {}).get("first_tts_before_completion"),
+        },
+        "synthetic_application_level_barge_in": data.get("synthetic_application_level_barge_in"),
+        "recovery": data.get("recovery_matrix"),
+        "resources": multi_turn.get("resources"),
+        "cleanup": data.get("cleanup"),
+        "deferred_manual": data.get("deferred_manual", []),
+    }
+
+
 def build_summary() -> dict[str, Any]:
     doctor = load("doctor.json")
     asr = load("bench_asr.json")
@@ -241,6 +264,7 @@ def build_summary() -> dict[str, Any]:
     physical_onset = load("bench_physical_onset.json")
     run = load("run_latest.json")
     pytest_final = load("pytest_final.json")
+    app = load("bench_app.json")
 
     asr_data = asr.get("data", {})
     tts_data = tts.get("data", {})
@@ -257,6 +281,7 @@ def build_summary() -> dict[str, Any]:
     interruption_data = interruption.get("data", {})
     unattended_data = unattended.get("data", {})
     physical_onset_data = physical_onset.get("data", {})
+    app_data = app.get("data", {})
 
     return {
         "schema": "local-live-ja/summary/v2",
@@ -279,6 +304,7 @@ def build_summary() -> dict[str, Any]:
             "interruption": "results/bench_interruption.json",
             "unattended": "results/bench_unattended.json",
             "physical_onset": "results/bench_physical_onset.json",
+            "application": "results/bench_app.json",
             "live_latency_python_reference": "results/bench_live_latency_python.json",
             "run": "results/run_latest.json",
         },
@@ -422,6 +448,8 @@ def build_summary() -> dict[str, Any]:
         "phase4": compact_phase4(stability_data, echo_rejection_data, mic_readiness_data, interruption_data),
         "phase5": compact_phase5(unattended_data, echo_rejection_data, interruption_data),
         "phase6": compact_phase6(physical_onset_data, unattended_data),
+        "phase7_application": compact_phase7_application(app),
+        "overall_status": app_data.get("status", "unverified"),
         "run": {
             "status": run.get("status"),
             "assistant_text": run.get("spoken_text", run.get("assistant_text")),

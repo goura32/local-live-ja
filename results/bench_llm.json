@@ -5,7 +5,7 @@
   "finished_at": "2026-09-11T20:01:32Z",
   "environment": {
     "captured_at": "2026-09-11T20:01:33.930368+00:00",
-    "hostname": "ws1",
+    "hostname": "[REDACTED]",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
     "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",

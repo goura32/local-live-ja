@@ -5,7 +5,6 @@ import os
 import platform
 import re
 import shutil
-import socket
 import subprocess
 import sys
 import threading
@@ -80,7 +79,7 @@ def environment_snapshot() -> dict[str, Any]:
         pass
     return {
         "captured_at": utc_now(),
-        "hostname": socket.gethostname(),
+        "hostname": "[REDACTED]",
         "platform": platform.platform(),
         "kernel": platform.release(),
         "python": sys.version,

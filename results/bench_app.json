@@ -1,0 +1,436 @@
+{
+  "schema": "local-live-ja/bench-app/v2",
+  "benchmark": "app",
+  "started_at": "2026-09-12T22:36:41Z",
+  "finished_at": "2026-09-12T22:37:00Z",
+  "environment": {
+    "captured_at": "2026-09-12T22:37:01.133681+00:00",
+    "hostname": "[REDACTED]",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "kernel": "7.0.0-31-generic",
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "cpu": {
+      "model": "13th Gen Intel(R) Core(TM) i7-13700",
+      "logical_cpus": 24
+    },
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 5070 Ti",
+        "driver_version": "595.84",
+        "memory.total": "16303",
+        "compute_cap": "12.0"
+      }
+    ],
+    "cuda_runtime_from_torch": "13.0",
+    "packages": {
+      "local-live-ja": "0.1.0",
+      "faster-whisper": "1.2.1",
+      "qwen-tts": "0.1.1",
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "soundfile": "0.14.0",
+      "httpx": "0.28.1",
+      "psutil": "7.2.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "data": {
+    "schema": "local-live-ja/application-acceptance/v1",
+    "phase": 7,
+    "status": "unattended_poc_complete",
+    "turns": 60,
+    "checks": {
+      "continuous_session": true,
+      "application_success": true,
+      "history": true,
+      "incremental_llm_tts": true,
+      "synthetic_barge_in": true,
+      "recovery": true,
+      "cancellation": true,
+      "too_short_rejection": true,
+      "stale_pcm": true,
+      "resource_growth": true,
+      "cleanup": true
+    },
+    "multi_turn": {
+      "summary": {
+        "state": "IDLE",
+        "application_success_count": 60,
+        "application_failure_count": 0,
+        "recovery_count": 0,
+        "barge_in_count": 0,
+        "cancel_count": 0,
+        "history": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "日本語で短く自然に答えてください。音声合成向けに一文を短くします。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 49 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 50 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 51 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 52 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 53 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 54 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 55 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 56 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 57 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 58 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 59 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            },
+            {
+              "role": "user",
+              "content": "連続会話の質問 60 です"
+            },
+            {
+              "role": "assistant",
+              "content": "確認しました。会話履歴を反映しました。"
+            }
+          ],
+          "max_turns": 12,
+          "max_chars": 8000
+        },
+        "transition_states": [
+          "ASSISTANT_SPEAKING",
+          "ASSISTANT_THINKING",
+          "FINALIZING",
+          "IDLE",
+          "LISTENING",
+          "STOPPING",
+          "TRANSCRIBING",
+          "USER_SPEAKING"
+        ],
+        "event_counts": {
+          "asr_result": 60,
+          "speech_end": 60,
+          "speech_start": 60,
+          "turn_completed": 60
+        }
+      },
+      "turns_requested": 60,
+      "application_success_rate": 1.0,
+      "history_roles": [
+        "system",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant"
+      ],
+      "history_contains_password": false,
+      "history_context_forwarded": true,
+      "incremental_llm_tts": {
+        "tts_requests": 119,
+        "first_tts_before_completion": 119,
+        "completion_wait_avoided": true
+      },
+      "playback": {
+        "started": 119,
+        "finished": 119,
+        "cancelled": 0,
+        "stale_pcm_bytes": 0
+      },
+      "cleanup": {
+        "stale_pcm_bytes": 0,
+        "active_after_session": false,
+        "fixture_source_stopped": true
+      },
+      "resources": {
+        "process": {
+          "sample_count": 124,
+          "started": {
+            "open_fds": 4,
+            "child_processes": 0,
+            "playback_processes": 0,
+            "active_http_connections": 2
+          },
+          "end": {
+            "open_fds": 4,
+            "child_processes": 0,
+            "playback_processes": 0,
+            "active_http_connections": 2
+          },
+          "deltas": {
+            "open_fds": 0.0,
+            "child_processes": 0.0,
+            "playback_processes": 0.0,
+            "active_http_connections": 0.0
+          },
+          "monotonic_growth": {
+            "open_fds": false,
+            "child_processes": false,
+            "playback_processes": false,
+            "active_http_connections": false
+          }
+        },
+        "ram_peak_mib": 51.984375,
+        "gpu_peak_mib": 15,
+        "gpu_free_min_mib": 15827,
+        "cpu_load_percent": 2.695934959349594
+      }
+    },
+    "synthetic_application_level_barge_in": [
+      {
+        "position": "first",
+        "repeat": 1,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "first",
+        "repeat": 2,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "first",
+        "repeat": 3,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "middle",
+        "repeat": 1,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "middle",
+        "repeat": 2,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "middle",
+        "repeat": 3,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "late",
+        "repeat": 1,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "late",
+        "repeat": 2,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      },
+      {
+        "position": "late",
+        "repeat": 3,
+        "status": "pass",
+        "barge_in_detected": 1,
+        "playback_cancelled": 1,
+        "tts_cancelled": 1,
+        "llm_cancelled": true,
+        "stale_pcm_bytes": 0,
+        "state_after_recovery": "LISTENING",
+        "history_assistant_count": 1,
+        "interrupted_partial_excluded": true
+      }
+    ],
+    "recovery_matrix": [
+      {
+        "case": "temporary_ollama_failure",
+        "status": "pass",
+        "application_success_count": 1,
+        "application_failure_count": 0,
+        "recovery_count": 1,
+        "state": "LISTENING"
+      },
+      {
+        "case": "temporary_tts_failure",
+        "status": "pass",
+        "application_success_count": 1,
+        "application_failure_count": 0,
+        "recovery_count": 1,
+        "state": "LISTENING"
+      },
+      {
+        "case": "playback_process_failure",
+        "status": "pass",
+        "application_success_count": 1,
+        "application_failure_count": 0,
+        "recovery_count": 1,
+        "state": "LISTENING"
+      },
+      {
+        "case": "empty_asr_result",
+        "status": "pass",
+        "application_success_count": 0,
+        "application_failure_count": 0,
+        "recovery_count": 1,
+        "state": "LISTENING"
+      }
+    ],
+    "cleanup": {
+      "stale_pcm_bytes": 0,
+      "active_after_session": false,
+      "fixture_source_stopped": true
+    },
+    "too_short_rejected": true,
+    "deferred_manual": [
+      "human speech recognition quality",
+      "human physical double-talk",
+      "human physical barge-in experience",
+      "MOS / subjective listening evaluation",
+      "subjective TTS naturalness",
+      "subjective microphone gain tuning",
+      "production approval"
+    ]
+  }
+}

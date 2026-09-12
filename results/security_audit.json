@@ -1,0 +1,28 @@
+{
+  "schema": "local-live-ja/security-audit/v1",
+  "status": "pass",
+  "scope": {
+    "reachable_refs": [
+      "refs/heads/main",
+      "refs/remotes/origin/HEAD",
+      "refs/remotes/origin/main"
+    ],
+    "reachable_objects": 325,
+    "working_tree_excluded_local_paths": true
+  },
+  "findings": [],
+  "large_files": [],
+  "unreachable": {
+    "object_count": 26,
+    "potential_findings": [],
+    "reachable_and_unreachable_are_separate": true
+  },
+  "patterns_checked": [
+    "OpenRouter/API key",
+    "OpenAI-like key",
+    "GitHub token",
+    "AWS access key",
+    "private key header",
+    "Slack token"
+  ]
+}

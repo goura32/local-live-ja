@@ -1,4 +1,6 @@
-# vLLM-Omni Phase 3B reference
+# vLLM-Omni 固定経路
+
+この文書は、local-live-jaのLive推奨TTSを第三者が再現するための技術メモです。測定済みの組み合わせは`vllm-omni==0.28.0` + `vllm==0.28.0`で、`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、`Ono_Anna`、`Japanese`、HTTP raw PCM streaming、persistent `pw-cat`を固定します。Phase 7の`chat`とPhase 6のphysical benchmarkは同じclient/playback componentを共有します。以下の英語節は、公式source名・request contract・実測値を改変しないためのreferenceです。
 
 Retrieved 2026-09-12 (JST) before the Phase 3B implementation.
 
@@ -15,7 +17,7 @@ Retrieved 2026-09-12 (JST) before the Phase 3B implementation.
 - Pinned streaming client source: https://raw.githubusercontent.com/vllm-project/vllm-omni/bc0c9f4b45c45c59aa2f92471842e8c18ae403ca/examples/online_serving/text_to_speech/qwen3_tts/streaming_speech_client.py
 
 The release was installed in the isolated environment
-`/home/ws1/.venvs/local-live-vllm-omni-0.28.0`. The repository's existing
+`~/.venvs/local-live-vllm-omni-0.28.0`. The repository's existing
 `.venv` was not modified. The resolver selected Python 3.12, Torch
 `2.13.0+cu130`, Transformers `5.14.1`, and Triton `3.7.1` for the isolated vLLM environment.
 The requested `main` SHA is a later `v0.29.0rc1-40` development checkout; its

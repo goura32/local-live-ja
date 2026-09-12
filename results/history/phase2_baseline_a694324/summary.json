@@ -3,7 +3,7 @@
   "generated_at": "2026-09-12T05:47:34.143494+00:00",
   "environment": {
     "captured_at": "2026-09-11T20:26:57.367044+00:00",
-    "hostname": "ws1",
+    "hostname": "[REDACTED]",
     "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "kernel": "7.0.0-31-generic",
     "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
@@ -186,7 +186,7 @@
       "git_github": {
         "status": "pass",
         "git_version": "git version 2.43.0",
-        "git_repo_root": "/home/ws1/projects/local-live-ja",
+        "git_repo_root": "repository root",
         "gh_installed": true,
         "gh_auth_exit_code": 0,
         "github_authentication": true

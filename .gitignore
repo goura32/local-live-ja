@@ -6,6 +6,8 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 *.egg-info/
+dist/
+build/
 
 # Local credentials and configuration
 .env
@@ -28,9 +30,11 @@ weights/
 *.ogg
 *.npy
 *.npz
+*.pcm
 results/artifacts/
 results/raw/
 results/*.log
+results/chat_latest.json
 logs/
 
 # Local runtime state

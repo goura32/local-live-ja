@@ -43,3 +43,9 @@ Fault probes are process-level or mock-only: HTTP stream disconnect, premature p
 ## Interpretation limits
 
 Synthetic user-like acceptance demonstrates only that the independent fixture contains signal not explained by the assistant reference. It is not evidence of physical human double-talk, human barge-in, MOS, or production readiness. Those items stay `deferred_manual` and are not counted as unattended blockers.
+
+## Phase 7 application acceptance
+
+Phase 7は新しい研究benchmarkではなく、実利用経路の最終受入試験です。`local-live chat`と同じ`SessionController` / `LivePipeline`を使い、`FixtureAudioSource`とinstrumented playbackだけを注入します。60 scripted turns、bounded conversation history、stream中のSentenceChunker→TTS、persistent capture state、first/middle/late各3回のsynthetic application-level barge-in、bounded recovery、cancel、cleanupを実行し、`results/bench_app.json`へcompact evidenceを保存します。
+
+この結果の`unattended_poc_complete`は、実人声やphysical human barge-inを意味しません。Phase 7で無人検証を終了し、人間依存項目は`docs/limitations.md`の`deferred_manual`に限定します。

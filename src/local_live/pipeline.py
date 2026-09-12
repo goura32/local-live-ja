@@ -90,9 +90,9 @@ class LivePipeline:
         )
 
     def cancel(self) -> None:
+        """Stop playback first, then TTS, then signal the active LLM stream."""
         if self._active_cancel:
-            self._active_cancel.request()
-            for owner in (self.tts, self.playback):
+            for owner in (self.playback, self.tts):
                 cancel = getattr(owner, "cancel", None)
                 if callable(cancel):
                     try:
@@ -100,57 +100,139 @@ class LivePipeline:
                     except Exception:
                         # Cancellation is best effort; the turn still observes the event.
                         pass
+            self._active_cancel.request()
+            llm_cancel = getattr(self.llm, "cancel", None)
+            if callable(llm_cancel):
+                try:
+                    llm_cancel()
+                except Exception:
+                    pass
 
-    def respond(self, user_text: str, cancel: Cancellation | None = None) -> PipelineResult:
+    def respond(
+        self,
+        user_text: str,
+        cancel: Cancellation | None = None,
+        *,
+        history: list[dict[str, Any]] | None = None,
+    ) -> PipelineResult:
+        """Run one turn, feeding non-tool LLM deltas into TTS incrementally."""
         cancellation = cancel or Cancellation()
         self._active_cancel = cancellation
         self.state = "RUNNING"
         log = EventLog()
         result = PipelineResult()
-        messages: list[dict[str, Any]] = [
+        messages = [dict(message) for message in history] if history else [
             {"role": "system", "content": "日本語で短く自然に答えてください。音声合成向けに一文を短くします。"},
-            {"role": "user", "content": user_text},
         ]
+        if not messages or messages[-1].get("role") != "user" or messages[-1].get("content") != user_text:
+            messages.append({"role": "user", "content": user_text})
+        incremental = self.tool_registry is None
+        spoken_chunk_index = 0
+        drain_after_playback_cancel = False
+
+        def speak_chunk(chunk: str) -> bool:
+            nonlocal drain_after_playback_cancel, spoken_chunk_index
+            if cancellation.event.is_set():
+                self._finish_cancel(log, result, cancellation)
+                return False
+            output_path = self.artifact_dir / f"assistant_{time.monotonic_ns()}_{spoken_chunk_index}.wav"
+            spoken_chunk_index += 1
+            log.mark("tts_request", text_chars=len(chunk), incremental=incremental)
+            if bool(getattr(self.tts, "streaming", False)):
+                if not hasattr(self.tts, "synthesize_stream") or not hasattr(self.playback, "start"):
+                    result.error = "streaming TTS requires a persistent PCM playback backend"
+                    return False
+                generated = self.tts.synthesize_stream(
+                    chunk,
+                    output_path=output_path,
+                    playback=self.playback,
+                    cancel_event=cancellation.event,
+                    event_log=log,
+                )
+                log.mark("tts_end", path=str(output_path), streaming=True)
+                if generated.get("cancelled"):
+                    self._finish_cancel(log, result, cancellation)
+                    return False
+                if generated.get("status") != "measured":
+                    result.error = str(generated.get("error") or "streaming TTS failed")
+                    return False
+                path = str(generated.get("path", output_path))
+                result.audio_paths.append(path)
+                self._commit_spoken(log, result, chunk, path, streaming=True)
+                log.mark("playback_end", path=path, streaming=True, cancelled=False)
+                return not cancellation.event.is_set()
+            generated = self.tts.synthesize(chunk, output_path=output_path, cancel_event=cancellation.event)
+            log.mark("tts_end", path=str(output_path))
+            if cancellation.event.is_set():
+                self._finish_cancel(log, result, cancellation)
+                return False
+            path = str(generated.get("path", output_path)) if isinstance(generated, dict) else str(output_path)
+            log.mark("playback_start", path=path)
+            playback_result = self.playback.play(path, cancel_event=cancellation.event)
+            playback_cancelled = isinstance(playback_result, dict) and bool(playback_result.get("cancelled"))
+            log.mark("playback_end", path=path, cancelled=playback_cancelled)
+            if playback_cancelled:
+                self._finish_cancel(log, result, cancellation)
+                return False
+            result.audio_paths.append(path)
+            self._commit_spoken(log, result, chunk, path)
+            if cancellation.event.is_set():
+                self._finish_cancel(log, result, cancellation)
+                drain_after_playback_cancel = True
+                return True
+            return True
+
         try:
             for round_index in range(self.max_tool_rounds + 1):
                 log.mark("llm_start", round=round_index)
                 text_parts: list[str] = []
                 tool_calls: list[ToolCall] = []
                 completed = False
+                chunker = SentenceChunker(**self.chunker_kwargs) if incremental else None
                 for event in self.llm.stream(
                     messages,
                     tools=self.tool_registry.definitions() if self.tool_registry else None,
                     cancel_event=cancellation.event,
                 ):
                     if isinstance(event, TextDelta):
-                        if text_parts == []:
+                        if not text_parts:
                             log.mark("llm_first_token", round=round_index)
                         text_parts.append(event.text)
+                        result.generated_text = "".join(text_parts)
+                        if chunker is not None:
+                            for chunk in chunker.push(event.text):
+                                if not speak_chunk(chunk):
+                                    result.events = self._events(log)
+                                    result.timing = self._timing(log)
+                                    return result
                     elif isinstance(event, ToolCall):
                         tool_calls.append(event)
                     elif isinstance(event, Completion):
                         completed = True
                         log.mark("llm_end", reason=event.reason, actual_model=event.actual_model)
                     elif isinstance(event, Cancelled):
+                        result.generated_text = "".join(text_parts)
                         self._finish_cancel(log, result, cancellation)
                         return result
                     elif isinstance(event, LLMError):
+                        result.generated_text = "".join(text_parts)
                         result.error = event.message
                         result.state = "ERROR"
                         result.events = self._events(log)
                         return result
-                    if cancellation.event.is_set():
+                    if cancellation.event.is_set() and not drain_after_playback_cancel:
+                        result.generated_text = "".join(text_parts)
                         self._finish_cancel(log, result, cancellation)
                         return result
+                    drain_after_playback_cancel = False
 
                 llm_text = "".join(text_parts)
+                result.generated_text = llm_text
                 if tool_calls and self.tool_registry:
                     assistant_tool_calls = []
                     for call in tool_calls:
                         if getattr(self.llm, "tool_call_format", "openai") == "ollama":
-                            assistant_tool_calls.append(
-                                {"function": {"name": call.name, "arguments": call.arguments}}
-                            )
+                            assistant_tool_calls.append({"function": {"name": call.name, "arguments": call.arguments}})
                         else:
                             assistant_tool_calls.append(
                                 {
@@ -167,80 +249,34 @@ class LivePipeline:
                         if getattr(self.llm, "tool_call_format", "openai") == "ollama":
                             messages.append({"role": "tool", "content": content})
                         else:
-                            messages.append(
-                                {"role": "tool", "tool_call_id": call.call_id, "name": call.name, "content": content}
-                            )
+                            messages.append({"role": "tool", "tool_call_id": call.call_id, "name": call.name, "content": content})
                         log.mark("tool_result", name=call.name, call_id=call.call_id)
                     if round_index < self.max_tool_rounds:
                         continue
-                result.generated_text = llm_text
                 if not completed and not llm_text and not tool_calls:
                     result.error = "LLM returned no content"
+                if chunker is not None:
+                    for chunk in chunker.flush():
+                        if not speak_chunk(chunk):
+                            result.events = self._events(log)
+                            result.timing = self._timing(log)
+                            return result
                 break
 
-            chunker = SentenceChunker(**self.chunker_kwargs)
             if result.error:
                 result.state = "ERROR"
                 result.events = self._events(log)
+                result.timing = self._timing(log)
                 return result
-            chunks = chunker.push(result.generated_text)
-            chunks.extend(chunker.flush())
-            for index, chunk in enumerate(chunks):
-                if cancellation.event.is_set():
-                    self._finish_cancel(log, result, cancellation)
-                    return result
-                output_path = self.artifact_dir / f"assistant_{time.monotonic_ns()}_{index}.wav"
-                log.mark("tts_request", text_chars=len(chunk))
-                if bool(getattr(self.tts, "streaming", False)):
-                    if not hasattr(self.tts, "synthesize_stream") or not hasattr(self.playback, "start"):
-                        result.error = "streaming TTS requires a persistent PCM playback backend"
-                        result.state = "ERROR"
+            if not incremental:
+                chunker = SentenceChunker(**self.chunker_kwargs)
+                chunks = chunker.push(result.generated_text)
+                chunks.extend(chunker.flush())
+                for chunk in chunks:
+                    if not speak_chunk(chunk):
                         result.events = self._events(log)
+                        result.timing = self._timing(log)
                         return result
-                    generated = self.tts.synthesize_stream(
-                        chunk,
-                        output_path=output_path,
-                        playback=self.playback,
-                        cancel_event=cancellation.event,
-                        event_log=log,
-                    )
-                    log.mark("tts_end", path=str(output_path), streaming=True)
-                    if generated.get("cancelled"):
-                        self._finish_cancel(log, result, cancellation)
-                        return result
-                    if generated.get("status") != "measured":
-                        result.error = str(generated.get("error") or "streaming TTS failed")
-                        result.state = "ERROR"
-                        result.events = self._events(log)
-                        return result
-                    path = str(generated.get("path", output_path))
-                    result.audio_paths.append(path)
-                    self._commit_spoken(log, result, chunk, path, streaming=True)
-                    log.mark("playback_end", path=path, streaming=True, cancelled=False)
-                    if cancellation.event.is_set():
-                        self._finish_cancel(log, result, cancellation)
-                        return result
-                    continue
-                else:
-                    generated = self.tts.synthesize(chunk, output_path=output_path, cancel_event=cancellation.event)
-                    log.mark("tts_end", path=str(output_path))
-                if cancellation.event.is_set():
-                    self._finish_cancel(log, result, cancellation)
-                    return result
-                path = str(generated.get("path", output_path)) if isinstance(generated, dict) else str(output_path)
-                log.mark("playback_start", path=path)
-                playback_result = self.playback.play(path, cancel_event=cancellation.event)
-                playback_cancelled = isinstance(playback_result, dict) and bool(playback_result.get("cancelled"))
-                log.mark("playback_end", path=path, cancelled=playback_cancelled)
-                if playback_cancelled:
-                    self._finish_cancel(log, result, cancellation)
-                    return result
-                result.audio_paths.append(path)
-                self._commit_spoken(log, result, chunk, path)
-                if cancellation.event.is_set():
-                    self._finish_cancel(log, result, cancellation)
-                    return result
-
             result.events = self._events(log)
             result.timing = self._timing(log)
             result.state = "IDLE"
@@ -249,6 +285,7 @@ class LivePipeline:
             result.error = f"{type(exc).__name__}: {exc}"
             result.state = "ERROR"
             result.events = self._events(log)
+            result.timing = self._timing(log)
             return result
         finally:
             self.state = result.state
@@ -268,6 +305,7 @@ class LivePipeline:
         log.mark("cancel_requested", requested_ns=cancellation.requested_ns)
         cancellation.completed_ns = time.monotonic_ns()
         log.mark("cancel_completed")
+        log.mark("cancelled", reason="cancel_requested")
         result.cancelled = True
         result.state = "IDLE"
         result.events = self._events(log) + [

@@ -1,5 +1,9 @@
 # bench/
 
+Phase 7の最終受入は`local-live bench app`です。これは新しい研究benchmarkではなく、`local-live chat`と同じ`SessionController` / `LivePipeline`を使うapplication-level harnessです。60 scripted turns、history、incremental LLM→TTS、persistent VAD、synthetic barge-in（first/middle/late各3回）、bounded recovery、cancel、cleanup、resource summaryを`results/bench_app.json`へcompact保存します。synthetic passは実人声・physical double-talk・人間barge-inの成功を意味しません。
+
+Phase 1〜6の既存commandと研究証拠は以下のreferenceとして保持します。
+
 The executable benchmarks live in `src/local_live/bench.py` and are exposed through the `local-live bench ...` CLI. This directory is the requested benchmark entry-point area; generated audio and raw logs remain under the ignored `results/artifacts/` and `results/raw/` paths.
 
 The current measurement contract is:

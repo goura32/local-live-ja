@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import statistics
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -84,9 +87,21 @@ def _vllm_python(config: dict[str, Any]) -> Path:
         config,
         "tts",
         "vllm_python",
-        default="/home/ws1/.venvs/local-live-vllm-omni-0.28.0/bin/python",
+        default="auto",
     )
-    return Path(str(configured))
+    value = str(configured).strip()
+    if value and value.casefold() != "auto":
+        return Path(value).expanduser()
+    candidates = []
+    env_python = os.environ.get("LOCAL_LIVE_VLLM_PYTHON", "").strip()
+    if env_python:
+        candidates.append(Path(env_python).expanduser())
+    candidates.append(Path.home() / ".venvs" / "local-live-vllm-omni-0.28.0" / "bin" / "python")
+    path_python = shutil.which("python") or shutil.which("python3")
+    if path_python:
+        candidates.append(Path(path_python))
+    candidates.append(Path(sys.executable))
+    return next((candidate for candidate in candidates if candidate.is_file()), candidates[-1])
 
 
 def _vllm_model(config: dict[str, Any]) -> str:

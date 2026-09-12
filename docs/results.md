@@ -1,8 +1,24 @@
 # local-live-ja 実測結果
 
-この文書は、ローカルfilesystemの`/home/ws1/projects/local-live-ja`で実行した最新JSONを根拠にする。`null`、`blocked`、`unavailable`、`unsupported_or_failed`は0点ではなく、測定不能・未実行・未対応を表す。生成WAV、model cache、raw log、credentialはGit管理しない。
+## 最新総合結果（Phase 7）
 
-## 判定
+- overall: `unattended_poc_complete`
+- application acceptance: 60 scripted turns、application failure `0`
+- same application path: `SessionController` + `LivePipeline` + incremental `SentenceChunker`
+- continuous capture: `RealMicrophoneSource` callback interface、`FixtureAudioSource` application harness
+- multi-turn history: system/user/assistant order、spoken-only assistant commit、bounded trim、next-request forwarding
+- incremental LLM→TTS: `TextDelta`受信中にnatural sentenceをTTSへ渡すことを自動確認
+- Live default candidate: vLLM-Omni `0.28.0` HTTP raw PCM streaming + persistent `pw-cat`
+- synthetic application-level barge-in: first/middle/lateの3条件を各3回（計9 run）、playback/TTS/LLM cancellationと次turn recoveryを確認
+- bounded recovery: temporary Ollama/TTS/playback failure、empty ASR、too-short utteranceを確認
+- resource/application harness: FD・child/playback process・active HTTPのmonotonic growthなし、stale PCMなし
+- final gates: pytest、compileall、`uv build`、`git diff --check`、CI workflow、reachable-history secret auditを確認
+
+この判定は`production_ready`を意味しない。人間の実発話品質、physical double-talk、physical barge-in体験、MOS、subjective評価、manual gain tuning、production approvalは`deferred_manual`であり、無人PoC受入範囲外である。Phase 6のphysical測定結果とPhase 1〜5の履歴は以下に保持する。
+
+この文書は、ローカルfilesystemの`repository root`で実行した最新JSONを根拠にする。`null`、`blocked`、`unavailable`、`unsupported_or_failed`は0点ではなく、測定不能・未実行・未対応を表す。生成WAV、model cache、raw log、credentialはGit管理しない。
+
+## 過去の総合判定（Phase 1〜2時点）
 
 | component | state | 根拠 |
 |---|---|---|
@@ -13,15 +29,15 @@
 | tool calling | measured | local/OpenRouterとも2 calls/2 rounds成功 |
 | E2E | measured | A/B/C/Dは各3本の成功runを確保。C/Dのfailed attemptも保持 |
 | AEC | measured with limitations | stable targetで16条件matrixと3候補×3 repeatを測定。VAD false triggerは残る |
-| test reproducibility | pass | 単一process・直列pytest、exit code 0、107 tests pass |
+| test reproducibility | pass | 単一process・直列pytest、exit code 0、117 tests pass（Phase 7最終） |
 
-総合判定は`measured_with_limitations`。phase-2でsynthetic user endからraw USB microphone acoustic onsetまでの物理latency、TTS length matrix、AEC volume/gain matrix、CPU ASR resident profileを追加した。live latencyは3.4000秒で2秒目標未達、AECは減衰改善を確認したがassistant-only VAD false triggerが残る。真のonline Qwen3-TTS streamingは前提にしていない。
+Phase 1〜2時点の総合判定は`measured_with_limitations`だった。これは過去snapshotであり、現在の総合判定ではない。phase-2でsynthetic user endからraw USB microphone acoustic onsetまでの物理latency、TTS length matrix、AEC volume/gain matrix、CPU ASR resident profileを追加した。live latencyは3.4000秒で2秒目標未達、AECは減衰改善を確認したがassistant-only VAD false triggerが残る。真のonline Qwen3-TTS streamingは前提にしていない。
 
 ## 実行環境
 
-- 測定working tree: `/home/ws1/projects/local-live-ja`
+- 測定working tree: `repository root`
 - `doctor`: status=`pass`
-- host: `ws1`
+- host: local workstation（固有hostnameは非公開）
 - OS/kernel: Linux x86_64、kernel `7.0.0-31-generic`、glibc 2.39
 - CPU: Intel Core i7-13700、24 logical CPUs
 - GPU: NVIDIA GeForce RTX 5070 Ti、driver 595.84、16,303 MiB、compute capability 12.0
@@ -144,7 +160,7 @@ AEC経路とWebRTC echo-cancel moduleの動作は確認できた。一方、今�
 ## Phase-1 baseline: テストと成果物
 
 - pytest command: `.venv/bin/python -m pytest -q`（環境変数でbytecode/BLAS threadを抑制）
-- working tree: `/home/ws1/projects/local-live-ja`
+- working tree: `repository root`
 - execution: single process, serial
 - exit code: 0
 - passed: 33（phase-1 baseline。current phase-2 finalは41 tests）
@@ -407,7 +423,7 @@ Phase 3Bは同じ`Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`、speaker=`Ono_Anna`、l
 - deploy default: `async_chunk=true`、`initial_codec_chunk_frames=1`。API field omitted（null相当）、explicit `1/2/4`を比較した。async OFFはserver再起動を伴うため今回未実施
 - official WebSocket routeは`/v1/audio/speech/stream`で、`session.config`、`input.text`、`input.done`、`session.close`を受けてsentence-scoped audioをstreamする。server→clientの`text.delta`は無い。HTTP full-text PCMで先に効果を確認する方針のため未実装・未測定
 
-導入は既存`.venv`と分離した`/home/ws1/.venvs/local-live-vllm-omni-0.28.0`へ行った。serverは`127.0.0.1:8091`、single GPU、official deploy YAMLで起動し、readinessは`GET /v1/audio/voices`で確認した。最初のofficial FlashInfer sampler defaultはhostに`nvcc`が無いためJIT compile前に失敗した。modelやengineを変えず、server processだけ`VLLM_USE_FLASHINFER_SAMPLER=0`のPyTorch sampler fallbackで再起動し、readiness・request・停止が成功した。このoverrideは性能最適化ではなくhost compatibility workaroundである。standalone 25×3の本測定はserverのspeed/sample-rate default（1.0/24 kHz）を使用し、その後のcontract smokeでclientが明示する`speed=1.0`・`sample_rate=24000` payloadの受理を確認した。
+導入は既存`.venv`と分離した`~/.venvs/local-live-vllm-omni-0.28.0`へ行った。serverは`127.0.0.1:8091`、single GPU、official deploy YAMLで起動し、readinessは`GET /v1/audio/voices`で確認した。最初のofficial FlashInfer sampler defaultはhostに`nvcc`が無いためJIT compile前に失敗した。modelやengineを変えず、server processだけ`VLLM_USE_FLASHINFER_SAMPLER=0`のPyTorch sampler fallbackで再起動し、readiness・request・停止が成功した。このoverrideは性能最適化ではなくhost compatibility workaroundである。standalone 25×3の本測定はserverのspeed/sample-rate default（1.0/24 kHz）を使用し、その後のcontract smokeでclientが明示する`speed=1.0`・`sample_rate=24000` payloadの受理を確認した。
 
 server startupは`56.37 s`（process start → voices readiness）、logの2 stage model-load合計は`4.49 s`（`2.61 s + 1.88 s`）。standalone server readiness時VRAMは`8,614 MiB`、server停止returncodeは0だった。
 

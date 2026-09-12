@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "local-live-ja"
 version = "0.1.0"
-description = "Japanese low-latency live voice PoC"
+description = "Local Japanese low-latency voice conversation PoC using Whisper, Ollama, Qwen3-TTS, vLLM-Omni and PipeWire."
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "Apache-2.0"}
@@ -40,6 +40,9 @@ packages = ["src/local_live"]
 testpaths = ["tests"]
 addopts = "-q"
 markers = [
+  "unit: hardware-free deterministic contract test",
   "integration: requires local models or services",
   "hardware: requires live audio hardware",
+  "gpu: requires NVIDIA GPU and CUDA runtime",
+  "local_service: requires a local Ollama or vLLM service",
 ]
