@@ -677,6 +677,10 @@ def _live_latency_attempt(
         ]
         return {
             "status": "measured" if physical.get("physical_audio_detected") else "blocked",
+            "measurement_kind": "primary_playback_path",
+            "capture_mode": "active_raw_usb_side_channel",
+            "playback_mode": "pw_play_stable_target",
+            "aec_used": False,
             "run_number": run_number,
             "warmup": False,
             "user_audio": str(user_audio),
@@ -1088,9 +1092,13 @@ def run_live_latency_bench(config: dict[str, Any]) -> dict[str, Any]:
             ]
             data["status"] = "measured" if len(measured) >= repeats else "partial"
             data["measurement_parameters"] = {
+                "measurement_kind": "primary_playback_path",
+                "capture_mode": "active_raw_usb_side_channel",
+                "playback_mode": "pw_play_stable_target",
+                "aec_used": False,
                 "baseline_max_chars": max_chars,
                 "baseline_timeout_s": timeout_s,
-                "lead_s": 0.4,
+                "lead_s": 0.0,
                 "tail_s": 0.5,
                 "trim_enabled": bool(nested(config, "tts", "safe_trim_enabled", default=False)),
                 "trim_pre_roll_s": float(nested(config, "tts", "safe_trim_pre_roll_s", default=0.1)),

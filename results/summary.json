@@ -1,6 +1,6 @@
 {
   "schema": "local-live-ja/summary/v2",
-  "generated_at": "2026-09-12T08:06:12.006121+00:00",
+  "generated_at": "2026-09-12T08:15:31.704529+00:00",
   "environment": {
     "captured_at": "2026-09-11T20:26:57.367044+00:00",
     "hostname": "ws1",
@@ -11550,7 +11550,11 @@
             "monotonic_ns": 264847293434051,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run1_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -11949,7 +11953,11 @@
             "monotonic_ns": 264852113452248,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run2_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -12353,7 +12361,11 @@
             "monotonic_ns": 264859708867642,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run3_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -12752,7 +12764,11 @@
             "monotonic_ns": 264865938476921,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run4_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -13151,7 +13167,11 @@
             "monotonic_ns": 264872807618331,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run5_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -13550,7 +13570,11 @@
             "monotonic_ns": 264878908640613,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run6_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -13949,7 +13973,11 @@
             "monotonic_ns": 264882323353385,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run7_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -14348,7 +14376,11 @@
             "monotonic_ns": 264889830907742,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run8_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -14747,7 +14779,11 @@
             "monotonic_ns": 264894312393023,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run9_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       },
       {
         "status": "measured",
@@ -15146,7 +15182,11 @@
             "monotonic_ns": 264897767914330,
             "path": "results/artifacts/live_latency_20260912T075749Z_264830878892430_run10_assistant_first_trimmed.wav"
           }
-        ]
+        ],
+        "measurement_kind": "primary_playback_path",
+        "capture_mode": "active_raw_usb_side_channel",
+        "playback_mode": "pw_play_stable_target",
+        "aec_used": false
       }
     ],
     "chunking_comparison": [
@@ -15420,7 +15460,10 @@
             "monotonic_ns": 264900989623402,
             "onset_s": 0.68
           }
-        ]
+        ],
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       },
       {
         "max_chars": 32,
@@ -15692,7 +15735,10 @@
             "monotonic_ns": 264906098457354,
             "onset_s": 0.76
           }
-        ]
+        ],
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       },
       {
         "max_chars": 24,
@@ -15964,7 +16010,10 @@
             "monotonic_ns": 264909830751292,
             "onset_s": 0.68
           }
-        ]
+        ],
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       },
       {
         "max_chars": 16,
@@ -16236,7 +16285,10 @@
             "monotonic_ns": 264914567713190,
             "onset_s": 0.55
           }
-        ]
+        ],
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       }
     ],
     "first_chunk_policy": {
@@ -16521,7 +16573,10 @@
         "response_name": "short_affirmation",
         "response_text": "はい。",
         "measurement_scope": "chunker plus one physical playback; not a full user-ASR/LLM turn",
-        "total_first_physical_audio_latency_s": 1.642086666
+        "total_first_physical_audio_latency_s": 1.642086666,
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       },
       {
         "name": "natural_sentence_boundary",
@@ -16799,7 +16854,10 @@
         "response_name": "simple_explanation",
         "response_text": "確認しました。準備は完了です。",
         "measurement_scope": "chunker plus one physical playback; not a full user-ASR/LLM turn",
-        "total_first_physical_audio_latency_s": 2.459821395
+        "total_first_physical_audio_latency_s": 2.459821395,
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       },
       {
         "name": "natural_sentence_boundary",
@@ -17076,7 +17134,10 @@
         "response_name": "numeric_reply",
         "response_text": "合計は391です。",
         "measurement_scope": "chunker plus one physical playback; not a full user-ASR/LLM turn",
-        "total_first_physical_audio_latency_s": 3.05440432
+        "total_first_physical_audio_latency_s": 3.05440432,
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       },
       {
         "name": "natural_sentence_boundary",
@@ -17353,7 +17414,10 @@
         "response_name": "technical_terms",
         "response_text": "CUDAとOllamaを確認します。",
         "measurement_scope": "chunker plus one physical playback; not a full user-ASR/LLM turn",
-        "total_first_physical_audio_latency_s": 3.560861764
+        "total_first_physical_audio_latency_s": 3.560861764,
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       },
       {
         "name": "natural_sentence_boundary",
@@ -17631,7 +17695,10 @@
         "response_name": "two_sentences",
         "response_text": "準備が整いました。次に進みます。",
         "measurement_scope": "chunker plus one physical playback; not a full user-ASR/LLM turn",
-        "total_first_physical_audio_latency_s": 3.227881439
+        "total_first_physical_audio_latency_s": 3.227881439,
+        "measurement_kind": "policy_comparison",
+        "capture_mode": "raw_usb_side_channel",
+        "aec_used": false
       }
     ],
     "trim_policy": {
