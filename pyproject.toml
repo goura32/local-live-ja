@@ -33,6 +33,13 @@ dev = ["pytest>=8.0"]
 [project.scripts]
 local-live = "local_live.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/goura32/local-live-ja"
+Repository = "https://github.com/goura32/local-live-ja"
+Documentation = "https://github.com/goura32/local-live-ja/tree/main/docs"
+Issues = "https://github.com/goura32/local-live-ja/issues"
+Changelog = "https://github.com/goura32/local-live-ja/blob/main/CHANGELOG.md"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/local_live"]
 
