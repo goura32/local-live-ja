@@ -2,6 +2,7 @@
 
 ## 最新総合結果（Phase 7）
 
+- release metadata: `v0.1.1`（測定JSONの`local-live-ja: 0.1.0`は、再測定せず保持している実測時点のprovenance）
 - overall: `unattended_poc_complete`
 - application acceptance: 60 scripted turns、application failure `0`
 - same application path: `SessionController` + `LivePipeline` + incremental `SentenceChunker`

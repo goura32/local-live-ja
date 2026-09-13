@@ -1,6 +1,7 @@
 {
   "schema": "local-live-ja/summary/v2",
-  "generated_at": "2026-09-12T23:02:21.948886+00:00",
+  "release_metadata_version": "0.1.1",
+  "generated_at": "2026-09-13T01:35:00.608568+00:00",
   "environment": {
     "captured_at": "2026-09-12T22:37:08.608596+00:00",
     "hostname": "[REDACTED]",
@@ -63315,7 +63316,9 @@
         "user",
         "assistant"
       ],
-      "incremental_first_tts_before_completion": 119
+      "incremental_first_tts_before_completion": 119,
+      "queue_drop_count": 0,
+      "source_dropped_frames": 0
     },
     "synthetic_application_level_barge_in": [
       {
@@ -63498,10 +63501,10 @@
           "active_http_connections": false
         }
       },
-      "ram_peak_mib": 51.9453125,
+      "ram_peak_mib": 51.94921875,
       "gpu_peak_mib": 15,
       "gpu_free_min_mib": 15827,
-      "cpu_load_percent": 2.6754098360655734
+      "cpu_load_percent": 2.713934426229508
     },
     "cleanup": {
       "stale_pcm_bytes": 0,

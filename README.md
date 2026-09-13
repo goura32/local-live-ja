@@ -145,11 +145,11 @@ uv run python bench/summarize_results.py
 - [`docs/physical-onset.md`](docs/physical-onset.md): physical onset measurement
 - [`docs/unattended-validation.md`](docs/unattended-validation.md): 無人検証protocol
 - [`docs/official-sources.md`](docs/official-sources.md): 参照公式source
-- [`CHANGELOG.md`](CHANGELOG.md): v0.1.0の変更範囲
+- [`CHANGELOG.md`](CHANGELOG.md): v0.1.1 / v0.1.0の変更範囲
 - [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md): 外部model/runtimeのlicense境界
 - [GitHub Actions CI](https://github.com/goura32/local-live-ja/actions): hardware-free CI結果
 
 ## ライセンス
 
 Apache License 2.0。詳細は [`LICENSE`](LICENSE) を参照してください。
-公開tagは [`v0.1.0`](https://github.com/goura32/local-live-ja/tree/v0.1.0) です。
+完成版は [`v0.1.1`](https://github.com/goura32/local-live-ja/tree/main) です。初期Phase 7 application snapshotは [`v0.1.0`](https://github.com/goura32/local-live-ja/tree/v0.1.0) として保持しています。

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results"
+PROJECT_VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 
 
 def load(name: str) -> dict[str, Any]:
@@ -287,6 +289,7 @@ def build_summary() -> dict[str, Any]:
 
     return {
         "schema": "local-live-ja/summary/v2",
+        "release_metadata_version": PROJECT_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "environment": doctor.get("environment") or asr.get("environment") or None,
         "benchmark_paths": {

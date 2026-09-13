@@ -1,6 +1,12 @@
 # 変更履歴
 
-## 0.1.0 — Unattended-complete Japanese local live voice PoC
+## 0.1.1 — Final unattended PoC release
+
+- Phase 7 session recovery hardening
+- public release metadata completion
+- CI / release consistency fixes
+
+## 0.1.0 — Initial Phase 7 application snapshot
 
 この版は、local-live-jaのPoCとしての一区切りです。GPT-Live-1との互換性・同等性を意味しません。
 
